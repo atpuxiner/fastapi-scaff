@@ -1,7 +1,7 @@
 """
 @author axiner
 @version v1.0.0
-@created 2024/7/29 22:22
+@created 2024/07/29 22:22
 @abstract main
 @description
 @history
@@ -17,7 +17,7 @@ from . import __version__
 
 here = Path(__file__).absolute().parent
 
-prog = "fastapi-scaf"
+prog = "fastapi-scaff"
 
 
 def main():
@@ -125,7 +125,7 @@ class CMD:
             with open(tplpath, "w+", encoding="utf-8") as f:
                 # rpl
                 if re.search(r"README\.md$", k):
-                    v = v.replace("# fastapi-scaf", "# fastapi-scaf ( => yourProj)")
+                    v = v.replace(f"# {prog}", f"# {prog} ( => yourProj)")
                 if re.search(r"requirements\.txt$", k):
                     _default = self._db_requirements_map("default")
                     _user = self._db_requirements_map(self.args.db) or _default

@@ -1,5 +1,5 @@
 # 请根据自身需求修改
-appname: DbyApp-test
+appname: xApp-test
 appversion: 1.0.0
 debug: true
 log_dir: ./log

@@ -1,10 +1,10 @@
-# fastapi-scaf
+# fastapi-scaff
 
 ## What is this?
 
 - by: axiner
-- fastapi-scaf
-- This is a fastapi scaf.
+- fastapi-scaff
+- This is a fastapi scaff.
     - new project
     - add api
     - about project:
@@ -14,16 +14,16 @@
         - ...
     - more documents: [请点击链接](https://blog.csdn.net/atpuxiner/article/details/144291336?fromshare=blogdetail&sharetype=blogdetail&sharerId=144291336&sharerefer=PC&sharesource=atpuxiner&sharefrom=from_link)
 
-## Project Structure
+## Project structure
 
 - ABD: ABD模式
     - A api
     - B business
     - D datatype
-- 调用过程: main.py(initializer) - router(middleware) - api - business - (datatype)
+- 调用过程: main.py(initializer) -> (middleware) - router - api - business - (datatype)
 - 结构如下: (命名经过多次修改敲定，简洁易懂，ABD目录贴合避免杂乱无章)
   ```
-  └── fastapi-scaf
+  └── fastapi-scaff
       ├── app                         (应用)
       │   ├── api                     ├── (api)
       │   │   └── v1                  │   └── (v1)
@@ -45,25 +45,26 @@
       ├── .gitignore
       ├── LICENSE
       ├── README.md
-      └── requirements.txt
+      ├── requirements.txt
+      └── runserver.py
   ```
 
 ## Installation
 
 This package can be installed using pip (Python>=3.11):
-> pip install fastapi-scaf
+> pip install fastapi-scaff
 
-## Scaf Usage
+## Scaff usage
 
 - 1）help document
-    - `fastapi-scaf -h`
+    - `fastapi-scaff -h`
 - 2）new project
-    - `fastapi-scaf new <myproj>`
+    - `fastapi-scaff new <myproj>`
 - 3）add api
     - `cd to project root dir`
-    - `fastapi-scaf add <myapi>`
+    - `fastapi-scaff add <myapi>`
 
-## Project Run
+## Project run
 
 - 1）cd to project root dir
 - 2）modify the configuration, such as for the database
@@ -73,6 +74,6 @@ This package can be installed using pip (Python>=3.11):
       - about uvicorn: [click here](https://www.uvicorn.org/)
       - about gunicorn: [click here](https://docs.gunicorn.org/en/stable/)
 
-## LICENSE
+## License
 
 This project is released under the MIT License (MIT). See [LICENSE](LICENSE)

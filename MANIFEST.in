@@ -1,3 +1,0 @@
-include README.md
-include fastapi_scaf/_project_tpl.json
-include fastapi_scaf/_api_tpl.json

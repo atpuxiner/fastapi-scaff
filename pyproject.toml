@@ -1,3 +1,42 @@
 [build-system]
-requires = ['setuptools', 'wheel' ]
-build-backend = 'setuptools.build_meta'
+requires = ["setuptools>=80.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# project
+[project]
+name = "fastapi-scaff"
+description = "This is a fastapi scaff."
+authors = [{ name = "axiner", email = "atpuxiner@163.com" }]
+urls = { Homepage = "https://github.com/atpuxiner/fastapi-scaff" }
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.11"
+license-files = ["LICENSE"]
+readme = "README.md"
+dynamic = [
+    "version",
+]
+
+[project.scripts]
+fastapi-scaff = "fastapi_scaff.__main__:main"
+
+# tool
+[tool.setuptools.dynamic]
+version = { attr = "fastapi_scaff.__version__" }
+
+[tool.setuptools.package-data]
+"fastapi_scaff" = ["*.json"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = [
+    "app*",
+    "config*",
+    "deploy*",
+    "docs*",
+    "log*",
+    "fastapi_scaff.mgr*",
+    "dist*",
+]

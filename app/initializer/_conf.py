@@ -39,7 +39,7 @@ class Config(EnvConfig):
     """配置"""
     yamlname: str = appyaml.name
     #
-    appname: str = "DbyApp"
+    appname: str = "xApp"
     appversion: str = "1.0.0"
     debug: bool = True
     log_dir: str = "./log"

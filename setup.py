@@ -1,60 +1,24 @@
 """
 @author axiner
 @version v1.0.0
-@created 2024/7/29 22:22
+@created 2024/07/29 22:22
 @abstract
 @description
 @history
 """
 import os
 import re
-import sys
 from pathlib import Path
 from shutil import rmtree
 
-# from pkg_resources import yield_lines
-from setuptools import Command, setup, find_packages
-
-from versions import Versions
+from setuptools import setup, Command
 
 here = Path(__file__).absolute().parent
-
-__verison__ = Versions.ALL[0][0]
-
-with open('README.md', 'r', encoding='utf8') as f:
-    long_description = f.read()
-# with open('requirements.txt', 'r', encoding='utf8') as f:
-#     install_requires = list(yield_lines(f.read()))
-
-
-def update_version():
-    """update version"""
-    vfile = here.joinpath('fastapi_scaf/__init__.py').as_posix()
-    with open(vfile, 'r', encoding='utf8') as f:
-        file = f.read()
-    with open(vfile, 'w', encoding='utf8', newline='\n') as f:
-        file = re.sub(r'__version__ = "[\d.]+"', rf'__version__ = "{__verison__}"', file)
-        f.write(file)
-
-
-def bu():
-    """build"""
-    update_version()
-    try:
-        print('Removing previous builds...')
-        rmtree(os.path.join(here, 'dist'))
-        rmtree(os.path.join(here, 'build'))
-        rmtree(os.path.join(here, 'fastapi_scaf.egg-info'))
-    except OSError:
-        pass
-    print('Building Source or Wheel distribution...')
-    # os.system('{0} setup.py sdist bdist_wheel'.format(sys.executable))
-    os.system('{0} setup.py bdist_wheel'.format(sys.executable))
+pkg_name = "fastapi_scaff"
 
 
 class BuildCommand(Command):
-    """support setup.py build"""
-    description = 'Build the package.'
+    description = "Build the package(.whl)"
     user_options = []
 
     def initialize_options(self):
@@ -64,13 +28,38 @@ class BuildCommand(Command):
         pass
 
     def run(self):
-        bu()
-        sys.exit()
+        self._clean_dist_dirs()
+        self._update_version()
+        os.system("python -m build --wheel --no-isolation")
+
+    @staticmethod
+    def _clean_dist_dirs():
+        for path in ["dist", "build", f"{pkg_name}.egg-info"]:
+            try:
+                rmtree(here / path)
+            except FileNotFoundError:
+                pass
+
+    @staticmethod
+    def _update_version():
+        with open(".history", "r", encoding="utf8") as f:
+            __version__ = None
+            for line in f:
+                if line.startswith("## "):
+                    __version__ = line.replace("## ", "").strip(" \nv")
+                    break
+            if not __version__:
+                raise ValueError("Please set version")
+        init_file = here.joinpath(f"{pkg_name}/__init__.py")
+        with open(init_file, "r", encoding="utf8") as f:
+            content = f.read()
+        with open(init_file, "w", encoding="utf8", newline="\n") as f:
+            content = re.sub(r'__version__ = "[\d.]+"', rf'__version__ = "{__version__}"', content)
+            f.write(content)
 
 
-class UploadCommand(Command):
-    """support setup.py build&upload"""
-    description = 'Build and upload the package.'
+class PublishCommand(Command):
+    description = "Publish the package(.whl)"
     user_options = []
 
     def initialize_options(self):
@@ -80,20 +69,16 @@ class UploadCommand(Command):
         pass
 
     def run(self):
-        bu()
-        print('Uploading the package to PyPI via Twine...')
-        os.system('twine upload dist/*')
-        sys.exit()
+        os.system("python setup.py bld")
+        os.system("python -m twine upload dist/*")
 
 
 setup(
-    version=__verison__,
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-    packages=find_packages(include=['fastapi_scaf']),
-    # install_requires=install_requires,
     cmdclass={
-        'bu': BuildCommand,
-        'up': UploadCommand,
+        "bld": BuildCommand,
+        "pub": PublishCommand,
+    },
+    options={
+        "bdist": {"plat_name": "any"},
     },
 )
