@@ -1,5 +1,7 @@
-from typing import Mapping, get_type_hints
+import json
+from typing import Mapping, get_type_hints, Any
 
+from fastapi.encoders import jsonable_encoder
 from starlette.background import BackgroundTask
 from starlette.responses import JSONResponse, StreamingResponse, ContentStream
 from toollib.utils import now2timestamp, map_jsontype
@@ -15,6 +17,7 @@ class Response:
             msg: str = None,
             code: int = None,
             status: Status = Status.SUCCESS,
+            is_encode_data: bool = False,
             status_code: int = 200,
             headers: Mapping[str, str] | None = None,
             media_type: str | None = None,
@@ -25,7 +28,7 @@ class Response:
                 "time": now2timestamp(),
                 "msg": msg or status.msg,
                 "code": code or status.code,
-                "data": data,
+                "data": Response.encode_data(data) if is_encode_data else data,
             },
             status_code=status_code,
             headers=headers,
@@ -40,6 +43,7 @@ class Response:
             error: str | Exception | None = None,
             data: dict | list | str | None = None,
             status: Status = Status.FAILURE,
+            is_encode_data: bool = False,
             status_code: int = 200,
             headers: Mapping[str, str] | None = None,
             media_type: str | None = None,
@@ -51,13 +55,25 @@ class Response:
                 "msg": msg or status.msg,
                 "code": code or status.code,
                 "error": str(error) if error else None,
-                "data": data,
+                "data": Response.encode_data(data) if is_encode_data else data,
             },
             status_code=status_code,
             headers=headers,
             media_type=media_type,
             background=background,
         )
+
+    @staticmethod
+    def encode_data(data: Any) -> Any:
+        if data is None or isinstance(data, (str, int, float, bool)):
+            return data
+        if isinstance(data, (dict, list)):
+            try:
+                json.dumps(data)
+                return data
+            except (TypeError, OverflowError):
+                pass
+        return jsonable_encoder(data)
 
     @staticmethod
     def stream(

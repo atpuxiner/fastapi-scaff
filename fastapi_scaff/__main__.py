@@ -16,7 +16,6 @@ from pathlib import Path
 from . import __version__
 
 here = Path(__file__).absolute().parent
-
 prog = "fastapi-scaff"
 
 

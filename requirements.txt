@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 # Python>=3.11
-fastapi==0.115.12
-uvicorn==0.34.0
-toollib==1.7.3
-python-dotenv==1.1.0
+fastapi==0.116.1
+uvicorn==0.35.0
+orjson==3.11.1
+toollib==1.7.4
+python-dotenv==1.1.1
 PyYAML==6.0.2
 loguru==0.7.3
-SQLAlchemy==2.0.40
+SQLAlchemy==2.0.42
 aiosqlite==0.21.0
-redis==5.2.1
+redis==6.4.0
 PyJWT==2.10.1
 bcrypt==4.3.0
