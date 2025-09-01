@@ -37,6 +37,7 @@ class EnvConfig:
 
 class Config(EnvConfig):
     """配置"""
+    _yamlconf: dict = None
     yamlname: str = appyaml.name
     #
     appname: str = "xApp"
@@ -66,10 +67,12 @@ class Config(EnvConfig):
                 v = parse_variable(k=k, v_type=v_type, v_from=self.load_yaml(), default=v)
             setattr(self, k, v)
 
-    @staticmethod
-    def load_yaml() -> dict:
+    def load_yaml(self, reload: bool = False) -> dict:
+        if self._yamlconf and not reload:
+            return self._yamlconf
         with open(appyaml, mode="r", encoding="utf-8") as file:
-            return yaml.safe_load(file)
+            self._yamlconf = yaml.load(file, Loader=yaml.FullLoader)
+            return self._yamlconf
 
 
 def init_config() -> Config:
