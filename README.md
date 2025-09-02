@@ -19,7 +19,7 @@
 - ABD: ABD模式
     - A api
     - B business
-    - D dschema
+    - D dschema (data schema)
 - 调用过程: main.py(initializer) -> (middleware) - router - api - business - (dschema)
 - 结构如下: (命名经过多次修改敲定，简洁易懂，ABD目录贴合避免杂乱无章)
   ```
