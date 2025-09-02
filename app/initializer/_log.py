@@ -5,8 +5,10 @@ from pathlib import Path
 from loguru import logger
 from loguru._logger import Logger  # noqa
 
-_LOG_CONSOLE_FORMAT = "{time:YYYY-MM-DD HH:mm:ss.SSS} {level} {file}:{line} {message}"
-_LOG_FILE_FORMAT = "{time:YYYY-MM-DD HH:mm:ss.SSS} {level} {file}:{line} {message}"
+from app.initializer.context import request_id_ctx_var
+
+_LOG_CONSOLE_FORMAT = "{time:YYYY-MM-DD HH:mm:ss.SSS} {level} {extra[request_id]} {file}:{line} {message}"
+_LOG_FILE_FORMAT = "{time:YYYY-MM-DD HH:mm:ss.SSS} {level} {extra[request_id]} {file}:{line} {message}"
 _LOG_FILE_PREFIX = "app"
 _LOG_ROTATION = "100 MB"
 _LOG_RETENTION = "15 days"
@@ -23,6 +25,11 @@ def init_logger(
 ) -> Logger:
     logger.remove(None)
     _lever = "DEBUG" if debug else "INFO"
+
+    def _filter(record: dict) -> bool:
+        record["extra"]["request_id"] = request_id_ctx_var.get()
+        return True
+
     logger.add(
         sys.stdout,
         format=_LOG_CONSOLE_FORMAT,
@@ -30,6 +37,7 @@ def init_logger(
         enqueue=_LOG_ENQUEUE,
         backtrace=_LOG_BACKTRACE,
         diagnose=_LOG_DIAGNOSE,
+        filter=_filter,
     )
     if log_dir:
         _log_dir = Path(log_dir)
