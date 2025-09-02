@@ -1,18 +1,18 @@
-from app.datatype.user import (
+from app.dschema.user import (
     User,
-    UserDetailMdl,
-    UserListMdl,
-    UserCreateMdl,
-    UserUpdateMdl,
-    UserDeleteMdl,
-    UserLoginMdl,
-    UserTokenMdl,
+    UserDetail,
+    UserList,
+    UserCreate,
+    UserUpdate,
+    UserDelete,
+    UserLogin,
+    UserToken,
 )
 from app.initializer import g
 from app.utils import auth, db_async
 
 
-class UserDetailBiz(UserDetailMdl):
+class UserDetailBiz(UserDetail):
 
     async def detail(self):
         async with g.db_async_session() as session:
@@ -25,7 +25,7 @@ class UserDetailBiz(UserDetailMdl):
             return data
 
 
-class UserListBiz(UserListMdl):
+class UserListBiz(UserList):
 
     async def lst(self):
         async with g.db_async_session() as session:
@@ -40,7 +40,7 @@ class UserListBiz(UserListMdl):
             return data, total
 
 
-class UserCreateBiz(UserCreateMdl):
+class UserCreateBiz(UserCreate):
 
     async def create(self):
         async with g.db_async_session() as session:
@@ -59,7 +59,7 @@ class UserCreateBiz(UserCreateMdl):
             )
 
 
-class UserUpdateBiz(UserUpdateMdl):
+class UserUpdateBiz(UserUpdate):
 
     async def update(self, user_id: str):
         async with g.db_async_session() as session:
@@ -71,7 +71,7 @@ class UserUpdateBiz(UserUpdateMdl):
             )
 
 
-class UserDeleteBiz(UserDeleteMdl):
+class UserDeleteBiz(UserDelete):
 
     @staticmethod
     async def delete(user_id: str):
@@ -83,7 +83,7 @@ class UserDeleteBiz(UserDeleteMdl):
             )
 
 
-class UserLoginBiz(UserLoginMdl):
+class UserLoginBiz(UserLogin):
 
     async def login(self):
         async with g.db_async_session() as session:
@@ -116,7 +116,7 @@ class UserLoginBiz(UserLoginMdl):
             return token
 
 
-class UserTokenBiz(UserTokenMdl):
+class UserTokenBiz(UserToken):
 
     async def token(self):
         async with g.db_async_session() as session:

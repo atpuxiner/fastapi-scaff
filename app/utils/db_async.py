@@ -6,7 +6,7 @@ from sqlalchemy import (
 )
 
 
-async def format_all(
+def format_all(
         rows,
         fields: list[str],
 ) -> list[dict]:
@@ -15,7 +15,7 @@ async def format_all(
     return [dict(zip(fields, row)) for row in rows]
 
 
-async def format_one(
+def format_one(
         row,
         fields: list[str],
 ) -> dict:
@@ -24,7 +24,7 @@ async def format_one(
     return dict(zip(fields, row))
 
 
-async def model_dict(
+def model_dict(
         model,
         fields: list[str] = None,
 ) -> dict:
@@ -47,7 +47,7 @@ async def query_one(
     if filter_by:
         query = query.filter_by(**filter_by)
     result = await session.execute(query)
-    return await format_one(result.fetchone(), fields)
+    return format_one(result.fetchone(), fields)
 
 
 async def query_all(
@@ -66,7 +66,7 @@ async def query_all(
     if page and size:
         query = query.offset((page - 1) * size).limit(size)
     result = await session.execute(query)
-    return await format_all(result.fetchall(), fields)
+    return format_all(result.fetchall(), fields)
 
 
 async def query_total(

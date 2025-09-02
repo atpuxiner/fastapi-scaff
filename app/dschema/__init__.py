@@ -1,5 +1,5 @@
 """
-数据类型
+数据结构（data schema）
 """
 from sqlalchemy.orm import declarative_base
 

@@ -19,8 +19,8 @@
 - ABD: ABD模式
     - A api
     - B business
-    - D datatype
-- 调用过程: main.py(initializer) -> (middleware) - router - api - business - (datatype)
+    - D dschema
+- 调用过程: main.py(initializer) -> (middleware) - router - api - business - (dschema)
 - 结构如下: (命名经过多次修改敲定，简洁易懂，ABD目录贴合避免杂乱无章)
   ```
   └── fastapi-scaff
@@ -28,7 +28,7 @@
       │   ├── api                     ├── (api)
       │   │   └── v1                  │   └── (v1)
       │   ├── business                ├── (业务)
-      │   ├── datatype                ├── (数据类型)
+      │   ├── dschema                 ├── (数据结构)
       │   ├── initializer             ├── (初始化)
       │   │   ├── conf                │   ├── (配置)
       │   │   ├── db                  │   ├── (数据库)

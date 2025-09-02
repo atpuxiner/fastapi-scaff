@@ -7,8 +7,8 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 from app import APP_DIR
 
-_DATATYPE_MOD_DIR = APP_DIR.joinpath("datatype")
-_DATATYPE_MOD_BASE = "app.datatype"
+_DSCHEMA_MOD_DIR = APP_DIR.joinpath("DSCHEMA")
+_DSCHEMA_MOD_BASE = "app.dschema"
 
 _is_tables_created = False
 
@@ -38,7 +38,7 @@ def init_db_session(
     db_session = sessionmaker(engine, expire_on_commit=False)
 
     def create_tables():
-        from app.datatype import DeclBase
+        from app.dschema import DeclBase
         _import_tables()
         try:
             DeclBase.metadata.create_all(engine)
@@ -83,7 +83,7 @@ def init_db_async_session(
     db_async_session = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)  # noqa
 
     async def create_tables():
-        from app.datatype import DeclBase
+        from app.dschema import DeclBase
         _import_tables()
         async with async_engine.begin() as conn:
             try:
@@ -113,6 +113,6 @@ def init_db_async_session(
 
 def _import_tables():
     """导入表"""
-    for f in _DATATYPE_MOD_DIR.glob("*.py"):
+    for f in _DSCHEMA_MOD_DIR.glob("*.py"):
         if not f.name.startswith("__"):
-            _ = importlib.import_module(f"{_DATATYPE_MOD_BASE}.{f.stem}")
+            _ = importlib.import_module(f"{_DSCHEMA_MOD_BASE}.{f.stem}")

@@ -8,7 +8,7 @@ from starlette.requests import Request
 
 from app.api.exception import CustomException
 from app.api.status import Status
-from app.datatype.user import User
+from app.dschema.user import User
 from app.initializer import g
 from app.utils import db_async
 from app.utils.auth import verify_jwt

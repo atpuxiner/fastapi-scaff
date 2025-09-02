@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from sqlalchemy import Column, String
 
-from app.datatype import DeclBase, filter_fields
+from app.dschema import DeclBase, filter_fields
 from app.initializer import g
 
 
@@ -12,7 +12,7 @@ class Tpl(DeclBase):
     name = Column(String(50), nullable=False, comment="名称")
 
 
-class TplDetailMdl(BaseModel):
+class TplDetail(BaseModel):
     id: str = Field(...)
     # #
     name: str = None

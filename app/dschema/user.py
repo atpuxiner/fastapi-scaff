@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import Column, BigInteger, Integer, String
 from toollib.utils import now2timestamp
 
-from app.datatype import DeclBase, filter_fields
+from app.dschema import DeclBase, filter_fields
 from app.initializer import g
 
 
@@ -23,7 +23,7 @@ class User(DeclBase):
     updated_at = Column(BigInteger, default=now2timestamp, onupdate=now2timestamp, comment="更新时间")
 
 
-class UserDetailMdl(BaseModel):
+class UserDetail(BaseModel):
     id: str = Field(...)
     # #
     phone: str = None
@@ -41,7 +41,7 @@ class UserDetailMdl(BaseModel):
         )
 
 
-class UserListMdl(BaseModel):
+class UserList(BaseModel):
     page: int = Field(1, ge=1)
     size: int = Field(10, ge=1)
     # #
@@ -64,7 +64,7 @@ class UserListMdl(BaseModel):
         )
 
 
-class UserCreateMdl(BaseModel):
+class UserCreate(BaseModel):
     phone: str = Field(..., pattern=r"^1[3-9]\d{9}$")
     password: str = Field(...)
     name: str | None = Field(None)
@@ -86,7 +86,7 @@ class UserCreateMdl(BaseModel):
         return v
 
 
-class UserUpdateMdl(BaseModel):
+class UserUpdate(BaseModel):
     name: str | None = Field(None)
     age: int | None = Field(None, ge=0, le=200)
     gender: Literal[1, 2] | None = Field(None)
@@ -98,15 +98,15 @@ class UserUpdateMdl(BaseModel):
         return v
 
 
-class UserDeleteMdl(BaseModel):
+class UserDelete(BaseModel):
     pass
 
 
-class UserLoginMdl(BaseModel):
+class UserLogin(BaseModel):
     phone: str = Field(...)
     password: str = Field(...)
 
 
-class UserTokenMdl(BaseModel):
+class UserToken(BaseModel):
     id: str = Field(...)
     exp_minutes: int = Field(24 * 60 * 30, ge=1)

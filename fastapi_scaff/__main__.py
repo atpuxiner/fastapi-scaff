@@ -67,7 +67,7 @@ def main():
         default="abd",
         choices=["a", "ab", "abd"],
         metavar="",
-        help="`add`时可指定目标(默认abd, a:api,b:business,d:datatype)")
+        help="`add`时可指定目标(默认abd, a:api,b:business,d:dschema)")
     args = parser.parse_args()
     cmd = CMD(args)
     if args.command == "new":
@@ -211,7 +211,7 @@ class CMD:
             tpl_mods = [
                 "app/api",
                 "app/business",
-                "app/datatype",
+                "app/dschema",
             ]
         for mod in tpl_mods:
             if not work_dir.joinpath(mod).is_dir():
@@ -288,7 +288,7 @@ class CMD:
                             v = api_tpl_dict.get(k, "").replace(
                                 "from app.business.tpl import (", f"from app.business.{subdir}.tpl import ("
                             ).replace(
-                                "from app.datatype.tpl import (", f"from app.datatype.{subdir}.tpl import ("
+                                "from app.dschema.tpl import (", f"from app.dschema.{subdir}.tpl import ("
                             ).replace(
                                 "tpl", name).replace(
                                 "Tpl", "".join([i[0].upper() + i[1:] if i else "_" for i in name.split("_")]))
