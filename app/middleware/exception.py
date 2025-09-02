@@ -23,7 +23,12 @@ class ExceptionHandler:
         if is_traceback:
             lmsg = traceback.format_exc()
         g.logger.error(lmsg)
-        return Response.failure(msg=exc.msg, code=exc.code, data=exc.data)
+        return Response.failure(
+            msg=exc.msg,
+            code=exc.code,
+            data=exc.data,
+            request=request,
+        )
 
     @staticmethod
     async def http_exception_handler(
@@ -35,7 +40,11 @@ class ExceptionHandler:
         if is_traceback:
             lmsg = traceback.format_exc()
         g.logger.error(lmsg)
-        return Response.failure(msg=exc.detail, code=exc.status_code)
+        return Response.failure(
+            msg=exc.detail,
+            code=exc.status_code,
+            request=request,
+        )
 
     @staticmethod
     async def validation_exception_handler(
@@ -56,4 +65,5 @@ class ExceptionHandler:
         return Response.failure(
             msg=msg,
             status=Status.PARAMS_ERROR,
+            request=request,
         )

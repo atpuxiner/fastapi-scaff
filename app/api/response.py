@@ -3,8 +3,9 @@ from typing import Mapping, get_type_hints, Any
 
 from fastapi.encoders import jsonable_encoder
 from starlette.background import BackgroundTask
+from starlette.requests import Request
 from starlette.responses import JSONResponse, StreamingResponse, ContentStream
-from toollib.utils import now2timestamp, map_jsontype
+from toollib.utils import map_jsontype
 
 from app.api.status import Status
 
@@ -18,18 +19,22 @@ class Response:
             code: int = None,
             status: Status = Status.SUCCESS,
             is_encode_data: bool = False,
+            request: Request = None,
             status_code: int = 200,
             headers: Mapping[str, str] | None = None,
             media_type: str | None = None,
             background: BackgroundTask | None = None,
     ) -> JSONResponse:
+        content = {
+            "msg": msg or status.msg,
+            "code": code or status.code,
+            "data": Response.encode_data(data) if is_encode_data else data,
+        }
+        if request:
+            if request_id := getattr(request.state, 'request_id', None):
+                content["request_id"] = request_id
         return JSONResponse(
-            content={
-                "time": now2timestamp(),
-                "msg": msg or status.msg,
-                "code": code or status.code,
-                "data": Response.encode_data(data) if is_encode_data else data,
-            },
+            content=content,
             status_code=status_code,
             headers=headers,
             media_type=media_type,
@@ -44,19 +49,23 @@ class Response:
             data: dict | list | str | None = None,
             status: Status = Status.FAILURE,
             is_encode_data: bool = False,
+            request: Request = None,
             status_code: int = 200,
             headers: Mapping[str, str] | None = None,
             media_type: str | None = None,
             background: BackgroundTask | None = None,
     ) -> JSONResponse:
+        content = {
+            "msg": msg or status.msg,
+            "code": code or status.code,
+            "error": str(error) if error else None,
+            "data": Response.encode_data(data) if is_encode_data else data,
+        }
+        if request:
+            if request_id := getattr(request.state, 'request_id', None):
+                content["request_id"] = request_id
         return JSONResponse(
-            content={
-                "time": now2timestamp(),
-                "msg": msg or status.msg,
-                "code": code or status.code,
-                "error": str(error) if error else None,
-                "data": Response.encode_data(data) if is_encode_data else data,
-            },
+            content=content,
             status_code=status_code,
             headers=headers,
             media_type=media_type,
@@ -155,10 +164,10 @@ def response_docs(
             "content": {
                 "application/json": {
                     "example": {
-                        "time": "integer",
                         "msg": "string",
                         "code": "integer",
-                        "data": format_data
+                        "data": format_data,
+                        "request_id": "string",
                     }
                 }
             }
@@ -168,11 +177,11 @@ def response_docs(
             "content": {
                 "application/json": {
                     "example": {
-                        "time": "integer",
                         "msg": "string",
                         "code": "integer",
                         "error": "string",
                         "data": "object | array | ...",
+                        "request_id": "string",
                     }
                 }
             }

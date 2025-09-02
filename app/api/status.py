@@ -10,6 +10,7 @@ class Status(Enum):
     # 建议：业务模块错误码从10000开始
     RECORD_NOT_EXIST_ERROR = (10000, '记录不存在')
     RECORD_EXISTS_ERROR = (10001, '记录已存在')
+    USER_OR_PASSWORD_ERROR = (10002, '用户名或密码错误')
 
     @property
     def code(self):

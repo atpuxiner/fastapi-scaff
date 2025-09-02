@@ -1,6 +1,7 @@
 import traceback
 
 from fastapi import APIRouter, Depends
+from starlette.requests import Request
 
 from app.api.response import Response, response_docs
 from app.business.tpl import (
@@ -21,6 +22,7 @@ tpl_router = APIRouter()
     ),
 )
 async def detail(
+        request: Request,
         tpl_id: str,
         current_user: JWTUser = Depends(get_current_user),
 ):
@@ -28,8 +30,8 @@ async def detail(
         tpl_biz = TplDetailBiz(id=tpl_id)
         data = await tpl_biz.detail()
         if not data:
-            return Response.failure(msg="未匹配到记录", status=Status.RECORD_NOT_EXIST_ERROR)
+            return Response.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
     except Exception as e:
         g.logger.error(traceback.format_exc())
-        return Response.failure(msg="tplDetail失败", error=e)
-    return Response.success(data=data)
+        return Response.failure(msg="tplDetail失败", error=e, request=request)
+    return Response.success(data=data, request=request)
