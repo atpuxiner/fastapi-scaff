@@ -10,16 +10,16 @@ from app import APP_DIR
 _CONFIG_DIR = APP_DIR.parent.joinpath("config")
 
 load_dotenv(dotenv_path=os.environ.setdefault(
-    key="envpath",
+    key="env_path",
     value=str(_CONFIG_DIR.joinpath(".env")))
 )
 # #
-appyaml = Path(
-    os.environ.get("appyaml") or
-    _CONFIG_DIR.joinpath(f"app_{os.environ.setdefault(key='appenv', value='dev')}.yaml")
+app_yaml = Path(
+    os.environ.get("app_yaml") or
+    _CONFIG_DIR.joinpath(f"app_{os.environ.setdefault(key='app_env', value='dev')}.yaml")
 )
-if not appyaml.is_file():
-    raise RuntimeError(f"配置文件不存在：{appyaml}")
+if not app_yaml.is_file():
+    raise RuntimeError(f"配置文件不存在：{app_yaml}")
 
 
 class EnvConfig:
@@ -37,14 +37,17 @@ class EnvConfig:
 
 class Config(EnvConfig):
     """配置"""
-    _yamlconf: dict = None
-    yamlname: str = appyaml.name
+    _yaml_conf: dict = None
+    yaml_name: str = app_yaml.name
     #
-    appname: str = "xApp"
-    appversion: str = "1.0.0"
-    debug: bool = True
-    log_dir: str = "./log"
-    is_disable_docs: bool = True
+    app_title: str = "xApp"
+    app_summary: str = "xxApp"
+    app_description: str = "xxxApp"
+    app_version: str = "1.0.0"
+    app_debug: bool = True
+    app_log_dir: str = "./logs"
+    app_disable_docs: bool = True
+    app_allow_origins: list = ["*"]
     # #
     redis_host: str = None
     redis_port: int = None
@@ -68,11 +71,11 @@ class Config(EnvConfig):
             setattr(self, k, v)
 
     def load_yaml(self, reload: bool = False) -> dict:
-        if self._yamlconf and not reload:
-            return self._yamlconf
-        with open(appyaml, mode="r", encoding="utf-8") as file:
-            self._yamlconf = yaml.load(file, Loader=yaml.FullLoader)
-            return self._yamlconf
+        if self._yaml_conf and not reload:
+            return self._yaml_conf
+        with open(app_yaml, mode="r", encoding="utf-8") as file:
+            self._yaml_conf = yaml.load(file, Loader=yaml.FullLoader)
+            return self._yaml_conf
 
 
 def init_config() -> Config:

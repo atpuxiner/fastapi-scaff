@@ -16,6 +16,7 @@ _LOG_COMPRESSION = None
 _LOG_ENQUEUE = True
 _LOG_BACKTRACE = False
 _LOG_DIAGNOSE = False
+_LOG_CATCH = False
 _LOG_PID = False
 
 
@@ -37,6 +38,7 @@ def init_logger(
         enqueue=_LOG_ENQUEUE,
         backtrace=_LOG_BACKTRACE,
         diagnose=_LOG_DIAGNOSE,
+        catch=_LOG_CATCH,
         filter=_filter,
     )
     if log_dir:
@@ -57,6 +59,7 @@ def init_logger(
             enqueue=_LOG_ENQUEUE,
             backtrace=_LOG_BACKTRACE,
             diagnose=_LOG_DIAGNOSE,
+            catch=_LOG_CATCH,
         )
         logger.add(
             _log_error_file,
@@ -69,5 +72,6 @@ def init_logger(
             enqueue=_LOG_ENQUEUE,
             backtrace=_LOG_BACKTRACE,
             diagnose=_LOG_DIAGNOSE,
+            catch=_LOG_CATCH,
         )
     return logger

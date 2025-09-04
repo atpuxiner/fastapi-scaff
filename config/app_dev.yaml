@@ -1,9 +1,13 @@
 # 请根据自身需求修改
-appname: xApp-dev
-appversion: 1.0.0
-debug: true
-log_dir: ./log
-is_disable_docs: false
+app_title: xApp-dev
+app_summary: xxApp-dev
+app_description: xxxApp-dev
+app_version: 1.0.0
+app_debug: true
+app_log_dir: ./logs
+app_disable_docs: false
+app_allow_origins:
+  - '*'
 # #
 redis_host:
 redis_port:

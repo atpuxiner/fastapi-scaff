@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
 from app import (
-    router,
+    api,
     middleware,
 )
 from app.initializer import g
@@ -21,15 +21,15 @@ g.setup()
 openapi_url = "/openapi.json"
 docs_url = "/docs"
 redoc_url = "/redoc"
-if g.config.is_disable_docs is True:
+if g.config.app_disable_docs is True:
     openapi_url, docs_url, redoc_url = None, None, None
 
 
 @asynccontextmanager
 async def lifespan(app_: FastAPI):
-    g.logger.info(f"Application using config file '{g.config.yamlname}'")
-    g.logger.info(f"Application name '{g.config.appname}'")
-    g.logger.info(f"Application version '{g.config.appversion}'")
+    g.logger.info(f"Application using config file '{g.config.yaml_name}'")
+    g.logger.info(f"Application title '{g.config.app_title}'")
+    g.logger.info(f"Application version '{g.config.app_version}'")
     # #
     g.logger.info("Application server running")
     yield
@@ -37,9 +37,11 @@ async def lifespan(app_: FastAPI):
 
 
 app = FastAPI(
-    title=g.config.appname,
-    version=g.config.appversion,
-    debug=g.config.debug,
+    title=g.config.app_title,
+    summary=g.config.app_summary,
+    description=g.config.app_description,
+    version=g.config.app_version,
+    debug=g.config.app_debug,
     openapi_url=openapi_url,
     docs_url=docs_url,
     redoc_url=redoc_url,
@@ -47,5 +49,5 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
 )
 # #
-router.register_routers(app)
+api.register_routers(app)
 middleware.register_middlewares(app)

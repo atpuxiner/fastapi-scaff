@@ -16,32 +16,33 @@
 
 ## Project structure
 
-- ABD: ABD模式
+- ASM: ASM模式
     - A api
-    - B business
-    - D dschema (data schema)
-- 调用过程: main.py(initializer) -> (middleware) - router - api - business - (dschema)
-- 结构如下: (命名经过多次修改敲定，简洁易懂，ABD目录贴合避免杂乱无章)
+    - S service(&schema)
+    - M model
+- 调用过程: main.py(initializer) -> (middleware) - api - service(&schema) - (model)
+- 结构如下: (命名经过多次修改敲定，简洁易懂)
   ```
   └── fastapi-scaff
       ├── app                         (应用)
       │   ├── api                     ├── (api)
       │   │   └── v1                  │   └── (v1)
-      │   ├── business                ├── (业务)
-      │   ├── dschema                 ├── (数据结构)
       │   ├── initializer             ├── (初始化)
       │   │   ├── conf                │   ├── (配置)
       │   │   ├── db                  │   ├── (数据库)
       │   │   ├── log                 │   ├── (日志)
       │   │   └── ...                 │   └── (...)
       │   ├── middleware              ├── (中间件)
-      │   ├── router                  ├── (路由)
+      │   ├── model                   ├── (数据模型)
+      │   ├── schema                  ├── (数据结构)
+      │   ├── service                 ├── (业务逻辑)
       │   ├── utils                   ├── (utils)
       │   └── main.py                 └── (main.py)
       ├── config                      (配置目录)
       ├── deploy                      (部署目录)
       ├── docs                        (文档目录)
-      ├── log                         (日志目录)
+      ├── logs                        (日志目录)
+      ├── tests                       (测试目录)
       ├── .gitignore
       ├── LICENSE
       ├── README.md

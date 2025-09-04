@@ -48,8 +48,8 @@ class G(metaclass=Singleton):
     def _get_logger(cls):
         if not cls.logger:
             cls.logger = init_logger(
-                debug=cls.config.debug,
-                log_dir=cls.config.log_dir,
+                debug=cls.config.app_debug,
+                log_dir=cls.config.app_log_dir,
             )
         return cls.logger
 
@@ -88,7 +88,7 @@ class G(metaclass=Singleton):
         if not cls.db_async_session:
             cls.db_async_session = init_db_async_session(
                 db_url=cls.config.db_async_url,
-                db_echo=cls.config.debug,
+                db_echo=cls.config.app_debug,
             )
         return cls.db_async_session
 

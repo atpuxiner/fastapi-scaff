@@ -1,9 +1,6 @@
 """
-数据结构（data schema）
+数据结构
 """
-from sqlalchemy.orm import declarative_base
-
-DeclBase = declarative_base()
 
 
 def filter_fields(

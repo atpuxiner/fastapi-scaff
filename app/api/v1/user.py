@@ -5,14 +5,14 @@ from starlette.requests import Request
 
 from app.api.response import Response, response_docs
 from app.api.status import Status
-from app.business.user import (
-    UserDetailBiz,
-    UserListBiz,
-    UserCreateBiz,
-    UserUpdateBiz,
-    UserDeleteBiz,
-    UserLoginBiz,
-    UserTokenBiz,
+from app.service.user import (
+    UserDetailSvc,
+    UserListSvc,
+    UserCreateSvc,
+    UserUpdateSvc,
+    UserDeleteSvc,
+    UserLoginSvc,
+    UserTokenSvc,
 )
 from app.initializer import g
 from app.middleware.auth import JWTUser, get_current_user
@@ -31,7 +31,7 @@ _tag = "user"  # 标签（默认模块名或子目录名）
     path="/user/{user_id}",
     summary="userDetail",
     responses=response_docs(
-        model=UserDetailBiz,
+        model=UserDetailSvc,
     ),
 )
 async def detail(
@@ -40,8 +40,8 @@ async def detail(
         current_user: JWTUser = Depends(get_current_user),  # 认证
 ):
     try:
-        user_biz = UserDetailBiz(id=user_id)
-        data = await user_biz.detail()
+        user_svc = UserDetailSvc(id=user_id)
+        data = await user_svc.detail()
         if not data:
             return Response.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
@@ -54,7 +54,7 @@ async def detail(
     path="/user",
     summary="userList",
     responses=response_docs(
-        model=UserListBiz,
+        model=UserListSvc,
         is_listwrap=True,
         listwrap_key="items",
         listwrap_key_extra={
@@ -69,8 +69,8 @@ async def lst(
         current_user: JWTUser = Depends(get_current_user),
 ):
     try:
-        user_biz = UserListBiz(page=page, size=size)
-        data, total = await user_biz.lst()
+        user_svc = UserListSvc(page=page, size=size)
+        data, total = await user_svc.lst()
     except Exception as e:
         g.logger.error(traceback.format_exc())
         return Response.failure(msg="userList失败", error=e, request=request)
@@ -86,10 +86,10 @@ async def lst(
 )
 async def create(
         request: Request,
-        user_biz: UserCreateBiz,
+        user_svc: UserCreateSvc,
 ):
     try:
-        user_id = await user_biz.create()
+        user_id = await user_svc.create()
         if not user_id:
             return Response.failure(status=Status.RECORD_EXISTS_ERROR, request=request)
     except Exception as e:
@@ -108,11 +108,11 @@ async def create(
 async def update(
         request: Request,
         user_id: str,
-        user_biz: UserUpdateBiz,
+        user_svc: UserUpdateSvc,
         current_user: JWTUser = Depends(get_current_user),
 ):
     try:
-        updated_ids = await user_biz.update(user_id)
+        updated_ids = await user_svc.update(user_id)
         if not updated_ids:
             return Response.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
     except Exception as e:
@@ -134,8 +134,8 @@ async def delete(
         current_user: JWTUser = Depends(get_current_user),
 ):
     try:
-        user_biz = UserDeleteBiz()
-        deleted_ids = await user_biz.delete(user_id)
+        user_svc = UserDeleteSvc()
+        deleted_ids = await user_svc.delete(user_id)
         if not deleted_ids:
             return Response.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
     except Exception as e:
@@ -153,10 +153,10 @@ async def delete(
 )
 async def login(
         request: Request,
-        user_biz: UserLoginBiz,
+        user_svc: UserLoginSvc,
 ):
     try:
-        data = await user_biz.login()
+        data = await user_svc.login()
         if not data:
             return Response.failure(status=Status.USER_OR_PASSWORD_ERROR, request=request)
     except Exception as e:
@@ -174,11 +174,11 @@ async def login(
 )
 async def token(
         request: Request,
-        user_biz: UserTokenBiz,
+        user_svc: UserTokenSvc,
         current_user: JWTUser = Depends(get_current_user),
 ):
     try:
-        data = await user_biz.token()
+        data = await user_svc.token()
         if not data:
             return Response.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
     except Exception as e:

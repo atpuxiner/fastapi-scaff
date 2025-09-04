@@ -7,10 +7,9 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 from app import APP_DIR
 
-_DSCHEMA_MOD_DIR = APP_DIR.joinpath("DSCHEMA")
-_DSCHEMA_MOD_BASE = "app.dschema"
-
-_is_tables_created = False
+_DSCHEMA_MOD_DIR = APP_DIR.joinpath("model")
+_DSCHEMA_MOD_BASE = "app.model"
+_TABLES_CREATED = False
 
 
 def init_db_session(
@@ -38,7 +37,7 @@ def init_db_session(
     db_session = sessionmaker(engine, expire_on_commit=False)
 
     def create_tables():
-        from app.dschema import DeclBase
+        from app.model import DeclBase
         _import_tables()
         try:
             DeclBase.metadata.create_all(engine)
@@ -50,10 +49,10 @@ def init_db_session(
             if "already exists" not in str(e):
                 raise
 
-    global _is_tables_created
-    if is_create_tables and not _is_tables_created:
+    global _TABLES_CREATED
+    if is_create_tables and not _TABLES_CREATED:
         create_tables()
-        _is_tables_created = True
+        _TABLES_CREATED = True
 
     return scoped_session(db_session)
 
@@ -83,7 +82,7 @@ def init_db_async_session(
     db_async_session = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)  # noqa
 
     async def create_tables():
-        from app.dschema import DeclBase
+        from app.model import DeclBase
         _import_tables()
         async with async_engine.begin() as conn:
             try:
@@ -96,8 +95,8 @@ def init_db_async_session(
                 if "already exists" not in str(e):
                     raise
 
-    global _is_tables_created
-    if is_create_tables and not _is_tables_created:
+    global _TABLES_CREATED
+    if is_create_tables and not _TABLES_CREATED:
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
@@ -107,7 +106,7 @@ def init_db_async_session(
         task.add_done_callback(lambda t: t.result() if not t.cancelled() else None)
         if not loop.is_running():
             loop.run_until_complete(task)
-        _is_tables_created = True
+        _TABLES_CREATED = True
     return db_async_session
 
 

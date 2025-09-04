@@ -6,7 +6,7 @@ from app.initializer.context import request_id_ctx_var
 
 
 class HeadersMiddleware(BaseHTTPMiddleware):
-    """HTTP 头处理中间件"""
+    """头处理中间件"""
     _HEADERS = {
         # 可添加相关头
     }

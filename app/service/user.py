@@ -1,5 +1,5 @@
-from app.dschema.user import (
-    User,
+from app.model.user import User
+from app.schema.user import (
     UserDetail,
     UserList,
     UserCreate,
@@ -12,7 +12,12 @@ from app.initializer import g
 from app.utils import auth, db_async
 
 
-class UserDetailBiz(UserDetail):
+class UserDetailSvc(UserDetail):
+    model_config = {
+        "json_schema_extra": {
+            "title": "UserDetail"
+        }
+    }
 
     async def detail(self):
         async with g.db_async_session() as session:
@@ -25,7 +30,12 @@ class UserDetailBiz(UserDetail):
             return data
 
 
-class UserListBiz(UserList):
+class UserListSvc(UserList):
+    model_config = {
+        "json_schema_extra": {
+            "title": "UserList"
+        }
+    }
 
     async def lst(self):
         async with g.db_async_session() as session:
@@ -40,7 +50,12 @@ class UserListBiz(UserList):
             return data, total
 
 
-class UserCreateBiz(UserCreate):
+class UserCreateSvc(UserCreate):
+    model_config = {
+        "json_schema_extra": {
+            "title": "UserCreate"
+        }
+    }
 
     async def create(self):
         async with g.db_async_session() as session:
@@ -59,7 +74,12 @@ class UserCreateBiz(UserCreate):
             )
 
 
-class UserUpdateBiz(UserUpdate):
+class UserUpdateSvc(UserUpdate):
+    model_config = {
+        "json_schema_extra": {
+            "title": "UserUpdate"
+        }
+    }
 
     async def update(self, user_id: str):
         async with g.db_async_session() as session:
@@ -71,7 +91,12 @@ class UserUpdateBiz(UserUpdate):
             )
 
 
-class UserDeleteBiz(UserDelete):
+class UserDeleteSvc(UserDelete):
+    model_config = {
+        "json_schema_extra": {
+            "title": "UserDelete"
+        }
+    }
 
     @staticmethod
     async def delete(user_id: str):
@@ -83,7 +108,12 @@ class UserDeleteBiz(UserDelete):
             )
 
 
-class UserLoginBiz(UserLogin):
+class UserLoginSvc(UserLogin):
+    model_config = {
+        "json_schema_extra": {
+            "title": "UserLogin"
+        }
+    }
 
     async def login(self):
         async with g.db_async_session() as session:
@@ -116,7 +146,12 @@ class UserLoginBiz(UserLogin):
             return token
 
 
-class UserTokenBiz(UserToken):
+class UserTokenSvc(UserToken):
+    model_config = {
+        "json_schema_extra": {
+            "title": "UserToken"
+        }
+    }
 
     async def token(self):
         async with g.db_async_session() as session:

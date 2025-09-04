@@ -24,8 +24,11 @@ def main():
         prog=prog,
         description="fastapi脚手架，一键生成项目或api，让开发变得更简单",
         epilog="examples: \n"
-               "  `new`: %(prog)s new myproj -d postgresql\n"
-               "  `add`: %(prog)s add myapi",
+               "  `new`: %(prog)s new <myproj> -d postgresql\n"
+               "  `add`: %(prog)s add <myapi>\n"
+               "  `add`: %(prog)s add <myapi> -v <vn>\n"
+               "  `add`: %(prog)s add <myapi> -s <subdir>\n"
+               "",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
@@ -64,10 +67,10 @@ def main():
     parser.add_argument(
         "-t",
         "--target",
-        default="abd",
-        choices=["a", "ab", "abd"],
+        default="asm",
+        choices=["a", "as", "asm"],
         metavar="",
-        help="`add`时可指定目标(默认abd, a:api,b:business,d:dschema)")
+        help="`add`时可指定目标(默认asm > a:api,s:service(&schema),m:model)")
     args = parser.parse_args()
     cmd = CMD(args)
     if args.command == "new":
@@ -150,7 +153,7 @@ class CMD:
                          f"> 2. modify config, eg: db\n"
                          f"> 3. pip install -r requirements.txt\n"
                          f"> 4. python runserver.py\n"
-                         f"> ----- more see README.md -----\n")
+                         f"----- More see README.md -----\n")
 
     @staticmethod
     def _db_requirements_map(name: str):
@@ -202,16 +205,18 @@ class CMD:
             tpl_mods = [
                 "app/api",
             ]
-        elif target == "ab":
+        elif target == "as":
             tpl_mods = [
                 "app/api",
-                "app/business",
+                "app/service",
+                "app/schema",
             ]
         else:
             tpl_mods = [
                 "app/api",
-                "app/business",
-                "app/dschema",
+                "app/service",
+                "app/schema",
+                "app/model",
             ]
         for mod in tpl_mods:
             if not work_dir.joinpath(mod).is_dir():
@@ -220,23 +225,41 @@ class CMD:
         for name in self.args.name.split(","):
             sys.stdout.write(f"Adding api:\n")
             flags = {
-                # a
-                "0": [0],
-                "1": [0],
-                # ab
-                "00": [0, 0],
-                "10": [0, 1],
-                "01": [1, 0],
-                "11": [0, 0],
-                # abd
-                "000": [0, 0, 0],
-                "100": [0, 0, 0],
-                "010": [1, 0, 0],
-                "001": [0, 1, 0],
-                "110": [0, 0, 0],
-                "101": [0, 1, 0],
-                "011": [1, 0, 0],
-                "111": [0, 0, 0],
+                # - 键：目标是否存在: 0-不存在，1-存在
+                # - 值：创建是否关联: 0-不关联，1-关联
+                #   - 创建a时，如果se存在为0，存在为1
+                #   - 创建se时，如果sc存在为0，存在为1
+                #   - 创建sc时，全为1
+                #   - 创建m时，全为1
+                # a (a)
+                "0": [1],
+                "1": [1],
+                # as (a, se, sc)
+                "000": [1, 1, 1],
+                "001": [1, 0, 1],
+                "010": [0, 1, 1],
+                "011": [0, 0, 1],
+                "100": [1, 1, 1],
+                "101": [1, 0, 1],
+                "110": [0, 1, 1],
+                "111": [0, 0, 1],
+                # asm (a, se, sc, m)
+                "0000": [1, 1, 1, 1],
+                "0001": [1, 1, 1, 1],
+                "0010": [1, 0, 1, 1],
+                "0011": [1, 0, 1, 1],
+                "0100": [0, 1, 1, 1],
+                "0101": [0, 1, 1, 1],
+                "0110": [0, 0, 1, 1],
+                "0111": [0, 0, 1, 1],
+                "1000": [1, 1, 1, 1],
+                "1001": [1, 1, 1, 1],
+                "1010": [1, 0, 1, 1],
+                "1011": [1, 0, 1, 1],
+                "1100": [0, 1, 1, 1],
+                "1101": [0, 1, 1, 1],
+                "1110": [0, 0, 1, 1],
+                "1111": [0, 0, 1, 1]
             }
             e_flag = [
                 1 if (Path(work_dir, mod, vn if mod.endswith("api") else "", subdir, f"{name}.py")).is_file() else 0
@@ -282,13 +305,15 @@ class CMD:
                 else:
                     with open(curr_mod_file, "w+", encoding="utf-8") as f:
                         sys.stdout.write(f"[{name}] Writing {curr_mod_file_rel}\n")
-                        prefix = "only_" if p_flag[i] else f"{target}_"
+                        prefix = f"{target}_" if p_flag[i] else "only_"
                         k = prefix + mod.replace("/", "_") + ".py"
                         if subdir:
                             v = api_tpl_dict.get(k, "").replace(
-                                "from app.business.tpl import (", f"from app.business.{subdir}.tpl import ("
+                                "from app.schema.tpl import (", f"from app.schema.{subdir}.tpl import ("
                             ).replace(
-                                "from app.dschema.tpl import (", f"from app.dschema.{subdir}.tpl import ("
+                                "from app.service.tpl import (", f"from app.service.{subdir}.tpl import ("
+                            ).replace(
+                                "from app.model.tpl import (", f"from app.model.{subdir}.tpl import ("
                             ).replace(
                                 "tpl", name).replace(
                                 "Tpl", "".join([i[0].upper() + i[1:] if i else "_" for i in name.split("_")]))
