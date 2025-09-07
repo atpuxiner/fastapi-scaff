@@ -79,7 +79,7 @@ class G(metaclass=Singleton):
         if not cls.db_session:
             cls.db_session = init_db_session(
                 db_url=cls.config.db_url,
-                db_echo=cls.config.debug,
+                db_echo=cls.config.app_debug,
             )
         return cls.db_session
 

@@ -24,10 +24,8 @@ def main():
         prog=prog,
         description="fastapi脚手架，一键生成项目或api，让开发变得更简单",
         epilog="examples: \n"
-               "  `new`: %(prog)s new <myproj> -d postgresql\n"
+               "  `new`: %(prog)s new <myproj>\n"
                "  `add`: %(prog)s add <myapi>\n"
-               "  `add`: %(prog)s add <myapi> -v <vn>\n"
-               "  `add`: %(prog)s add <myapi> -s <subdir>\n"
                "",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
