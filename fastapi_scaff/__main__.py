@@ -68,7 +68,7 @@ def main():
         default="asm",
         choices=["a", "as", "asm"],
         metavar="",
-        help="`add`时可指定目标(默认asm")
+        help="`add`时可指定目标(默认asm)")
     args = parser.parse_args()
     cmd = CMD(args)
     if args.command == "new":
