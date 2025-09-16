@@ -18,9 +18,9 @@
 
 - ASM: ASM模式
     - A api
-    - S service(&schema)
-    - M model
-- 调用过程: main.py(initializer) -> (middleware) - api - service(&schema) - (model)
+    - S services(&schemas)
+    - M models
+- 调用过程: main.py(initializer) -> (middleware) - api - services(&schemas) - (models)
 - 结构如下: (命名经过多次修改敲定，简洁易懂)
   ```
   └── fastapi-scaff
@@ -33,9 +33,9 @@
       │   │   ├── log                 │   ├── (日志)
       │   │   └── ...                 │   └── (...)
       │   ├── middleware              ├── (中间件)
-      │   ├── model                   ├── (数据模型)
-      │   ├── schema                  ├── (数据结构)
-      │   ├── service                 ├── (业务逻辑)
+      │   ├── models                  ├── (数据模型)
+      │   ├── schemas                 ├── (数据结构)
+      │   ├── services                ├── (业务逻辑)
       │   ├── utils                   ├── (utils)
       │   └── main.py                 └── (main.py)
       ├── config                      (配置目录)

@@ -5,7 +5,7 @@ from starlette.requests import Request
 
 from app.api.response import Response, response_docs
 from app.api.status import Status
-from app.service.user import (
+from app.services.user import (
     UserDetailSvc,
     UserListSvc,
     UserCreateSvc,
@@ -19,7 +19,7 @@ from app.middleware.auth import JWTUser, get_current_user
 
 router = APIRouter()
 _active = True  # 激活状态（默认激活）
-_tag = "user"  # 标签（默认模块名或子目录名）
+_tag = "user"  # 标签（默认模块名）
 
 
 # 注意：`user`仅为模块示例，请根据自身需求修改

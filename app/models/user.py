@@ -1,7 +1,7 @@
 from sqlalchemy import Column, BigInteger, Integer, String
 from toollib.utils import now2timestamp
 
-from app.model import DeclBase
+from app.models import DeclBase
 from app.initializer import g
 
 

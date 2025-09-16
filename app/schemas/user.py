@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.schema import filter_fields
+from app.schemas import filter_fields
 
 
 class UserDetail(BaseModel):

@@ -1,5 +1,5 @@
-from app.model.user import User
-from app.schema.user import (
+from app.models.user import User
+from app.schemas.user import (
     UserDetail,
     UserList,
     UserCreate,

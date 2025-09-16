@@ -206,15 +206,15 @@ class CMD:
         elif target == "as":
             tpl_mods = [
                 "app/api",
-                "app/service",
-                "app/schema",
+                "app/services",
+                "app/schemas",
             ]
         else:
             tpl_mods = [
                 "app/api",
-                "app/service",
-                "app/schema",
-                "app/model",
+                "app/services",
+                "app/schemas",
+                "app/models",
             ]
         for mod in tpl_mods:
             if not work_dir.joinpath(mod).is_dir():
@@ -307,11 +307,11 @@ class CMD:
                         k = prefix + mod.replace("/", "_") + ".py"
                         if subdir:
                             v = api_tpl_dict.get(k, "").replace(
-                                "from app.schema.tpl import (", f"from app.schema.{subdir}.tpl import ("
+                                "from app.schemas.tpl import (", f"from app.schemas.{subdir}.tpl import ("
                             ).replace(
-                                "from app.service.tpl import (", f"from app.service.{subdir}.tpl import ("
+                                "from app.services.tpl import (", f"from app.services.{subdir}.tpl import ("
                             ).replace(
-                                "from app.model.tpl import (", f"from app.model.{subdir}.tpl import ("
+                                "from app.models.tpl import (", f"from app.models.{subdir}.tpl import ("
                             ).replace(
                                 "tpl", name).replace(
                                 "Tpl", "".join([i[0].upper() + i[1:] if i else "_" for i in name.split("_")]))

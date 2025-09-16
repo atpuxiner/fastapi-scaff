@@ -9,7 +9,7 @@ from starlette.requests import Request
 from app.api.exception import CustomException
 from app.api.status import Status
 from app.initializer import g
-from app.model.user import User
+from app.models.user import User
 from app.utils import db_async
 from app.utils.auth import verify_jwt
 

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String
 
-from app.model import DeclBase
+from app.models import DeclBase
 from app.initializer import g
 
 

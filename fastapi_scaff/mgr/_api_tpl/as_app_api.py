@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from starlette.requests import Request
 
 from app.api.response import Response, response_docs
-from app.service.tpl import (
+from app.services.tpl import (
     TplDetailSvc,
 )
 from app.api.status import Status

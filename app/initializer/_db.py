@@ -37,7 +37,7 @@ def init_db_session(
     db_session = sessionmaker(engine, expire_on_commit=False)
 
     def create_tables():
-        from app.model import DeclBase
+        from app.models import DeclBase
         _import_tables()
         try:
             DeclBase.metadata.create_all(engine)
@@ -82,7 +82,7 @@ def init_db_async_session(
     db_async_session = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)  # noqa
 
     async def create_tables():
-        from app.model import DeclBase
+        from app.models import DeclBase
         _import_tables()
         async with async_engine.begin() as conn:
             try:

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from app.schema import filter_fields
+from app.schemas import filter_fields
 
 
 class TplDetail(BaseModel):
