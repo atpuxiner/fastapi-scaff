@@ -11,10 +11,10 @@ from app.api.status import Status
 from app.initializer import g
 from app.middleware.auth import JWTUser, get_current_user
 
-tpl_router = APIRouter()
+router = APIRouter()
 
 
-@tpl_router.get(
+@router.get(
     path="/tpl/{tpl_id}",
     summary="tplDetail",
     responses=response_docs(

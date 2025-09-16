@@ -5,7 +5,7 @@ import importlib
 import sys
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from loguru import logger
 
 from app import APP_DIR
@@ -18,8 +18,8 @@ def register_routers(
         app: FastAPI,
         mod_dir: Path = _API_MOD_DIR,
         mod_base: str = _API_MOD_BASE,
+        name: str = "router",
         prefix: str = "",
-        obj_suffix: str = "_router",
         depth: int = 0,
         max_depth: int = 2
 ):
@@ -27,12 +27,12 @@ def register_routers(
     注册路由
     要求：
         路由模块：非'__'开头的模块
-        路由对象：{模块名称}{路由对象后缀}
+        路由名称：{name}
     :param app: FastAPI应用
     :param mod_dir: api模块目录
     :param mod_base: api模块基础
+    :param name: 路由名称
     :param prefix: url前缀
-    :param obj_suffix: 路由对象后缀
     :param depth: 当前递归深度
     :param max_depth: 最大递归深度
     """
@@ -58,7 +58,7 @@ def register_routers(
                 mod_dir=new_mod_dir,
                 mod_base=new_mod_base,
                 prefix=new_prefix,
-                obj_suffix=obj_suffix,
+                name=name,
                 depth=depth + 1,
                 max_depth=max_depth
             )
@@ -71,16 +71,16 @@ def register_routers(
                     logger.info(f"Register router skipping inactive module: {final_mod}")
                     sys.modules.pop(final_mod)
                     continue
-                router_name = f"{mod_name}{obj_suffix}"
-                if router := getattr(mod, router_name, None):
-                    tag = getattr(mod, "_tag", None)
-                    if not tag:
-                        tag = item.parent.stem if depth > 1 else mod_name
-                    app.include_router(
-                        router=router,
-                        prefix=prefix.replace("//", "/").rstrip("/"),
-                        tags=[tag]
-                    )
+                if router := getattr(mod, name, None):
+                    if isinstance(router, APIRouter):
+                        tag = getattr(mod, "_tag", None)
+                        if not tag:
+                            tag = item.parent.stem if depth > 1 else mod_name
+                        app.include_router(
+                            router=router,
+                            prefix=prefix.replace("//", "/").rstrip("/"),
+                            tags=[tag]
+                        )
             except ImportError:
                 logger.error(f"Register router failed to import module: {final_mod}")
                 continue

@@ -17,7 +17,7 @@ from app.service.user import (
 from app.initializer import g
 from app.middleware.auth import JWTUser, get_current_user
 
-user_router = APIRouter()
+router = APIRouter()
 _active = True  # 激活状态（默认激活）
 _tag = "user"  # 标签（默认模块名或子目录名）
 
@@ -27,7 +27,7 @@ _tag = "user"  # 标签（默认模块名或子目录名）
 # 注意：`user`仅为模块示例，请根据自身需求修改
 
 
-@user_router.get(
+@router.get(
     path="/user/{user_id}",
     summary="userDetail",
     responses=response_docs(
@@ -50,7 +50,7 @@ async def detail(
     return Response.success(data=data, request=request)
 
 
-@user_router.get(
+@router.get(
     path="/user",
     summary="userList",
     responses=response_docs(
@@ -77,7 +77,7 @@ async def lst(
     return Response.success(data={"items": data, "total": total}, request=request)
 
 
-@user_router.post(
+@router.post(
     path="/user",
     summary="userCreate",
     responses=response_docs(data={
@@ -98,7 +98,7 @@ async def create(
     return Response.success(data={"id": user_id}, request=request)
 
 
-@user_router.put(
+@router.put(
     path="/user/{user_id}",
     summary="userUpdate",
     responses=response_docs(data={
@@ -121,7 +121,7 @@ async def update(
     return Response.success(data={"id": user_id}, request=request)
 
 
-@user_router.delete(
+@router.delete(
     path="/user/{user_id}",
     summary="userDelete",
     responses=response_docs(data={
@@ -144,7 +144,7 @@ async def delete(
     return Response.success(data={"id": user_id}, request=request)
 
 
-@user_router.post(
+@router.post(
     path="/user/login",
     summary="userLogin",
     responses=response_docs(data={
@@ -165,7 +165,7 @@ async def login(
     return Response.success(data={"token": data}, request=request)
 
 
-@user_router.post(
+@router.post(
     path="/user/token",
     summary="userToken",
     responses=response_docs(data={
