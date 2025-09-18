@@ -1,14 +1,14 @@
 import asyncio
 import importlib
 
-from sqlalchemy import create_engine, exc
+from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from app import APP_DIR
 
-_DSCHEMA_MOD_DIR = APP_DIR.joinpath("model")
-_DSCHEMA_MOD_BASE = "app.model"
+_DSCHEMA_MOD_DIR = APP_DIR.joinpath("models")
+_DSCHEMA_MOD_BASE = "app.models"
 _TABLES_CREATED = False
 
 
@@ -41,11 +41,7 @@ def init_db_session(
         _import_tables()
         try:
             DeclBase.metadata.create_all(engine)
-        except (
-                exc.OperationalError,
-                exc.IntegrityError,
-                exc.ProgrammingError,
-        ) as e:
+        except Exception as e:
             if "already exists" not in str(e):
                 raise
 
@@ -87,11 +83,7 @@ def init_db_async_session(
         async with async_engine.begin() as conn:
             try:
                 await conn.run_sync(DeclBase.metadata.create_all)
-            except (
-                    exc.OperationalError,
-                    exc.IntegrityError,
-                    exc.ProgrammingError,
-            ) as e:
+            except Exception as e:
                 if "already exists" not in str(e):
                     raise
 
