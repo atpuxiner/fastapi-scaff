@@ -38,6 +38,7 @@
       │   ├── services                ├── (业务逻辑)
       │   ├── utils                   ├── (utils)
       │   └── main.py                 └── (main.py)
+      ├── app_celery                  (应用-celery)
       ├── config                      (配置目录)
       ├── deploy                      (部署目录)
       ├── docs                        (文档目录)

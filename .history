@@ -1,5 +1,8 @@
 # history
 
+## v0.2.0
+- add@集成celery
+
 ## v0.1.5
 - fix@db初始化
 

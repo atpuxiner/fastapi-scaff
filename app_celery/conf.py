@@ -22,43 +22,27 @@ if not app_yaml.is_file():
     raise RuntimeError(f"配置文件不存在：{app_yaml}")
 
 
-class EnvConfig:
-    """env配置"""
-    snow_datacenter_id: int = None
-
-    def setattr_from_env(self):
-        cls_attrs = get_cls_attrs(EnvConfig)
-        for k, item in cls_attrs.items():
-            v_type, v = item
-            if callable(v_type):
-                v = parse_variable(k=k, v_type=v_type, v_from=os.environ, default=v)
-            setattr(self, k, v)
-
-
-class Config(EnvConfig):
+class Config:
     """配置"""
     _yaml_conf: dict = None
     yaml_name: str = app_yaml.name
     #
-    app_title: str = "xApp"
-    app_summary: str = "xxApp"
-    app_description: str = "xxxApp"
-    app_version: str = "1.0.0"
-    app_debug: bool = True
-    app_log_dir: str = "./logs"
-    app_disable_docs: bool = True
-    app_allow_origins: list = ["*"]
-    # #
-    redis_host: str = None
-    redis_port: int = None
-    redis_db: int = None
-    redis_password: str = None
-    redis_max_connections: int = None
-    db_url: str = None
-    db_async_url: str = None
+    celery_broker_url: str
+    celery_backend_url: str
+    celery_timezone: str = "Asia/Shanghai"
+    celery_enable_utc: bool = True
+    celery_task_serializer: str = "json"
+    celery_result_serializer: str = "json"
+    celery_accept_content: list = ["json"]
+    celery_task_ignore_result: bool = False
+    celery_result_expire: int = 7200
+    celery_task_track_started: bool = True
+    celery_worker_concurrency: int = 8
+    celery_worker_prefetch_multiplier: int = 2
+    celery_broker_connection_retry_on_startup: bool = True
+    celery_task_reject_on_worker_lost: bool = True
 
     def setup(self):
-        self.setattr_from_env()
         self.setattr_from_env_or_yaml()
         return self
 
@@ -81,5 +65,4 @@ class Config(EnvConfig):
             return self._yaml_conf
 
 
-def init_config() -> Config:
-    return Config().setup()
+config = Config().setup()

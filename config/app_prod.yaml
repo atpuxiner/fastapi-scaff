@@ -16,3 +16,18 @@ redis_password:
 redis_max_connections:
 db_url: sqlite:///app_prod.sqlite
 db_async_url: sqlite+aiosqlite:///app_prod.sqlite
+# #
+celery_broker_url: redis://:Mimmm%40129@192.168.22.21:6379/1
+celery_backend_url: redis://:Mimmm%40129@192.168.22.21:6379/2
+celery_timezone: Asia/Shanghai
+celery_enable_utc: true
+celery_task_serializer: json
+celery_result_serializer: json
+celery_accept_content: [ json ]
+celery_task_ignore_result: false
+celery_result_expire: 7200
+celery_task_track_started: true
+celery_worker_concurrency: 8
+celery_worker_prefetch_multiplier: 2
+celery_broker_connection_retry_on_startup: true
+celery_task_reject_on_worker_lost: true

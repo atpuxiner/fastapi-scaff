@@ -11,6 +11,7 @@ pkg_mod_name = "fastapi_scaff"
 def gen_project_json():
     include_mods_comp = re.compile('|'.join([
         "app",
+        "app_celery",
         "config",
         "deploy",
         "docs",
@@ -20,6 +21,7 @@ def gen_project_json():
         "LICENSE",
         "README.md",
         "requirements.txt",
+        "runcelery.py",
         "runserver.py",
     ]))
     exclude_exts_comp = re.compile('|'.join([
