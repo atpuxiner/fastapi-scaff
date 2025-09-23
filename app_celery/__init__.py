@@ -29,6 +29,7 @@ def make_celery(include: list = None, configs: dict = None):
         celery_task_track_started=config.celery_task_track_started,
         worker_concurrency=config.celery_worker_concurrency,
         worker_prefetch_multiplier=config.celery_worker_prefetch_multiplier,
+        worker_max_tasks_per_child=config.celery_worker_max_tasks_per_child,
         broker_connection_retry_on_startup=config.celery_broker_connection_retry_on_startup,
         task_reject_on_worker_lost=config.celery_task_reject_on_worker_lost,
     )

@@ -141,3 +141,4 @@ cython_debug/
 .idea
 .vscode
 *.sqlite
+celerybeat-schedule.*

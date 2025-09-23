@@ -21,7 +21,8 @@ def gen_project_json():
         "LICENSE",
         "README.md",
         "requirements.txt",
-        "runcelery.py",
+        "runcbeat.py",
+        "runcworker.py",
         "runserver.py",
     ]))
     exclude_exts_comp = re.compile('|'.join([

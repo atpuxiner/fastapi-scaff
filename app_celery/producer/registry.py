@@ -7,9 +7,9 @@ class TaskParams(BaseModel):
     options: dict = dict()
 
 
-AllTasks: dict[str, TaskParams] = {
-    "aping": TaskParams(
-        name="aping",
-        queue="aping"
+AllTasks: dict[str, TaskParams] = {  # label: TaskParams
+    "ping": TaskParams(
+        name="app_celery.consumer.tasks.ping.ping",
+        queue="ping"
     ),
 }

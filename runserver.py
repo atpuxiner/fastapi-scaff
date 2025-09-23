@@ -112,7 +112,7 @@ def main(
         is_reload: bool,
         is_gunicorn: bool,
 ):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="App启动器")
     parser.add_argument("--host", type=str, metavar="", help="host")
     parser.add_argument("--port", type=int, metavar="", help="port")
     parser.add_argument("--workers", type=int, metavar="", help="进程数")

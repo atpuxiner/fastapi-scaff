@@ -25,9 +25,10 @@ celery_task_serializer: json
 celery_result_serializer: json
 celery_accept_content: [ json ]
 celery_task_ignore_result: false
-celery_result_expire: 7200
+celery_result_expire: 86400
 celery_task_track_started: true
 celery_worker_concurrency: 8
 celery_worker_prefetch_multiplier: 2
+celery_worker_max_tasks_per_child: 100
 celery_broker_connection_retry_on_startup: true
 celery_task_reject_on_worker_lost: true

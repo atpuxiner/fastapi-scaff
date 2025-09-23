@@ -1,5 +1,8 @@
 # history
 
+## v0.2.1
+- opt@升级celery应用
+
 ## v0.2.0
 - add@集成celery
 

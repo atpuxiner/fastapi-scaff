@@ -10,5 +10,5 @@ router = APIRouter()
     summary="aping",
 )
 def ping():
-    publish("aping", text="这是一个测试任务")
-    return "apong"
+    task_id = publish("ping")
+    return f"pong > {task_id}"

@@ -35,10 +35,11 @@ class Config:
     celery_result_serializer: str = "json"
     celery_accept_content: list = ["json"]
     celery_task_ignore_result: bool = False
-    celery_result_expire: int = 7200
+    celery_result_expire: int = 86400
     celery_task_track_started: bool = True
     celery_worker_concurrency: int = 8
     celery_worker_prefetch_multiplier: int = 2
+    celery_worker_max_tasks_per_child: int = 100
     celery_broker_connection_retry_on_startup: bool = True
     celery_task_reject_on_worker_lost: bool = True
 
