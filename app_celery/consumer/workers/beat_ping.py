@@ -1,6 +1,6 @@
 from app_celery.consumer import celery_app
 
-celery_app.conf.update(  # 建议所有的定时任务都放在这个worker中启动
+celery_app.conf.update(
     task_queues={
         "beat_ping": {
             "exchange_type": "direct",

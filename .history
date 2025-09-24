@@ -1,5 +1,8 @@
 # history
 
+## v0.2.4
+- opt@优化celery启动等
+
 ## v0.2.3
 - opt@优化规范代码
 

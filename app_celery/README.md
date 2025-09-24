@@ -31,7 +31,7 @@
       - 1。进入`app_celery`父级目录，即工作目录
       - 2。启动命令：（更多参数请自行指定）
           - 方式1。直接执行脚本: `python runcworker.py -n ping`
-          - 方式2。使用命令行：`celery -A app_celery.consumer.workers.ping worker --loglevel=info --concurrency=5 --queues=ping`
+          - 方式2。使用命令行：`celery -A app_celery.consumer.workers.ping worker --loglevel=info --concurrency=5`
 
 ### 注意：
 

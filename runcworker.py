@@ -17,20 +17,17 @@ def main(
         loglevel: str = "info",
         concurrency: int = None,
         pool: str = None,
-        queues: str = None,
 ):
     parser = argparse.ArgumentParser(description="CeleryWorker启动器")
     parser.add_argument("-n", "--name", type=str, metavar="", help="名称")
     parser.add_argument("-l", "--loglevel", type=str, default="info", metavar="", help="日志等级")
     parser.add_argument("-c", "--concurrency", type=int, default=None, metavar="", help="并发数")
     parser.add_argument("-P", "--pool", type=str, default=None, metavar="", help="并发模型")
-    parser.add_argument("-Q", "--queues", type=str, default=None, metavar="", help="队列")
     args = parser.parse_args()
     name = args.name or name
     loglevel = args.loglevel or loglevel
     concurrency = args.concurrency or concurrency
     pool = args.pool or pool
-    queues = args.queues or queues
     if pool is None:
         if platform.system().lower().startswith("win"):
             pool = 'gevent'
@@ -49,8 +46,6 @@ def main(
         f"--concurrency={concurrency}",
         f"--pool={pool}",
     ]
-    if queues:
-        command.extend(["--queues", queues])
     subprocess.run(
         command,
         check=True,
