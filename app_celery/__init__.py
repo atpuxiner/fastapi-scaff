@@ -34,5 +34,5 @@ def make_celery(include: list = None, configs: dict = None):
         task_reject_on_worker_lost=config.celery_task_reject_on_worker_lost,
     )
     if configs:
-        app.conf.update(**configs)
+        app.conf.update(configs)
     return app

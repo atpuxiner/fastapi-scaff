@@ -20,7 +20,7 @@ def format_one(
         fields: list[str],
 ) -> dict:
     if not row:
-        return dict()
+        return {}
     return dict(zip(fields, row))
 
 
@@ -29,7 +29,7 @@ def model_dict(
         fields: list[str] = None,
 ) -> dict:
     if not model:
-        return dict()
+        return {}
     if not fields:
         fields = [field.name for field in model.__table__.columns]
     return {field: getattr(model, field) for field in fields}
