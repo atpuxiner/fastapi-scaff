@@ -1,5 +1,8 @@
 # history
 
+## v0.2.2
+- opt@强化celery任务模块发现
+
 ## v0.2.1
 - opt@升级celery应用
 
