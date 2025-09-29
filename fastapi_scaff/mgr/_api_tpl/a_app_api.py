@@ -1,12 +1,11 @@
 import traceback
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from starlette.requests import Request
 
 from app.api.response import Response, response_docs
 from app.api.status import Status
 from app.initializer import g
-from app.middleware.auth import JWTUser, get_current_user
 
 router = APIRouter()
 
@@ -19,7 +18,6 @@ router = APIRouter()
 async def detail(
         request: Request,
         tpl_id: str,
-        current_user: JWTUser = Depends(get_current_user),
 ):
     try:
         data = {}  # TODO: 待处理

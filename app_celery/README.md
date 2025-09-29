@@ -36,5 +36,5 @@
 ### 注意：
 
 - 最好与`app`解耦，即：
-    - 只有`app`单向调用`app_celery`
+    - 只`app`单向调用`app_celery`
     - 但`app_celery`不调用`app`

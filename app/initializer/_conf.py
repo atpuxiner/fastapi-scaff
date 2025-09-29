@@ -22,24 +22,14 @@ if not app_yaml.is_file():
     raise RuntimeError(f"配置文件不存在：{app_yaml}")
 
 
-class EnvConfig:
-    """env配置"""
-    snow_datacenter_id: int = None
-
-    def setattr_from_env(self):
-        cls_attrs = get_cls_attrs(EnvConfig)
-        for k, item in cls_attrs.items():
-            v_type, v = item
-            if callable(v_type):
-                v = parse_variable(k=k, v_type=v_type, v_from=os.environ, default=v)
-            setattr(self, k, v)
-
-
-class Config(EnvConfig):
+class Config:
     """配置"""
     _yaml_conf: dict = None
-    yaml_name: str = app_yaml.name
-    #
+    # from env
+    app_env: str = "dev"
+    app_yaml: str = app_yaml.name
+    snow_datacenter_id: int = None
+    # from yaml
     app_title: str = "xApp"
     app_summary: str = "xxApp"
     app_description: str = "xxxApp"
@@ -58,7 +48,6 @@ class Config(EnvConfig):
     db_async_url: str = None
 
     def setup(self):
-        self.setattr_from_env()
         self.setattr_from_env_or_yaml()
         return self
 

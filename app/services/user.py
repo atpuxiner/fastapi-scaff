@@ -9,7 +9,7 @@ from app.schemas.user import (
     UserToken,
 )
 from app.initializer import g
-from app.utils import auth, db_async
+from app.utils import auth_util, db_async_util
 
 
 class UserDetailSvc(UserDetail):
@@ -21,7 +21,7 @@ class UserDetailSvc(UserDetail):
 
     async def detail(self):
         async with g.db_async_session() as session:
-            data = await db_async.query_one(
+            data = await db_async_util.query_one(
                 session=session,
                 model=User,
                 fields=self.response_fields(),
@@ -39,14 +39,14 @@ class UserListSvc(UserList):
 
     async def lst(self):
         async with g.db_async_session() as session:
-            data = await db_async.query_all(
+            data = await db_async_util.query_all(
                 session=session,
                 model=User,
                 fields=self.response_fields(),
                 page=self.page,
                 size=self.size,
             )
-            total = await db_async.query_total(session, User)
+            total = await db_async_util.query_total(session, User)
             return data, total
 
 
@@ -59,7 +59,7 @@ class UserCreateSvc(UserCreate):
 
     async def create(self):
         async with g.db_async_session() as session:
-            return await db_async.create(
+            return await db_async_util.create(
                 session=session,
                 model=User,
                 data={
@@ -67,8 +67,8 @@ class UserCreateSvc(UserCreate):
                     "phone": self.phone,
                     "age": self.age,
                     "gender": self.gender,
-                    "password": auth.hash_password(self.password),
-                    "jwt_key": auth.gen_jwt_key(),
+                    "password": auth_util.hash_password(self.password),
+                    "jwt_key": auth_util.gen_jwt_key(),
                 },
                 filter_by={"phone": self.phone},
             )
@@ -83,7 +83,7 @@ class UserUpdateSvc(UserUpdate):
 
     async def update(self, user_id: str):
         async with g.db_async_session() as session:
-            return await db_async.update(
+            return await db_async_util.update(
                 session=session,
                 model=User,
                 data=self.model_dump(),
@@ -101,7 +101,7 @@ class UserDeleteSvc(UserDelete):
     @staticmethod
     async def delete(user_id: str):
         async with g.db_async_session() as session:
-            return await db_async.delete(
+            return await db_async_util.delete(
                 session=session,
                 model=User,
                 filter_by={"id": user_id},
@@ -117,15 +117,15 @@ class UserLoginSvc(UserLogin):
 
     async def login(self):
         async with g.db_async_session() as session:
-            data = await db_async.query_one(
+            data = await db_async_util.query_one(
                 session=session,
                 model=User,
                 filter_by={"phone": self.phone},
             )
-            if not data or not auth.verify_password(self.password, data.get("password")):
+            if not data or not auth_util.verify_password(self.password, data.get("password")):
                 return None
-            new_jwt_key = auth.gen_jwt_key()
-            token = auth.gen_jwt(
+            new_jwt_key = auth_util.gen_jwt_key()
+            token = auth_util.gen_jwt(
                 payload={
                     "id": data.get("id"),
                     "phone": data.get("phone"),
@@ -137,7 +137,7 @@ class UserLoginSvc(UserLogin):
                 exp_minutes=24 * 60 * 30,
             )
             # 更新jwt_key
-            await db_async.update(
+            await db_async_util.update(
                 session=session,
                 model=User,
                 data={"jwt_key": new_jwt_key},
@@ -155,15 +155,15 @@ class UserTokenSvc(UserToken):
 
     async def token(self):
         async with g.db_async_session() as session:
-            data = await db_async.query_one(
+            data = await db_async_util.query_one(
                 session=session,
                 model=User,
                 filter_by={"id": self.id},
             )
             if not data:
                 return None
-            new_jwt_key = auth.gen_jwt_key()
-            token = auth.gen_jwt(
+            new_jwt_key = auth_util.gen_jwt_key()
+            token = auth_util.gen_jwt(
                 payload={
                     "id": data.get("id"),
                     "phone": data.get("phone"),
@@ -175,7 +175,7 @@ class UserTokenSvc(UserToken):
                 exp_minutes=self.exp_minutes,
             )
             # 更新jwt_key
-            await db_async.update(
+            await db_async_util.update(
                 session=session,
                 model=User,
                 data={"jwt_key": new_jwt_key},

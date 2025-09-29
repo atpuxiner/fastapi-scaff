@@ -10,8 +10,8 @@ from app.api.exception import CustomException
 from app.api.status import Status
 from app.initializer import g
 from app.models.user import User
-from app.utils import db_async
-from app.utils.auth import verify_jwt
+from app.utils import db_async_util
+from app.utils.auth_util import verify_jwt
 
 
 class JWTUser(BaseModel):
@@ -59,7 +59,7 @@ class JWTBearer(HTTPBearer):
             raise CustomException(status=Status.UNAUTHORIZED_ERROR)
         # 建议：jwt_key进行redis缓存
         async with g.db_async_session() as session:
-            data = await db_async.query_one(
+            data = await db_async_util.query_one(
                 session=session,
                 model=User,
                 fields=["jwt_key"],

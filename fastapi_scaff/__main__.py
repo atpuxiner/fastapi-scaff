@@ -182,12 +182,12 @@ class CMD:
                 "db_async_url": "db_async_url: sqlite+aiosqlite:///app_dev.sqlite",
             },
             "mysql": {
-                "db_url": "db_url: mysql+pymysql://<username>:<password>@<host>:<port>/app_dev?charset=utf8mb4",
-                "db_async_url": "db_async_url: mysql+aiomysql://<username>:<password>@<host>:<port>/app_dev?charset=utf8mb4",
+                "db_url": "db_url: mysql+pymysql://<username>:<password>@<host>:<port>/<database>?charset=utf8mb4",
+                "db_async_url": "db_async_url: mysql+aiomysql://<username>:<password>@<host>:<port>/<database>?charset=utf8mb4",
             },
             "postgresql": {
-                "db_url": "db_url: postgresql://<username>:<password>@<host>:<port>/app_dev",
-                "db_async_url": "db_async_url: postgresql+asyncpg://<username>:<password>@<host>:<port>/app_dev",
+                "db_url": "db_url: postgresql://<username>:<password>@<host>:<port>/<database>",
+                "db_async_url": "db_async_url: postgresql+asyncpg://<username>:<password>@<host>:<port>/<database>",
             },
         }.get(name)
 

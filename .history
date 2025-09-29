@@ -1,5 +1,8 @@
 # history
 
+## v0.2.5
+- opt@调优配置
+
 ## v0.2.4
 - opt@优化celery启动等
 

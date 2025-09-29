@@ -17,8 +17,8 @@ redis_max_connections:
 db_url: sqlite:///app_prod.sqlite
 db_async_url: sqlite+aiosqlite:///app_prod.sqlite
 # #
-celery_broker_url: redis://:Mimmm%40129@192.168.22.21:6379/1
-celery_backend_url: redis://:Mimmm%40129@192.168.22.21:6379/2
+celery_broker_url: redis://:<password>@<host>:<port>/<db>
+celery_backend_url: redis://:<password>@<host>:<port>/<db>
 celery_timezone: Asia/Shanghai
 celery_enable_utc: true
 celery_task_serializer: json
