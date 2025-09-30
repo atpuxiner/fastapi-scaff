@@ -1,6 +1,7 @@
 from sqlalchemy import (
     select,
     func,
+    inspect,
     update as update_,
     delete as delete_,
 )
@@ -73,8 +74,15 @@ async def query_total(
         session,
         model,
         filter_by: dict = None,
+        column: str = None,
 ) -> int:
-    query = select(func.count()).select_from(model)
+    if column is None:
+        primary_key = inspect(model).primary_key
+        if primary_key:
+            column = primary_key[0]
+        else:
+            column = 1
+    query = select(func.count(column)).select_from(model)
     if filter_by:
         query = query.filter_by(**filter_by)
     result = await session.execute(query)

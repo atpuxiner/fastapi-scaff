@@ -5,9 +5,9 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException
 
-from app.api.exception import CustomException
+from app.api.exceptions import CustomException
 from app.middleware.cors import Cors
-from app.middleware.exception import ExceptionHandler
+from app.middleware.exceptions import ExceptionsHandler
 from app.middleware.headers import HeadersMiddleware
 
 
@@ -21,6 +21,6 @@ def register_middlewares(app: FastAPI):
         allow_methods=Cors.allow_methods,
         allow_headers=Cors.allow_headers,
     )
-    app.add_exception_handler(CustomException, ExceptionHandler.custom_exception_handler)  # type: ignore
-    app.add_exception_handler(HTTPException, ExceptionHandler.http_exception_handler)  # type: ignore
-    app.add_exception_handler(RequestValidationError, ExceptionHandler.validation_exception_handler)  # type: ignore
+    app.add_exception_handler(CustomException, ExceptionsHandler.custom_exception_handler)  # type: ignore
+    app.add_exception_handler(HTTPException, ExceptionsHandler.http_exception_handler)  # type: ignore
+    app.add_exception_handler(RequestValidationError, ExceptionsHandler.validation_exception_handler)  # type: ignore

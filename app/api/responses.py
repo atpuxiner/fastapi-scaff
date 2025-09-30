@@ -10,7 +10,7 @@ from toollib.utils import map_jsontype
 from app.api.status import Status
 
 
-class Response:
+class Responses:
 
     @staticmethod
     def success(
@@ -28,7 +28,7 @@ class Response:
         content = {
             "msg": msg or status.msg,
             "code": code or status.code,
-            "data": Response.encode_data(data) if is_encode_data else data,
+            "data": Responses.encode_data(data) if is_encode_data else data,
         }
         if request:
             if request_id := getattr(request.state, 'request_id', None):
@@ -59,7 +59,7 @@ class Response:
             "msg": msg or status.msg,
             "code": code or status.code,
             "error": str(error) if error else None,
-            "data": Response.encode_data(data) if is_encode_data else data,
+            "data": Responses.encode_data(data) if is_encode_data else data,
         }
         if request:
             if request_id := getattr(request.state, 'request_id', None):

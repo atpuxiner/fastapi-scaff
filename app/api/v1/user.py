@@ -3,7 +3,7 @@ import traceback
 from fastapi import APIRouter, Depends
 from starlette.requests import Request
 
-from app.api.response import Response, response_docs
+from app.api.responses import Responses, response_docs
 from app.api.status import Status
 from app.services.user import (
     UserDetailSvc,
@@ -15,7 +15,7 @@ from app.services.user import (
     UserTokenSvc,
 )
 from app.initializer import g
-from app.middleware.auth import JWTUser, get_current_user
+from app.middleware.auths import JWTUser, get_current_user
 
 router = APIRouter()
 _active = True  # 激活状态（默认激活）
@@ -43,11 +43,11 @@ async def detail(
         user_svc = UserDetailSvc(id=user_id)
         data = await user_svc.detail()
         if not data:
-            return Response.failure(status=Status.RECORD_NOT_EXIST_ERROR)
+            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
         g.logger.error(traceback.format_exc())
-        return Response.failure(msg="userDetail失败", error=e, request=request)
-    return Response.success(data=data, request=request)
+        return Responses.failure(msg="userDetail失败", error=e, request=request)
+    return Responses.success(data=data, request=request)
 
 
 @router.get(
@@ -73,8 +73,8 @@ async def lst(
         data, total = await user_svc.lst()
     except Exception as e:
         g.logger.error(traceback.format_exc())
-        return Response.failure(msg="userList失败", error=e, request=request)
-    return Response.success(data={"items": data, "total": total}, request=request)
+        return Responses.failure(msg="userList失败", error=e, request=request)
+    return Responses.success(data={"items": data, "total": total}, request=request)
 
 
 @router.post(
@@ -91,11 +91,11 @@ async def create(
     try:
         user_id = await user_svc.create()
         if not user_id:
-            return Response.failure(status=Status.RECORD_EXISTS_ERROR, request=request)
+            return Responses.failure(status=Status.RECORD_EXISTS_ERROR, request=request)
     except Exception as e:
         g.logger.error(traceback.format_exc())
-        return Response.failure(msg="userCreate失败", error=e, request=request)
-    return Response.success(data={"id": user_id}, request=request)
+        return Responses.failure(msg="userCreate失败", error=e, request=request)
+    return Responses.success(data={"id": user_id}, request=request)
 
 
 @router.put(
@@ -114,11 +114,11 @@ async def update(
     try:
         updated_ids = await user_svc.update(user_id)
         if not updated_ids:
-            return Response.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
+            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
     except Exception as e:
         g.logger.error(traceback.format_exc())
-        return Response.failure(msg="userUpdate失败", error=e, request=request)
-    return Response.success(data={"id": user_id}, request=request)
+        return Responses.failure(msg="userUpdate失败", error=e, request=request)
+    return Responses.success(data={"id": user_id}, request=request)
 
 
 @router.delete(
@@ -137,11 +137,11 @@ async def delete(
         user_svc = UserDeleteSvc()
         deleted_ids = await user_svc.delete(user_id)
         if not deleted_ids:
-            return Response.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
+            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
     except Exception as e:
         g.logger.error(traceback.format_exc())
-        return Response.failure(msg="userDelete失败", error=e, request=request)
-    return Response.success(data={"id": user_id}, request=request)
+        return Responses.failure(msg="userDelete失败", error=e, request=request)
+    return Responses.success(data={"id": user_id}, request=request)
 
 
 @router.post(
@@ -158,11 +158,11 @@ async def login(
     try:
         data = await user_svc.login()
         if not data:
-            return Response.failure(status=Status.USER_OR_PASSWORD_ERROR, request=request)
+            return Responses.failure(status=Status.USER_OR_PASSWORD_ERROR, request=request)
     except Exception as e:
         g.logger.error(traceback.format_exc())
-        return Response.failure(msg="userLogin失败", error=e, request=request)
-    return Response.success(data={"token": data}, request=request)
+        return Responses.failure(msg="userLogin失败", error=e, request=request)
+    return Responses.success(data={"token": data}, request=request)
 
 
 @router.post(
@@ -180,8 +180,8 @@ async def token(
     try:
         data = await user_svc.token()
         if not data:
-            return Response.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
+            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
     except Exception as e:
         g.logger.error(traceback.format_exc())
-        return Response.failure(msg="userToken失败", error=e, request=request)
-    return Response.success(data={"token": data}, request=request)
+        return Responses.failure(msg="userToken失败", error=e, request=request)
+    return Responses.success(data={"token": data}, request=request)

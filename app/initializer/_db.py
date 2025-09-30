@@ -18,7 +18,7 @@ def init_db_session(
         db_pool_size: int = 10,
         db_max_overflow: int = 5,
         db_pool_recycle: int = 3600,
-        is_create_tables: bool = True,
+        is_create_tables: bool = False,
 ) -> scoped_session:
     db_echo = db_echo or False
     kwargs = {
@@ -59,7 +59,7 @@ def init_db_async_session(
         db_pool_size: int = 10,
         db_max_overflow: int = 5,
         db_pool_recycle: int = 3600,
-        is_create_tables: bool = True,
+        is_create_tables: bool = False,
 ) -> sessionmaker:
     db_echo = db_echo or False
     kwargs = {

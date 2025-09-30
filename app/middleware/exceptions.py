@@ -5,13 +5,13 @@ from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from app.api.exception import CustomException
-from app.api.response import Response
+from app.api.exceptions import CustomException
+from app.api.responses import Responses
 from app.api.status import Status
 from app.initializer import g
 
 
-class ExceptionHandler:
+class ExceptionsHandler:
 
     @staticmethod
     async def custom_exception_handler(
@@ -23,7 +23,7 @@ class ExceptionHandler:
         if is_traceback:
             lmsg = traceback.format_exc()
         g.logger.error(lmsg)
-        return Response.failure(
+        return Responses.failure(
             msg=exc.msg,
             code=exc.code,
             data=exc.data,
@@ -40,7 +40,7 @@ class ExceptionHandler:
         if is_traceback:
             lmsg = traceback.format_exc()
         g.logger.error(lmsg)
-        return Response.failure(
+        return Responses.failure(
             msg=exc.detail,
             code=exc.status_code,
             request=request,
@@ -62,7 +62,7 @@ class ExceptionHandler:
         if is_traceback:
             lmsg = traceback.format_exc()
         g.logger.error(lmsg)
-        return Response.failure(
+        return Responses.failure(
             msg=msg,
             status=Status.PARAMS_ERROR,
             request=request,

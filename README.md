@@ -12,6 +12,10 @@
         - auto register router
         - auto register middleware
         - ...
+        - integrated sqlalchemy
+        - integrated jwt\api-key
+        - integrated celery
+        - ...
     - more documents: [请点击链接](https://blog.csdn.net/atpuxiner/article/details/144291336?fromshare=blogdetail&sharetype=blogdetail&sharerId=144291336&sharerefer=PC&sharesource=atpuxiner&sharefrom=from_link)
 
 ## Project structure

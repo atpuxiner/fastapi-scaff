@@ -1,18 +1,20 @@
-from fastapi import Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
 from typing import Optional
 
 from fastapi.security.utils import get_authorization_scheme_param
 from pydantic import BaseModel
 from starlette.requests import Request
 
-from app.api.exception import CustomException
+from app.api.exceptions import CustomException
 from app.api.status import Status
 from app.initializer import g
 from app.models.user import User
 from app.utils import db_async_util
-from app.utils.auth_util import verify_jwt
+from app.utils.auths_util import verify_jwt
 
+
+# ======= jwt =======
 
 class JWTUser(BaseModel):
     # 字段与User对齐
@@ -91,3 +93,16 @@ def get_current_user(
     if not credentials:
         return JWTUser()
     return credentials.user
+
+
+# ======= api key =======
+
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+async def get_api_key(api_key: str = Security(api_key_header)):
+    if not api_key:
+        raise CustomException(status=Status.FORBIDDEN_ERROR)
+    if api_key not in g.config.api_keys:
+        raise CustomException(status=Status.UNAUTHORIZED_ERROR)
+    return api_key

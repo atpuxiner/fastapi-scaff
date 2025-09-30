@@ -80,6 +80,7 @@ class G(metaclass=Singleton):
             cls.db_session = init_db_session(
                 db_url=cls.config.db_url,
                 db_echo=cls.config.app_debug,
+                is_create_tables=True,
             )
         return cls.db_session
 
@@ -89,6 +90,7 @@ class G(metaclass=Singleton):
             cls.db_async_session = init_db_async_session(
                 db_url=cls.config.db_async_url,
                 db_echo=cls.config.app_debug,
+                is_create_tables=True,
             )
         return cls.db_async_session
 
