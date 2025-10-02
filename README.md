@@ -56,6 +56,8 @@
       └── runcworker.py
       └── runserver.py
   ```
+  
+- 【另：**轻量版** > **完整结构** 】请自行创建查看（`new`项目时指定参数`--light`）
 
 ## Installation
 
@@ -68,6 +70,7 @@ This package can be installed using pip (Python>=3.11):
     - `fastapi-scaff -h`
 - 2）new project
     - `fastapi-scaff new <myproj>`
+    - *light structure*: `fastapi-scaff new <myproj> --light`
 - 3）add api
     - `cd to project root dir`
     - `fastapi-scaff add <myapi>`

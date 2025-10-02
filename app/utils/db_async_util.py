@@ -2,6 +2,7 @@ from sqlalchemy import (
     select,
     func,
     inspect,
+    text,
     update as update_,
     delete as delete_,
 )
@@ -36,7 +37,7 @@ def model_dict(
     return {field: getattr(model, field) for field in fields}
 
 
-async def query_one(
+async def fetch_one(
         session,
         model,
         fields: list[str] = None,
@@ -51,7 +52,7 @@ async def query_one(
     return format_one(result.fetchone(), fields)
 
 
-async def query_all(
+async def fetch_all(
         session,
         model,
         fields: list[str] = None,
@@ -70,7 +71,7 @@ async def query_all(
     return format_all(result.fetchall(), fields)
 
 
-async def query_total(
+async def fetch_total(
         session,
         model,
         filter_by: dict = None,
@@ -97,7 +98,7 @@ async def create(
 ) -> int:
     try:
         if filter_by:
-            result = await query_one(session, model, filter_by=filter_by)
+            result = await fetch_one(session, model, filter_by=filter_by)
             if result:
                 return 0
         stmt = model(**data)
@@ -163,3 +164,25 @@ async def delete(
         await session.rollback()
         raise
     return deleted_ids
+
+
+async def sqlfetch_one(
+        session,
+        sql: str,
+        params: dict = None,
+) -> dict:
+    result = await session.execute(text(sql), params)
+    row = result.fetchone()
+    if row is None:
+        return {}
+    return row._asdict()  # noqa
+
+
+async def sqlfetch_all(
+        session,
+        sql: str,
+        params: dict = None,
+) -> list[dict]:
+    result = await session.execute(text(sql), params)
+    rows = result.fetchall()
+    return [row._asdict() for row in rows]  # noqa

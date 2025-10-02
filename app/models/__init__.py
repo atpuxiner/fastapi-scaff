@@ -1,6 +1,8 @@
 """
 数据模型
 """
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import DeclarativeBase
 
-DeclBase = declarative_base()
+
+class DeclBase(DeclarativeBase):
+    pass

@@ -1,14 +1,17 @@
 import asyncio
 import importlib
+import re
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm.decl_api import DeclarativeAttributeIntercept
 
 from app import APP_DIR
 
-_DSCHEMA_MOD_DIR = APP_DIR.joinpath("models")
-_DSCHEMA_MOD_BASE = "app.models"
+_MODELS_MOD_DIR = APP_DIR.joinpath("models")
+_MODELS_MOD_BASE = "app.models"
+_DECL_BASE_NAME = "DeclBase"
 _TABLES_CREATED = False
 
 
@@ -37,13 +40,13 @@ def init_db_session(
     db_session = sessionmaker(engine, expire_on_commit=False)
 
     def create_tables():
-        from app.models import DeclBase
-        _import_tables()
-        try:
-            DeclBase.metadata.create_all(engine)
-        except Exception as e:
-            if "already exists" not in str(e):
-                raise
+        decl_base = _import_tables()
+        if decl_base:
+            try:
+                decl_base.metadata.create_all(engine)  # noqa
+            except Exception as e:
+                if "already exists" not in str(e):
+                    raise
 
     global _TABLES_CREATED
     if is_create_tables and not _TABLES_CREATED:
@@ -78,14 +81,14 @@ def init_db_async_session(
     db_async_session = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)  # noqa
 
     async def create_tables():
-        from app.models import DeclBase
-        _import_tables()
-        async with async_engine.begin() as conn:
-            try:
-                await conn.run_sync(DeclBase.metadata.create_all)
-            except Exception as e:
-                if "already exists" not in str(e):
-                    raise
+        decl_base = _import_tables()
+        if decl_base:
+            async with async_engine.begin() as conn:
+                try:
+                    await conn.run_sync(decl_base.metadata.create_all)  # noqa
+                except Exception as e:
+                    if "already exists" not in str(e):
+                        raise
 
     global _TABLES_CREATED
     if is_create_tables and not _TABLES_CREATED:
@@ -102,8 +105,14 @@ def init_db_async_session(
     return db_async_session
 
 
-def _import_tables():
-    """导入表"""
-    for f in _DSCHEMA_MOD_DIR.glob("*.py"):
-        if not f.name.startswith("__"):
-            _ = importlib.import_module(f"{_DSCHEMA_MOD_BASE}.{f.stem}")
+def _import_tables() -> DeclarativeAttributeIntercept | None:
+    decl_base = getattr(importlib.import_module(_MODELS_MOD_BASE), _DECL_BASE_NAME, None)
+    if isinstance(decl_base, DeclarativeAttributeIntercept):
+        pat = re.compile(rf"^\s*class\s+[A-Za-z_]\w*\s*\(\s*{_DECL_BASE_NAME}\s*\)\s*:", re.MULTILINE)
+        for f in _MODELS_MOD_DIR.rglob("*.py"):
+            if f.name.startswith("__"):
+                continue
+            if pat.search(f.read_text("utf-8")):
+                rel = f.relative_to(_MODELS_MOD_DIR).with_suffix("")
+                _ = importlib.import_module(f"{_MODELS_MOD_BASE}.{'.'.join(rel.parts)}")
+        return decl_base

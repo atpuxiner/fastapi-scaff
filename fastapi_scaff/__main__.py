@@ -42,6 +42,10 @@ def main():
         type=str,
         help="项目或api名称(多个api可逗号分隔)")
     parser.add_argument(
+        "--light",
+        action='store_true',
+        help="`new`时可指定项目结构是否轻量版(默认标准版)")
+    parser.add_argument(
         "-d",
         "--db",
         default="sqlite",
@@ -120,6 +124,10 @@ class CMD:
         with open(here.joinpath("_project_tpl.json"), "r") as f:
             project = json.loads(f.read())
         for k, v in project.items():
+            if self.args.light:
+                k, v = self._light_handler(k, v)
+                if not k:
+                    continue
             tplpath = name.joinpath(k)
             tplpath.parent.mkdir(parents=True, exist_ok=True)
             with open(tplpath, "w+", encoding="utf-8") as f:
@@ -152,6 +160,130 @@ class CMD:
                          f"> 3. pip install -r requirements.txt\n"
                          f"> 4. python runserver.py\n"
                          f"----- More see README.md -----\n")
+
+    @staticmethod
+    def _light_handler(k: str, v: str):
+        pat = r"^({filter_k})".format(filter_k="|".join([
+            "app/api/default/aping.py",
+            "app/api/v1/user.py",
+            "app/initializer/_redis.py",
+            "app/initializer/_snow.py",
+            "app/models/",
+            "app/schemas/",
+            "app/services/user.py",
+            "app_celery/",
+            "deploy/",
+            "tests/",
+            "runcbeat.py",
+            "runcworker.py",
+        ]))
+        if re.match(pat, k) is not None:
+            return None, None
+        if k == "app/api/status.py":
+            v = v.replace("""
+    USER_OR_PASSWORD_ERROR = (10002, '用户名或密码错误')""", "")
+        elif k == "app/initializer/__init__.py":
+            v = v.replace("""
+from toollib.guid import SnowFlake
+from toollib.rediser import RedisCli""", "").replace("""
+from app.initializer._redis import init_redis_cli
+from app.initializer._snow import init_snow_cli""", "").replace("""
+    redis_cli: RedisCli = None
+    snow_cli: SnowFlake = None""", "").replace("""
+
+    @classmethod
+    def _get_redis_cli(cls):
+        if not cls.redis_cli:
+            cls.redis_cli = init_redis_cli(
+                host=cls.config.redis_host,
+                port=cls.config.redis_port,
+                db=cls.config.redis_db,
+                password=cls.config.redis_password,
+                max_connections=cls.config.redis_max_connections,
+            )
+        return cls.redis_cli
+
+    @classmethod
+    def _get_snow_cli(cls):
+        if not cls.snow_cli:
+            cls.snow_cli = init_snow_cli(
+                redis_cli=cls.redis_cli,
+                datacenter_id=cls.config.snow_datacenter_id,
+            )
+        return cls.snow_cli""", "").replace("""
+        cls._get_redis_cli()
+        cls._get_snow_cli()""", "")
+        elif k == "app/initializer/_conf.py":
+            v = v.replace("""
+    redis_host: str = None
+    redis_port: int = None
+    redis_db: int = None
+    redis_password: str = None
+    redis_max_connections: int = None""", "")
+        elif k == "app/initializer/_db.py":
+            v = v.replace("""
+_MODELS_MOD_DIR = APP_DIR.joinpath("models")
+_MODELS_MOD_BASE = "app.models\"""", """
+_MODELS_MOD_DIR = APP_DIR.joinpath("services")
+_MODELS_MOD_BASE = "app.services\"""")
+        elif k == "app/services/__init__.py":
+            v = v.replace("""\"\"\"
+业务逻辑
+\"\"\"""", """\"\"\"
+业务逻辑
+\"\"\"
+from sqlalchemy.orm import DeclarativeBase
+
+
+class DeclBase(DeclarativeBase):
+    pass
+
+
+# DeclBase 使用示例（官方文档：https://docs.sqlalchemy.org/en/latest/orm/quickstart.html#declare-models）
+\"\"\"
+from sqlalchemy import Column, String
+
+from app.services import DeclBase
+
+
+class User(DeclBase):
+    __tablename__ = "user"
+
+    id = Column(String(20), primary_key=True, comment="主键")
+    name = Column(String(50), nullable=False, comment="名称")
+\"\"\"""")
+        elif k == "config/.env":
+            v = v.replace("""# 雪花算法数据中心id（取值：0-31，在分布式部署时需确保每个节点的取值不同）
+snow_datacenter_id=0
+""", "")
+        elif k.startswith("config/app_"):
+            v = v.replace("""redis_host:
+redis_port:
+redis_db:
+redis_password:
+redis_max_connections:
+""", "").replace("""
+# #
+celery_broker_url: redis://:<password>@<host>:<port>/<db>
+celery_backend_url: redis://:<password>@<host>:<port>/<db>
+celery_timezone: Asia/Shanghai
+celery_enable_utc: true
+celery_task_serializer: json
+celery_result_serializer: json
+celery_accept_content: [ json ]
+celery_task_ignore_result: false
+celery_result_expire: 86400
+celery_task_track_started: true
+celery_worker_concurrency: 8
+celery_worker_prefetch_multiplier: 2
+celery_worker_max_tasks_per_child: 100
+celery_broker_connection_retry_on_startup: true
+celery_task_reject_on_worker_lost: true""", "")
+        elif k == "requirements.txt":
+            v = v.replace("""
+redis==6.4.0""", "").replace("""
+celery==5.5.3""", "")
+        return k, v
 
     @staticmethod
     def _db_requirements_map(name: str):
@@ -216,6 +348,16 @@ class CMD:
                 "app/schemas",
                 "app/models",
             ]
+        if target != "a":
+            if not any([work_dir.joinpath(mod).is_dir() for mod in [
+                "app/schemas",
+                "app/models",
+            ]]):  # is light
+                target = "light"
+                tpl_mods = [
+                    "app/api",
+                    "app/services",
+                ]
         for mod in tpl_mods:
             if not work_dir.joinpath(mod).is_dir():
                 sys.stderr.write(f"[error] not exists: {mod.replace('/', os.sep)}")
@@ -225,10 +367,13 @@ class CMD:
             flags = {
                 # - 键：目标是否存在: 0-不存在，1-存在
                 # - 值：创建是否关联: 0-不关联，1-关联
-                #   - 创建a时，如果se存在为0，存在为1
-                #   - 创建se时，如果sc存在为0，存在为1
+                #   - 创建a时，如果se存在为0，不存在为1
+                #   - 创建se时，如果sc存在为0，不存在为1
                 #   - 创建sc时，全为1
                 #   - 创建m时，全为1
+                #   - light:
+                #       - 创建a时，如果se存在为0，不存在为1
+                #       - 创建se时，如果a存在为0，不存在为1
                 # a (a)
                 "0": [1],
                 "1": [1],
@@ -257,7 +402,12 @@ class CMD:
                 "1100": [0, 1, 1, 1],
                 "1101": [0, 1, 1, 1],
                 "1110": [0, 0, 1, 1],
-                "1111": [0, 0, 1, 1]
+                "1111": [0, 0, 1, 1],
+                # light (a, se)
+                "00": [1, 1],
+                "01": [0, 1],
+                "10": [1, 0],
+                "11": [0, 0],
             }
             e_flag = [
                 1 if (Path(work_dir, mod, vn if mod.endswith("api") else "", subdir, f"{name}.py")).is_file() else 0
@@ -294,7 +444,6 @@ class CMD:
                             f.write("""\"\"\"\n{subdir}\n\"\"\"\n\n_prefix = "/{subdir}"\n""".format(
                                 subdir=subdir,
                             ))
-
                 # file
                 curr_mod_file = curr_mod_dir.joinpath(name + ".py")
                 curr_mod_file_rel = curr_mod_file.relative_to(work_dir)

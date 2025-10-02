@@ -39,7 +39,7 @@ def register_routers(
     if depth > max_depth:
         return
     for item in mod_dir.iterdir():
-        if item.name.startswith("__") or item.name == "__pycache__":
+        if item.name.startswith("__"):
             continue
         if item.is_dir():
             new_mod_dir = item

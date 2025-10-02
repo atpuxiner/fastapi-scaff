@@ -21,7 +21,7 @@ class UserDetailSvc(UserDetail):
 
     async def detail(self):
         async with g.db_async_session() as session:
-            data = await db_async_util.query_one(
+            data = await db_async_util.fetch_one(
                 session=session,
                 model=User,
                 fields=self.response_fields(),
@@ -39,14 +39,14 @@ class UserListSvc(UserList):
 
     async def lst(self):
         async with g.db_async_session() as session:
-            data = await db_async_util.query_all(
+            data = await db_async_util.fetch_all(
                 session=session,
                 model=User,
                 fields=self.response_fields(),
                 page=self.page,
                 size=self.size,
             )
-            total = await db_async_util.query_total(session, User)
+            total = await db_async_util.fetch_total(session, User)
             return data, total
 
 
@@ -117,7 +117,7 @@ class UserLoginSvc(UserLogin):
 
     async def login(self):
         async with g.db_async_session() as session:
-            data = await db_async_util.query_one(
+            data = await db_async_util.fetch_one(
                 session=session,
                 model=User,
                 filter_by={"phone": self.phone},
@@ -155,7 +155,7 @@ class UserTokenSvc(UserToken):
 
     async def token(self):
         async with g.db_async_session() as session:
-            data = await db_async_util.query_one(
+            data = await db_async_util.fetch_one(
                 session=session,
                 model=User,
                 filter_by={"id": self.id},

@@ -9,7 +9,6 @@ from starlette.requests import Request
 from app.api.exceptions import CustomException
 from app.api.status import Status
 from app.initializer import g
-from app.models.user import User
 from app.utils import db_async_util
 from app.utils.auths_util import verify_jwt
 
@@ -17,16 +16,27 @@ from app.utils.auths_util import verify_jwt
 # ======= jwt =======
 
 class JWTUser(BaseModel):
-    # 字段与User对齐
+    # 与实际`user`对齐
     id: str = None
     phone: str = None
     name: str = None
     age: int = None
     gender: int = None
 
+    @staticmethod
+    async def get_jwt_key(user_id: str):
+        # 建议：jwt_key进行redis缓存
+        async with g.db_async_session() as session:
+            data = await db_async_util.sqlfetch_one(
+                session=session,
+                sql='SELECT jwt_key FROM "user" WHERE id = :id',  # noqa
+                params={"id": user_id},
+            )
+            return data.get("jwt_key")
+
 
 class JWTAuthorizationCredentials(HTTPAuthorizationCredentials):
-    user: JWTUser
+    jwt_user: JWTUser
 
 
 class JWTBearer(HTTPBearer):
@@ -52,25 +62,17 @@ class JWTBearer(HTTPBearer):
                 )
             else:
                 return None
-        user = await self.verify_credentials(credentials)
-        return JWTAuthorizationCredentials(scheme=scheme, credentials=credentials, user=user)
+        jwt_user = await self.verify_credentials(credentials)
+        return JWTAuthorizationCredentials(scheme=scheme, credentials=credentials, jwt_user=jwt_user)
 
     async def verify_credentials(self, credentials: str) -> JWTUser:
         playload = await self._verify_jwt(credentials)
         if playload is None:
             raise CustomException(status=Status.UNAUTHORIZED_ERROR)
-        # 建议：jwt_key进行redis缓存
-        async with g.db_async_session() as session:
-            data = await db_async_util.query_one(
-                session=session,
-                model=User,
-                fields=["jwt_key"],
-                filter_by={"id": playload.get("id")}
-            )
-            if not data:
-                raise CustomException(status=Status.UNAUTHORIZED_ERROR)
-        # <<< 建议
-        await self._verify_jwt(credentials, jwt_key=data.get("jwt_key"))
+        jwt_key = await JWTUser.get_jwt_key(playload.get("id"))
+        if not jwt_key:
+            raise CustomException(status=Status.UNAUTHORIZED_ERROR)
+        await self._verify_jwt(credentials, jwt_key=jwt_key)
         return JWTUser(
             id=playload.get("id"),
             phone=playload.get("phone"),
@@ -92,15 +94,15 @@ def get_current_user(
 ) -> JWTUser:
     if not credentials:
         return JWTUser()
-    return credentials.user
+    return credentials.jwt_user
 
 
 # ======= api key =======
 
-api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+_API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
-async def get_api_key(api_key: str = Security(api_key_header)):
+async def get_api_key(api_key: str = Security(_API_KEY_HEADER)):
     if not api_key:
         raise CustomException(status=Status.FORBIDDEN_ERROR)
     if api_key not in g.config.api_keys:
