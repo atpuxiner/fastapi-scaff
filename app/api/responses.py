@@ -166,7 +166,7 @@ def response_docs(
                     "example": {
                         "msg": "string",
                         "code": "integer",
-                        "data": format_data,
+                        "data": format_data or "object | array | ...",
                         "request_id": "string",
                     }
                 }
