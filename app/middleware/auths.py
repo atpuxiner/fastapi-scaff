@@ -24,7 +24,7 @@ class JWTUser(BaseModel):
     gender: int = None
 
     @staticmethod
-    async def get_jwt_key(user_id: str):
+    async def get_user_jwt_key(user_id: str) -> str:
         # 建议：jwt_key进行redis缓存
         async with g.db_async_session() as session:
             data = await db_async_util.sqlfetch_one(
@@ -69,10 +69,10 @@ class JWTBearer(HTTPBearer):
         playload = await self._verify_jwt(credentials)
         if playload is None:
             raise CustomException(status=Status.UNAUTHORIZED_ERROR)
-        jwt_key = await JWTUser.get_jwt_key(playload.get("id"))
-        if not jwt_key:
+        user_jwt_key = await JWTUser.get_user_jwt_key(playload.get("id"))
+        if not user_jwt_key:
             raise CustomException(status=Status.UNAUTHORIZED_ERROR)
-        await self._verify_jwt(credentials, jwt_key=jwt_key)
+        await self._verify_jwt(credentials, jwt_key=user_jwt_key)
         return JWTUser(
             id=playload.get("id"),
             phone=playload.get("phone"),
@@ -102,9 +102,21 @@ def get_current_user(
 _API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
-async def get_api_key(api_key: str = Security(_API_KEY_HEADER)):
+class ApiKeyUser(BaseModel):
+
+    @staticmethod
+    def get_user_api_key(user_id: str = None) -> list:
+        if user_id:
+            return g.config.api_keys.get(user_id)
+        return g.config.api_keys
+
+
+async def get_current_api_key(api_key: str = Security(_API_KEY_HEADER)):
     if not api_key:
         raise CustomException(status=Status.FORBIDDEN_ERROR)
-    if api_key not in g.config.api_keys:
+    user_api_key = ApiKeyUser.get_user_api_key()
+    if not user_api_key:
+        raise CustomException(status=Status.UNAUTHORIZED_ERROR)
+    if api_key not in user_api_key:
         raise CustomException(status=Status.UNAUTHORIZED_ERROR)
     return api_key
