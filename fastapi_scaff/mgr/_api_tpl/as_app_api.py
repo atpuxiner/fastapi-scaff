@@ -4,11 +4,11 @@ from fastapi import APIRouter
 from starlette.requests import Request
 
 from app.api.responses import Responses, response_docs
+from app.api.status import Status
+from app.initializer import g
 from app.services.tpl import (
     TplDetailSvc,
 )
-from app.api.status import Status
-from app.initializer import g
 
 router = APIRouter()
 

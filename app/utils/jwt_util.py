@@ -5,7 +5,6 @@ import bcrypt
 import jwt
 
 _JWT_ALGORITHM = "HS256"
-_API_KEY_LENGTH = 45
 
 
 def gen_jwt(payload: dict, jwt_key: str, exp_minutes: int = 24 * 60 * 30, algorithm: str = _JWT_ALGORITHM):
@@ -32,10 +31,3 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
-
-
-def gen_api_key(prefix: str = "", length: int = _API_KEY_LENGTH) -> str:
-    api_key = secrets.token_urlsafe(length)[:length]
-    if prefix:
-        return f"{prefix}_{api_key}"
-    return api_key

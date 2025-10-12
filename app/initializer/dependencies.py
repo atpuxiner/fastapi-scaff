@@ -1,6 +1,5 @@
 from fastapi import Depends, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
-from typing import Optional
 
 from fastapi.security.utils import get_authorization_scheme_param
 from pydantic import BaseModel
@@ -10,7 +9,7 @@ from app.api.exceptions import CustomException
 from app.api.status import Status
 from app.initializer import g
 from app.utils import db_async_util
-from app.utils.auths_util import verify_jwt
+from app.utils.jwt_util import verify_jwt
 
 
 # ======= jwt =======
@@ -43,7 +42,7 @@ class JWTBearer(HTTPBearer):
 
     async def __call__(
             self, request: Request
-    ) -> Optional[JWTAuthorizationCredentials]:
+    ) -> JWTAuthorizationCredentials | None:
         authorization = request.headers.get("Authorization")
         scheme, credentials = get_authorization_scheme_param(authorization)
         if not (authorization and scheme and credentials):
@@ -90,7 +89,7 @@ class JWTBearer(HTTPBearer):
 
 
 def get_current_user(
-        credentials: Optional[JWTAuthorizationCredentials] = Depends(JWTBearer(auto_error=True))
+        credentials: JWTAuthorizationCredentials | None = Depends(JWTBearer(auto_error=True))
 ) -> JWTUser:
     if not credentials:
         return JWTUser()
@@ -111,7 +110,7 @@ class ApiKeyUser(BaseModel):
         return g.config.api_keys
 
 
-async def get_current_api_key(api_key: str = Security(_API_KEY_HEADER)):
+async def get_current_api_key(api_key: str | None = Security(_API_KEY_HEADER)):
     if not api_key:
         raise CustomException(status=Status.FORBIDDEN_ERROR)
     user_api_key = ApiKeyUser.get_user_api_key()

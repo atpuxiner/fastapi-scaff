@@ -1,3 +1,4 @@
+from app.initializer import g
 from app.models.user import User
 from app.schemas.user import (
     UserDetail,
@@ -8,8 +9,7 @@ from app.schemas.user import (
     UserLogin,
     UserToken,
 )
-from app.initializer import g
-from app.utils import auths_util, db_async_util
+from app.utils import jwt_util, db_async_util
 
 
 class UserDetailSvc(UserDetail):
@@ -67,8 +67,8 @@ class UserCreateSvc(UserCreate):
                     "phone": self.phone,
                     "age": self.age,
                     "gender": self.gender,
-                    "password": auths_util.hash_password(self.password),
-                    "jwt_key": auths_util.gen_jwt_key(),
+                    "password": jwt_util.hash_password(self.password),
+                    "jwt_key": jwt_util.gen_jwt_key(),
                 },
                 filter_by={"phone": self.phone},
             )
@@ -122,10 +122,10 @@ class UserLoginSvc(UserLogin):
                 model=User,
                 filter_by={"phone": self.phone},
             )
-            if not data or not auths_util.verify_password(self.password, data.get("password")):
+            if not data or not jwt_util.verify_password(self.password, data.get("password")):
                 return None
-            new_jwt_key = auths_util.gen_jwt_key()
-            token = auths_util.gen_jwt(
+            new_jwt_key = jwt_util.gen_jwt_key()
+            token = jwt_util.gen_jwt(
                 payload={
                     "id": data.get("id"),
                     "phone": data.get("phone"),
@@ -162,8 +162,8 @@ class UserTokenSvc(UserToken):
             )
             if not data:
                 return None
-            new_jwt_key = auths_util.gen_jwt_key()
-            token = auths_util.gen_jwt(
+            new_jwt_key = jwt_util.gen_jwt_key()
+            token = jwt_util.gen_jwt(
                 payload={
                     "id": data.get("id"),
                     "phone": data.get("phone"),
