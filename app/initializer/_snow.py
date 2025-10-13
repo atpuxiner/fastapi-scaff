@@ -1,6 +1,7 @@
 import os
+import sys
+from datetime import datetime
 
-from loguru import logger
 from toollib.guid import SnowFlake
 from toollib.rediser import RedisCli
 from toollib.utils import localip
@@ -47,5 +48,10 @@ def _snow_incr(redis_cli, cache_key: str, cache_expire: int):
                     """
                 incr = r.eval(lua_script, 1, cache_key, cache_expire)
     except Exception as e:
-        logger.warning(f"snow初始化id将采用本地方式，由于（{e}）")
+        sys.stderr.write(
+            f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f')[:-3]} "
+            f"Warning initializer "
+            f"snow初始化id将采用本地方式，由于（{e}）"
+            f"\n"
+        )
     return incr

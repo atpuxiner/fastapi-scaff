@@ -173,6 +173,7 @@ class CMD:
             "app/services/user.py",
             "app_celery/",
             "deploy/",
+            "docs/",
             "tests/",
             "runcbeat.py",
             "runcworker.py",
@@ -188,38 +189,32 @@ from toollib.guid import SnowFlake
 from toollib.rediser import RedisCli""", "").replace("""
 from app.initializer._redis import init_redis_cli
 from app.initializer._snow import init_snow_cli""", "").replace("""
-    redis_cli: RedisCli = None
-    snow_cli: SnowFlake = None""", "").replace("""
+        'redis_cli',
+        'snow_cli',""", "").replace("""
+    @cached_property
+    def redis_cli(self) -> RedisCli:
+        return init_redis_cli(
+            host=self.config.redis_host,
+            port=self.config.redis_port,
+            db=self.config.redis_db,
+            password=self.config.redis_password,
+            max_connections=self.config.redis_max_connections,
+        )
 
-    @classmethod
-    def _get_redis_cli(cls):
-        if not cls.redis_cli:
-            cls.redis_cli = init_redis_cli(
-                host=cls.config.redis_host,
-                port=cls.config.redis_port,
-                db=cls.config.redis_db,
-                password=cls.config.redis_password,
-                max_connections=cls.config.redis_max_connections,
-            )
-        return cls.redis_cli
-
-    @classmethod
-    def _get_snow_cli(cls):
-        if not cls.snow_cli:
-            cls.snow_cli = init_snow_cli(
-                redis_cli=cls.redis_cli,
-                datacenter_id=cls.config.snow_datacenter_id,
-            )
-        return cls.snow_cli""", "").replace("""
-        cls._get_redis_cli()
-        cls._get_snow_cli()""", "")
+    @cached_property
+    def snow_cli(self) -> SnowFlake:
+        return init_snow_cli(
+            redis_cli=self.redis_cli,
+            datacenter_id=self.config.snow_datacenter_id,
+        )
+""", "")
         elif k == "app/initializer/_conf.py":
-            v = v.replace("""
-    redis_host: str = None
+            v = v.replace("""redis_host: str = None
     redis_port: int = None
     redis_db: int = None
     redis_password: str = None
-    redis_max_connections: int = None""", "")
+    redis_max_connections: int = None
+    """, "")
         elif k == "app/initializer/_db.py":
             v = v.replace("""
 _MODELS_MOD_DIR = APP_DIR.joinpath("models")
@@ -262,8 +257,7 @@ redis_port:
 redis_db:
 redis_password:
 redis_max_connections:
-""", "").replace("""
-# #
+""", "").replace("""# #
 celery_broker_url: redis://:<password>@<host>:<port>/<db>
 celery_backend_url: redis://:<password>@<host>:<port>/<db>
 celery_timezone: Asia/Shanghai
@@ -278,7 +272,8 @@ celery_worker_concurrency: 8
 celery_worker_prefetch_multiplier: 2
 celery_worker_max_tasks_per_child: 100
 celery_broker_connection_retry_on_startup: true
-celery_task_reject_on_worker_lost: true""", "")
+celery_task_reject_on_worker_lost: true
+""", "")
         elif k == "requirements.txt":
             v = v.replace("""
 redis==6.4.0""", "").replace("""
