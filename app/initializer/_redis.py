@@ -1,17 +1,17 @@
-from toollib.rediser import RedisCli
+from toollib.rediser import RedisClient
 
 
-def init_redis_cli(
+def init_redis_client(
         host: str,
         port: int,
         db: int,
         password: str = None,
         max_connections: int = None,
         **kwargs,
-) -> RedisCli:
+) -> RedisClient:
     if not host:
-        return RedisCli()
-    return RedisCli(
+        return RedisClient()
+    return RedisClient(
         host=host,
         port=port,
         db=db,

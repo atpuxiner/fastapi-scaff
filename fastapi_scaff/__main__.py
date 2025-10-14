@@ -186,14 +186,14 @@ class CMD:
         elif k == "app/initializer/__init__.py":
             v = v.replace("""
 from toollib.guid import SnowFlake
-from toollib.rediser import RedisCli""", "").replace("""
-from app.initializer._redis import init_redis_cli
-from app.initializer._snow import init_snow_cli""", "").replace("""
-        'redis_cli',
-        'snow_cli',""", "").replace("""
+from toollib.rediser import RedisClient""", "").replace("""
+from app.initializer._redis import init_redis_client
+from app.initializer._snow import init_snow_client""", "").replace("""
+        'redis_client',
+        'snow_client',""", "").replace("""
     @cached_property
-    def redis_cli(self) -> RedisCli:
-        return init_redis_cli(
+    def redis_client(self) -> RedisClient:
+        return init_redis_client(
             host=self.config.redis_host,
             port=self.config.redis_port,
             db=self.config.redis_db,
@@ -202,9 +202,9 @@ from app.initializer._snow import init_snow_cli""", "").replace("""
         )
 
     @cached_property
-    def snow_cli(self) -> SnowFlake:
-        return init_snow_cli(
-            redis_cli=self.redis_cli,
+    def snow_client(self) -> SnowFlake:
+        return init_snow_client(
+            redis_client=self.redis_client,
             datacenter_id=self.config.snow_datacenter_id,
         )
 """, "")

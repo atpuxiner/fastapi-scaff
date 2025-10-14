@@ -9,14 +9,14 @@ from functools import cached_property
 from loguru._logger import Logger  # noqa
 from sqlalchemy.orm import sessionmaker, scoped_session
 from toollib.guid import SnowFlake
-from toollib.rediser import RedisCli
+from toollib.rediser import RedisClient
 from toollib.utils import Singleton
 
 from app.initializer._conf import Config, init_config
 from app.initializer._db import init_db_session, init_db_async_session
 from app.initializer._log import init_logger
-from app.initializer._redis import init_redis_cli
-from app.initializer._snow import init_snow_cli
+from app.initializer._redis import init_redis_client
+from app.initializer._snow import init_snow_client
 
 
 class G(metaclass=Singleton):
@@ -28,8 +28,8 @@ class G(metaclass=Singleton):
     _init_properties = [
         'config',
         'logger',
-        'redis_cli',
-        'snow_cli',
+        'redis_client',
+        'snow_client',
         # 'db_session',
         'db_async_session',
     ]
@@ -49,8 +49,8 @@ class G(metaclass=Singleton):
         )
 
     @cached_property
-    def redis_cli(self) -> RedisCli:
-        return init_redis_cli(
+    def redis_client(self) -> RedisClient:
+        return init_redis_client(
             host=self.config.redis_host,
             port=self.config.redis_port,
             db=self.config.redis_db,
@@ -59,9 +59,9 @@ class G(metaclass=Singleton):
         )
 
     @cached_property
-    def snow_cli(self) -> SnowFlake:
-        return init_snow_cli(
-            redis_cli=self.redis_cli,
+    def snow_client(self) -> SnowFlake:
+        return init_snow_client(
+            redis_client=self.redis_client,
             datacenter_id=self.config.snow_datacenter_id,
         )
 
@@ -90,7 +90,7 @@ class G(metaclass=Singleton):
                     else:
                         sys.stderr.write(
                             f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f')[:-3]} "
-                            f"Warning initializer "
+                            f"WARNING initializer "
                             f"{prop_name} not found"
                             f"\n"
                         )
