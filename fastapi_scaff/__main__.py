@@ -288,11 +288,11 @@ celery==5.5.3""", "")
                 "aiosqlite==0.21.0",
             ],
             "mysql": [
-                "PyMySQL==1.1.1",
+                "PyMySQL==1.1.2",
                 "aiomysql==0.2.0",
             ],
             "postgresql": [
-                "psycopg2-binary==2.9.10",
+                "psycopg2-binary==2.9.11",
                 "asyncpg==0.30.0",
             ],
         }.get(name)
