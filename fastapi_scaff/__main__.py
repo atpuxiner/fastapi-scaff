@@ -289,7 +289,7 @@ celery==5.5.3""", "")
             ],
             "mysql": [
                 "PyMySQL==1.1.2",
-                "aiomysql==0.2.0",
+                "aiomysql==0.3.2",
             ],
             "postgresql": [
                 "psycopg2-binary==2.9.11",
