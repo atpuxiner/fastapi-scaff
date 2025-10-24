@@ -5,6 +5,8 @@ app_description: xxxApp-dev
 app_version: 1.0.0
 app_debug: true
 app_log_dir: ./logs
+app_log_serialize: false
+app_log_intercept_standard: false
 app_disable_docs: false
 app_allow_origins:
   - '*'

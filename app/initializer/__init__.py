@@ -1,11 +1,10 @@
 """
 初始化
 """
-import sys
 import threading
-from datetime import datetime
 from functools import cached_property
 
+from loguru import logger
 from loguru._logger import Logger  # noqa
 from sqlalchemy.orm import sessionmaker, scoped_session
 from toollib.guid import SnowFlake
@@ -46,6 +45,8 @@ class G(metaclass=Singleton):
         return init_logger(
             debug=self.config.app_debug,
             log_dir=self.config.app_log_dir,
+            serialize=self.config.app_log_serialize,
+            intercept_standard=self.config.app_log_intercept_standard,
         )
 
     @cached_property
@@ -88,12 +89,7 @@ class G(metaclass=Singleton):
                     if hasattr(self, prop_name):
                         getattr(self, prop_name)
                     else:
-                        sys.stderr.write(
-                            f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f')[:-3]} "
-                            f"WARNING initializer "
-                            f"{prop_name} not found"
-                            f"\n"
-                        )
+                        logger.warning(f"{prop_name} not found")
                 self._initialized = True
 
 

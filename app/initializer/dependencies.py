@@ -25,9 +25,9 @@ class JWTUser(BaseModel):
     async def get_user_jwt_key(user_id: str) -> str:
         # 建议：jwt_key进行redis缓存
         async with g.db_async_session() as session:
-            sql = 'SELECT jwt_key FROM `user` WHERE id = :id'
+            sql = 'SELECT jwt_key FROM `user` WHERE id = :id'  # noqa
             if session.bind.dialect.name == "postgresql":
-                sql = 'SELECT jwt_key FROM "user" WHERE id = :id'
+                sql = 'SELECT jwt_key FROM "user" WHERE id = :id'  # noqa
             data = await sqlfetch_one(
                 session=session,
                 sql=sql,

@@ -37,6 +37,8 @@ class Config:
     app_version: str = "1.0.0"
     app_debug: bool = True
     app_log_dir: str = "./logs"
+    app_log_serialize: bool = False
+    app_log_intercept_standard: bool = False
     app_disable_docs: bool = True
     app_allow_origins: list = ["*"]
     # #
