@@ -3,10 +3,10 @@ import traceback
 from fastapi import APIRouter, Depends
 from starlette.requests import Request
 
+from app.api.dependencies import JWTUser, get_current_user
 from app.api.responses import Responses, response_docs
 from app.api.status import Status
 from app.initializer import g
-from app.initializer.dependencies import JWTUser, get_current_user
 from app.services.user import (
     UserDetailSvc,
     UserListSvc,

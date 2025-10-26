@@ -3,7 +3,7 @@
 fastapi==0.120.0
 uvicorn==0.38.0
 orjson==3.11.3
-toollib==1.8.2
+toollib==1.8.5
 python-dotenv==1.1.1
 PyYAML==6.0.3
 loguru==0.7.3

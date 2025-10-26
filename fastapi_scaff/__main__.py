@@ -2,7 +2,7 @@
 @author axiner
 @version v1.0.0
 @created 2024/07/29 22:22
-@abstract main
+@abstract
 @description
 @history
 """
@@ -55,15 +55,15 @@ def main():
     parser.add_argument(
         "-v",
         "--vn",
-        type=str,
         default="v1",
+        type=str,
         metavar="",
         help="`add`时可指定版本(默认v1)")
     parser.add_argument(
         "-s",
         "--subdir",
-        type=str,
         default="",
+        type=str,
         metavar="",
         help="`add`时可指定子目录(默认空)")
     parser.add_argument(

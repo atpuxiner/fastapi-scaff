@@ -6,7 +6,7 @@ app_version: 1.0.0
 app_debug: false
 app_log_dir: ./logs
 app_log_serialize: false
-app_log_intercept_standard: true
+app_log_intercept_standard: false
 app_disable_docs: true
 app_allow_origins:
   - '*'
