@@ -1,14 +1,69 @@
+"""
+中间件
+"""
 import traceback
+import uuid
 
+from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.api.exceptions import CustomException
 from app.api.responses import Responses
 from app.api.status import Status
-from app.initializer import g
+from app.initializer import g, request_id_ctx_var
+
+__all__ = [
+    "register_middlewares",
+]
+
+
+def register_middlewares(app: FastAPI):
+    """注册中间件"""
+    app.add_middleware(
+        middleware_class=CORSMiddleware,  # type: ignore
+        allow_origins=g.config.app_allow_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    app.add_middleware(HeadersMiddleware)  # type: ignore
+    app.add_exception_handler(CustomException, ExceptionsHandler.custom_exception_handler)  # type: ignore
+    app.add_exception_handler(RequestValidationError, ExceptionsHandler.request_validation_handler)  # type: ignore
+    app.add_exception_handler(HTTPException, ExceptionsHandler.http_exception_handler)  # type: ignore
+    app.add_exception_handler(Exception, ExceptionsHandler.exception_handler)
+
+
+class HeadersMiddleware(BaseHTTPMiddleware):
+    """头处理中间件"""
+    _HEADERS = {
+        # 可添加相关头
+    }
+
+    async def dispatch(self, request: Request, call_next):
+        request_id = self._get_or_create_request_id(request)
+        request.state.request_id = request_id
+        ctx_token = request_id_ctx_var.set(request_id)
+        try:
+            response = await call_next(request)
+            response.headers["X-Request-ID"] = request_id
+            for key, value in self._HEADERS.items():
+                if key not in response.headers:
+                    response.headers[key] = value
+            return response
+        finally:
+            request_id_ctx_var.reset(ctx_token)
+
+    @staticmethod
+    def _get_or_create_request_id(request: Request) -> str:
+        request_id = request.headers.get("X-Request-ID")
+        if not request_id:
+            request_id = f"req-{uuid.uuid4()}"
+        return request_id
 
 
 class ExceptionsHandler:
@@ -42,7 +97,7 @@ class ExceptionsHandler:
                              for item in exc.errors()])
         else:
             _first_error = exc.errors()[0]
-            msg = f"'{_first_error['loc'][1] if len(_first_error['loc']) > 1 else _first_error['loc'][0]}' {_first_error['msg'].lower()}"  # noqa: E501
+            msg = f"'{_first_error['loc'][1] if len(_first_error['loc']) > 1 else _first_error['loc'][0]}' {_first_error['msg'].lower()}"
         lmsg = f'- "{request.method} {request.url.path}" {Status.PARAMS_ERROR.code} {msg}'
         if is_traceback:
             lmsg = traceback.format_exc()

@@ -16,16 +16,20 @@
         - integrated jwt\api-key
         - integrated celery
         - ...
+    - about structure:
+        - standard
+        - light
+        - micro
     - more documents: [请点击链接](https://blog.csdn.net/atpuxiner/article/details/144291336?fromshare=blogdetail&sharetype=blogdetail&sharerId=144291336&sharerefer=PC&sharesource=atpuxiner&sharefrom=from_link)
 
 ## Project structure
 
-- ASM: ASM模式
+- ASM: ASM mode
     - A api
     - S services(&schemas)
     - M models
-- 调用过程: main.py(initializer) -> (middleware) - api - services(&schemas) - (models)
-- 结构如下: (命名经过多次修改敲定，简洁易懂)
+- Calling process: main.py(initializer) -> (middleware) - api - services(&schemas) - (models)
+- Structure: (The naming has been finalized after multiple revisions, making it concise and easy to understand)
   ```
   └── fastapi-scaff
       ├── app                         (应用)
@@ -56,8 +60,10 @@
       └── runcworker.py
       └── runserver.py
   ```
-  
-- 【另：**轻量版** > **完整结构** 】请自行创建查看（`new`项目时指定参数`--light`）
+
+- 【Other structure】
+    - light：Please create and view (with `-e light`)
+    - micro：Please create and view (with `-e micro`)
 
 ## Installation
 
@@ -70,7 +76,8 @@ This package can be installed using pip (Python>=3.11):
     - `fastapi-scaff -h`
 - 2）new project
     - `fastapi-scaff new <myproj>`
-    - *light structure*: `fastapi-scaff new <myproj> --light`
+    - *light structure*: `fastapi-scaff new <myproj> -e light`
+    - *micro structure*: `fastapi-scaff new <myproj> -e micro`
 - 3）add api
     - `cd to project root dir`
     - `fastapi-scaff add <myapi>`
@@ -82,8 +89,8 @@ This package can be installed using pip (Python>=3.11):
 - 3）`pip install -r requirements.txt`
 - 4）`python runserver.py`
     - more parameters see:
-      - about uvicorn: [click here](https://www.uvicorn.org/)
-      - about gunicorn: [click here](https://docs.gunicorn.org/en/stable/)
+        - about uvicorn: [click here](https://www.uvicorn.org/)
+        - about gunicorn: [click here](https://docs.gunicorn.org/en/stable/)
 
 ## License
 

@@ -13,7 +13,7 @@ import re
 import sys
 from pathlib import Path
 
-from . import __version__
+from fastapi_scaff import __version__
 
 here = Path(__file__).absolute().parent
 prog = "fastapi-scaff"
@@ -42,9 +42,12 @@ def main():
         type=str,
         help="项目或api名称(多个api可逗号分隔)")
     parser.add_argument(
-        "--light",
-        action='store_true',
-        help="`new`时可指定项目结构是否轻量版(默认标准版)")
+        "-e",
+        "--edition",
+        default="standard",
+        choices=["standard", "light", "micro"],
+        metavar="",
+        help="`new`时可指定项目结构版本(默认标准版)")
     parser.add_argument(
         "-d",
         "--db",
@@ -124,10 +127,9 @@ class CMD:
         with open(here.joinpath("_project_tpl.json"), "r") as f:
             project = json.loads(f.read())
         for k, v in project.items():
-            if self.args.light:
-                k, v = self._light_handler(k, v)
-                if not k:
-                    continue
+            k, v = self._edition_handler(self.args.edition, k, v)
+            if not k:
+                continue
             tplpath = name.joinpath(k)
             tplpath.parent.mkdir(parents=True, exist_ok=True)
             with open(tplpath, "w+", encoding="utf-8") as f:
@@ -162,8 +164,17 @@ class CMD:
                          f"----- More see README.md -----\n")
 
     @staticmethod
-    def _light_handler(k: str, v: str):
-        pat = r"^({filter_k})".format(filter_k="|".join([
+    def _edition_handler(edition: str, k: str, v: str):
+        if k in [
+            "app/initializer.py",
+            "app/middleware.py",
+        ]:
+            if edition == "micro":
+                return k, v
+            return None, None
+        if edition == "standard":
+            return k, v
+        filter_list = [
             "app/api/default/aping.py",
             "app/api/v1/user.py",
             "app/initializer/_redis.py",
@@ -177,7 +188,24 @@ class CMD:
             "tests/",
             "runcbeat.py",
             "runcworker.py",
-        ]))
+        ]
+        if edition == "micro":
+            filter_list = [
+                "app/api/default/aping.py",
+                "app/api/v1/user.py",
+                "app/initializer/",
+                "app/middleware/",
+                "app/models/",
+                "app/schemas/",
+                "app/services/",
+                "app_celery/",
+                "deploy/",
+                "docs/",
+                "tests/",
+                "runcbeat.py",
+                "runcworker.py",
+            ]
+        pat = r"^({filter_k})".format(filter_k="|".join(filter_list))
         if re.match(pat, k) is not None:
             return None, None
         if k == "app/api/status.py":
@@ -326,9 +354,22 @@ celery==5.5.3""", "")
         work_dir = Path.cwd()
         with open(here.joinpath("_api_tpl.json"), "r", encoding="utf-8") as f:
             api_tpl_dict = json.loads(f.read())
-        if target == "a":
+        if target != "a":
+            if not any([
+                work_dir.joinpath("app/schemas").is_dir(),
+                work_dir.joinpath("app/models").is_dir(),
+            ]):
+                target = "light"
+                if not work_dir.joinpath("app/services").is_dir():
+                    target = "micro"
+        if target in ["a", "micro"]:
             tpl_mods = [
                 "app/api",
+            ]
+        elif target == "light":
+            tpl_mods = [
+                "app/api",
+                "app/services",
             ]
         elif target == "as":
             tpl_mods = [
@@ -343,16 +384,6 @@ celery==5.5.3""", "")
                 "app/schemas",
                 "app/models",
             ]
-        if target != "a":
-            if not any([work_dir.joinpath(mod).is_dir() for mod in [
-                "app/schemas",
-                "app/models",
-            ]]):  # is light
-                target = "light"
-                tpl_mods = [
-                    "app/api",
-                    "app/services",
-                ]
         for mod in tpl_mods:
             if not work_dir.joinpath(mod).is_dir():
                 sys.stderr.write(f"[error] not exists: {mod.replace('/', os.sep)}")
@@ -369,7 +400,7 @@ celery==5.5.3""", "")
                 #   - light:
                 #       - 创建a时，如果se存在为0，不存在为1
                 #       - 创建se时，如果a存在为0，不存在为1
-                # a (a)
+                # a|micro (a)
                 "0": [1],
                 "1": [1],
                 # as (a, se, sc)
