@@ -76,6 +76,10 @@ def main():
         choices=["a", "as", "asm"],
         metavar="",
         help="`add`时可指定目标(默认asm)")
+    parser.add_argument(
+        "--celery",
+        action='store_true',
+        help="`new`|`add`时可指定是否集成celery(默认不集成)")
     args = parser.parse_args()
     cmd = CMD(args)
     if args.command == "new":
@@ -127,7 +131,7 @@ class CMD:
         with open(here.joinpath("_project_tpl.json"), "r") as f:
             project = json.loads(f.read())
         for k, v in project.items():
-            k, v = self._edition_handler(self.args.edition, k, v)
+            k, v = self._edition_handler(k, v, edition=self.args.edition, celery=self.args.celery)
             if not k:
                 continue
             tplpath = name.joinpath(k)
@@ -138,15 +142,12 @@ class CMD:
                     v = v.replace(f"# {prog}", f"# {prog} ( => yourProj)")
                 if re.search(r"requirements\.txt$", k):
                     _default = self._db_requirements_map("default")
-                    _user = self._db_requirements_map(self.args.db) or _default
-                    v = v.replace(
-                        _default,
-                        '\n'.join(_user)
-                    )
+                    _user = self._db_requirements_map(self.args.db)
+                    v = re.sub(rf'^{_default}.*\n?', '\n'.join(_user) + '\n', v, flags=re.MULTILINE)
                 if _env := re.search(r"app_(.*?).yaml$", k):
                     _rpl_name = f"/app_{_env.group(1)}"
                     _default = self._db_yaml_map("default")
-                    _user = self._db_yaml_map(self.args.db) or _default
+                    _user = self._db_yaml_map(self.args.db)
                     v = v.replace(
                         _default["db_url"].replace("/app_dev", _rpl_name),
                         _user["db_url"].replace("/app_dev", _rpl_name)
@@ -164,7 +165,7 @@ class CMD:
                          f"----- More see README.md -----\n")
 
     @staticmethod
-    def _edition_handler(edition: str, k: str, v: str):
+    def _edition_handler(k: str, v: str, edition: str, celery: bool):
         if k in [
             "app/initializer.py",
             "app/middleware.py",
@@ -172,17 +173,38 @@ class CMD:
             if edition == "micro":
                 return k, v
             return None, None
+        if not celery:
+            if k.startswith("app_celery/") or k == "app/api/default/aping.py":
+                return None, None
+            elif k.startswith("config/app_"):
+                v = v.replace("""# #
+celery_broker_url: redis://:<password>@<host>:<port>/<db>
+celery_backend_url: redis://:<password>@<host>:<port>/<db>
+celery_timezone: Asia/Shanghai
+celery_enable_utc: true
+celery_task_serializer: json
+celery_result_serializer: json
+celery_accept_content: [ json ]
+celery_task_ignore_result: false
+celery_result_expire: 86400
+celery_task_track_started: true
+celery_worker_concurrency: 8
+celery_worker_prefetch_multiplier: 2
+celery_worker_max_tasks_per_child: 100
+celery_broker_connection_retry_on_startup: true
+celery_task_reject_on_worker_lost: true
+""", "")
+            elif k == "requirements.txt":
+                v = re.sub(r'^celery==.*\n?', '', v, flags=re.MULTILINE)
         if edition == "standard":
             return k, v
         filter_list = [
-            "app/api/default/aping.py",
             "app/api/v1/user.py",
             "app/initializer/_redis.py",
             "app/initializer/_snow.py",
             "app/models/",
             "app/schemas/",
             "app/services/user.py",
-            "app_celery/",
             "deploy/",
             "docs/",
             "tests/",
@@ -191,35 +213,31 @@ class CMD:
         ]
         if edition == "micro":
             filter_list = [
-                "app/api/default/aping.py",
                 "app/api/v1/user.py",
                 "app/initializer/",
                 "app/middleware/",
                 "app/models/",
                 "app/schemas/",
                 "app/services/",
-                "app_celery/",
                 "deploy/",
                 "docs/",
                 "tests/",
                 "runcbeat.py",
                 "runcworker.py",
             ]
-        pat = r"^({filter_k})".format(filter_k="|".join(filter_list))
-        if re.match(pat, k) is not None:
+        if re.match(r"^({filter_k})".format(filter_k="|".join(filter_list)), k) is not None:
             return None, None
         if k == "app/api/status.py":
-            v = v.replace("""
-    USER_OR_PASSWORD_ERROR = (10002, '用户名或密码错误')""", "")
+            v = v.replace("""USER_OR_PASSWORD_ERROR = (10002, '用户名或密码错误')
+""", "")
         elif k == "app/initializer/__init__.py":
-            v = v.replace("""
-from toollib.guid import SnowFlake
-from toollib.rediser import RedisClient""", "").replace("""
-from app.initializer._redis import init_redis_client
-from app.initializer._snow import init_snow_client""", "").replace("""
-        'redis_client',
-        'snow_client',""", "").replace("""
-    @cached_property
+            v = v.replace("""from toollib.guid import SnowFlake
+from toollib.rediser import RedisClient
+""", "").replace("""from app.initializer._redis import init_redis_client
+from app.initializer._snow import init_snow_client
+""", "").replace("""'redis_client',
+        'snow_client',
+        """, "").replace("""@cached_property
     def redis_client(self) -> RedisClient:
         return init_redis_client(
             host=self.config.redis_host,
@@ -235,20 +253,22 @@ from app.initializer._snow import init_snow_client""", "").replace("""
             redis_client=self.redis_client,
             datacenter_id=self.config.snow_datacenter_id,
         )
-""", "")
+
+    """, "")
         elif k == "app/initializer/_conf.py":
-            v = v.replace("""redis_host: str = None
+            v = v.replace("""snow_datacenter_id: int = None
+    """, "").replace("""redis_host: str = None
     redis_port: int = None
     redis_db: int = None
     redis_password: str = None
     redis_max_connections: int = None
-    """, "")
+""", "")
         elif k == "app/initializer/_db.py":
-            v = v.replace("""
-_MODELS_MOD_DIR = APP_DIR.joinpath("models")
-_MODELS_MOD_BASE = "app.models\"""", """
-_MODELS_MOD_DIR = APP_DIR.joinpath("services")
-_MODELS_MOD_BASE = "app.services\"""")
+            v = v.replace("""_MODELS_MOD_DIR = APP_DIR.joinpath("models")
+_MODELS_MOD_BASE = "app.models"
+""", """_MODELS_MOD_DIR = APP_DIR.joinpath("services")
+_MODELS_MOD_BASE = "app.services"
+""")
         elif k == "app/services/__init__.py":
             v = v.replace("""\"\"\"
 业务逻辑
@@ -285,33 +305,16 @@ redis_port:
 redis_db:
 redis_password:
 redis_max_connections:
-""", "").replace("""# #
-celery_broker_url: redis://:<password>@<host>:<port>/<db>
-celery_backend_url: redis://:<password>@<host>:<port>/<db>
-celery_timezone: Asia/Shanghai
-celery_enable_utc: true
-celery_task_serializer: json
-celery_result_serializer: json
-celery_accept_content: [ json ]
-celery_task_ignore_result: false
-celery_result_expire: 86400
-celery_task_track_started: true
-celery_worker_concurrency: 8
-celery_worker_prefetch_multiplier: 2
-celery_worker_max_tasks_per_child: 100
-celery_broker_connection_retry_on_startup: true
-celery_task_reject_on_worker_lost: true
 """, "")
         elif k == "requirements.txt":
-            v = v.replace("""
-redis==6.4.0""", "").replace("""
-celery==5.5.3""", "")
+            if not celery:
+                v = re.sub(r'^redis==.*\n?', '', v, flags=re.MULTILINE)
         return k, v
 
     @staticmethod
     def _db_requirements_map(name: str):
         return {
-            "default": "aiosqlite==0.21.0",
+            "default": "aiosqlite==",
             "sqlite": [
                 "aiosqlite==0.21.0",
             ],
@@ -347,6 +350,8 @@ celery==5.5.3""", "")
         }.get(name)
 
     def add(self):
+        if self.args.celery:
+            return self._add_celery_handler(self.args.name.split(","))
         vn = self.args.vn
         subdir = self.args.subdir
         target = self.args.target
@@ -494,6 +499,27 @@ celery==5.5.3""", "")
                             v = api_tpl_dict.get(k, "").replace(
                                 "tpl", name).replace(
                                 "Tpl", "".join([i[0].upper() + i[1:] if i else "_" for i in name.split("_")]))
+                        f.write(v)
+
+    @staticmethod
+    def _add_celery_handler(names: list):
+        work_dir = Path.cwd()
+        with open(here.joinpath("_project_tpl.json"), "r", encoding="utf-8") as f:
+            project_tpl_dict = json.loads(f.read())
+        sys.stdout.write(f"Adding celery:\n")
+        for name in names:
+            celery_dir = work_dir.joinpath(name)
+            if celery_dir.is_dir():
+                sys.stdout.write(f"[{name}] Existed\n")
+                continue
+            sys.stdout.write(f"[{name}] Writing\n")
+            celery_dir.mkdir(parents=True, exist_ok=True)
+            for k, v in project_tpl_dict.items():
+                if k.startswith("app_celery/"):
+                    tplpath = celery_dir.joinpath(k.replace("app_celery/", ""))
+                    tplpath.parent.mkdir(parents=True, exist_ok=True)
+                    with open(tplpath, "w+", encoding="utf-8") as f:
+                        v = v.replace("from app_celery", f"from {name}")
                         f.write(v)
 
 

@@ -42,13 +42,13 @@ class Config:
     app_disable_docs: bool = True
     app_allow_origins: list = ["*"]
     # #
+    db_url: str = None
+    db_async_url: str = None
     redis_host: str = None
     redis_port: int = None
     redis_db: int = None
     redis_password: str = None
     redis_max_connections: int = None
-    db_url: str = None
-    db_async_url: str = None
 
     def setup(self):
         self.setattr_from_env_or_yaml()

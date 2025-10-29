@@ -5,7 +5,7 @@ import yaml
 from dotenv import load_dotenv
 from toollib.utils import get_cls_attrs, parse_variable
 
-from app import APP_DIR
+APP_DIR = Path(__file__).absolute().parent
 
 _CONFIG_DIR = APP_DIR.parent.joinpath("config")
 

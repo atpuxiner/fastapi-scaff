@@ -11,13 +11,13 @@ app_disable_docs: false
 app_allow_origins:
   - '*'
 # #
+db_url: sqlite:///app_dev.sqlite
+db_async_url: sqlite+aiosqlite:///app_dev.sqlite
 redis_host:
 redis_port:
 redis_db:
 redis_password:
 redis_max_connections:
-db_url: sqlite:///app_dev.sqlite
-db_async_url: sqlite+aiosqlite:///app_dev.sqlite
 # #
 celery_broker_url: redis://:<password>@<host>:<port>/<db>
 celery_backend_url: redis://:<password>@<host>:<port>/<db>

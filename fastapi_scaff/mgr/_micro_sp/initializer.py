@@ -49,7 +49,6 @@ class Config:
     app_env: str = "dev"
     app_yaml: str = app_yaml.name
     api_keys: list = []
-    snow_datacenter_id: int = None
     # from yaml
     app_title: str = "xApp"
     app_summary: str = "xxApp"

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app_celery.producer.publisher import publish
+from app_celery.producer import publisher
 
 router = APIRouter()
 
@@ -10,5 +10,5 @@ router = APIRouter()
     summary="aping",
 )
 def ping():
-    task_id = publish("ping")
+    task_id = publisher.publish("ping")
     return f"pong > {task_id}"

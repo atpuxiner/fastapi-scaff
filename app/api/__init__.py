@@ -21,7 +21,8 @@ def register_routers(
         name: str = "router",
         prefix: str = "",
         depth: int = 0,
-        max_depth: int = 2
+        min_depth: int = 1,
+        max_depth: int = 2,
 ):
     """
     注册路由
@@ -34,6 +35,7 @@ def register_routers(
     :param name: 路由名称
     :param prefix: url前缀
     :param depth: 当前递归深度
+    :param min_depth: 最小递归深度
     :param max_depth: 最大递归深度
     """
     if depth > max_depth:
@@ -62,7 +64,7 @@ def register_routers(
                 depth=depth + 1,
                 max_depth=max_depth
             )
-        elif item.is_file() and item.suffix == ".py" and depth > 0:
+        elif item.is_file() and item.suffix == ".py" and depth >= min_depth:
             mod_name = item.stem
             final_mod = f"{mod_base}.{mod_name}"
             try:
@@ -81,6 +83,6 @@ def register_routers(
                             prefix=prefix.replace("//", "/").rstrip("/"),
                             tags=[tag]
                         )
-            except ImportError:
-                logger.error(f"Register router failed to import module: {final_mod}")
+            except ImportError as e:
+                logger.error(f"Register router failed to import module: {final_mod} ({e})")
                 continue

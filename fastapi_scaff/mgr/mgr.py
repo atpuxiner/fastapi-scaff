@@ -18,6 +18,7 @@ def gen_project_json():
         "logs",
         "tests",
         ".gitignore",
+        ".python-version",
         "LICENSE",
         "README.md",
         "requirements.txt",

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # Python>=3.11
-toollib==1.8.5
-python-dotenv==1.1.1
+toollib==1.8.6
+python-dotenv==1.2.1
 PyYAML==6.0.3
 pydantic==2.12.3
 celery==5.5.3
-redis==7.0.0
+redis==7.0.1
 gevent==25.9.1
