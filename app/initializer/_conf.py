@@ -25,12 +25,13 @@ if not app_yaml.is_file():
 class Config:
     """配置"""
     _yaml_conf: dict = None
-    # from env
+    app_dir: Path = APP_DIR
+    # #
     app_env: str = "dev"
-    app_yaml: str = app_yaml.name
+    app_yaml: Path = app_yaml
     api_keys: list = []
     snow_datacenter_id: int = None
-    # from yaml
+    # #
     app_title: str = "xApp"
     app_summary: str = "xxApp"
     app_description: str = "xxxApp"

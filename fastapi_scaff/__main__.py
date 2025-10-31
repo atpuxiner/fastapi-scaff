@@ -174,7 +174,11 @@ class CMD:
                 return k, v
             return None, None
         if not celery:
-            if k.startswith("app_celery/") or k == "app/api/default/aping.py":
+            if k.startswith("app_celery/") or k in [
+                "app/api/default/aping.py",
+                "runcbeat.py",
+                "runcworker.py",
+            ]:
                 return None, None
             elif k.startswith("config/app_"):
                 v = v.replace("""# #
@@ -208,8 +212,6 @@ celery_task_reject_on_worker_lost: true
             "deploy/",
             "docs/",
             "tests/",
-            "runcbeat.py",
-            "runcworker.py",
         ]
         if edition == "micro":
             filter_list = [
@@ -222,8 +224,6 @@ celery_task_reject_on_worker_lost: true
                 "deploy/",
                 "docs/",
                 "tests/",
-                "runcbeat.py",
-                "runcworker.py",
             ]
         if re.match(r"^({filter_k})".format(filter_k="|".join(filter_list)), k) is not None:
             return None, None

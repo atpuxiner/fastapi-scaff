@@ -45,11 +45,12 @@ request_id_ctx_var: ContextVar[str] = ContextVar("request_id", default="N/A")
 class Config:
     """配置"""
     _yaml_conf: dict = None
-    # from env
+    app_dir: Path = APP_DIR
+    # #
     app_env: str = "dev"
-    app_yaml: str = app_yaml.name
+    app_yaml: Path = app_yaml
     api_keys: list = []
-    # from yaml
+    # #
     app_title: str = "xApp"
     app_summary: str = "xxApp"
     app_description: str = "xxxApp"

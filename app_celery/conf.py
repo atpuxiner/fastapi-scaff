@@ -5,9 +5,8 @@ import yaml
 from dotenv import load_dotenv
 from toollib.utils import get_cls_attrs, parse_variable
 
-APP_DIR = Path(__file__).absolute().parent
-
-_CONFIG_DIR = APP_DIR.parent.joinpath("config")
+_APP_DIR = Path(__file__).absolute().parent
+_CONFIG_DIR = _APP_DIR.parent.joinpath("config")
 
 load_dotenv(dotenv_path=os.environ.setdefault(
     key="env_path",
@@ -25,8 +24,11 @@ if not app_yaml.is_file():
 class Config:
     """配置"""
     _yaml_conf: dict = None
-    yaml_name: str = app_yaml.name
-    #
+    app_dir: Path = _APP_DIR
+    # #
+    app_env: str = "dev"
+    app_yaml: Path = app_yaml
+    # #
     celery_broker_url: str
     celery_backend_url: str
     celery_timezone: str = "Asia/Shanghai"
