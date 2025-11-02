@@ -24,11 +24,13 @@ def main(
     parser.add_argument("-l", "--loglevel", type=str, default="info", metavar="", help="日志等级")
     parser.add_argument("-c", "--concurrency", type=int, default=None, metavar="", help="并发数")
     parser.add_argument("-P", "--pool", type=str, default=None, metavar="", help="并发模型")
+    parser.add_argument("--celery-module", type=str, default="app_celery", metavar="", help="celery模块")
     args = parser.parse_args()
     name = args.name or name
     loglevel = args.loglevel or loglevel
     concurrency = args.concurrency or concurrency
     pool = args.pool or pool
+    celery_module = args.celery_module or celery_module
     if pool is None:
         if platform.system().lower().startswith("win"):
             pool = 'gevent'

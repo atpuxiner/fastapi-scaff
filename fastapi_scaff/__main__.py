@@ -522,16 +522,24 @@ redis_max_connections:
                         v = v.replace("from app_celery", f"from {name}")
                         if k == "app_celery/__init__.py":
                             v = v.replace(f"""main=\"app_celery\"""", f"""main=\"{name}\"""")
+                        elif k == "app_celery/README.md":
+                            v = v.replace("# app-celery", f"# {name}")
+                            v = v.replace("app_celery", name)
                         f.write(v)
-        for ext in ["runcbeat.py", "runcworker.py"]:
-            if not work_dir.joinpath(ext).is_file():
+        for ext in ["runcbeat.py", "runcworker.py", "app/api/default/aping.py"]:
+            if ext == "app/api/default/aping.py" and not (work_dir / "app/api/default").is_dir():
+                continue
+            path = work_dir / ext
+            if path.is_file():
+                sys.stdout.write(f"[{ext}] Existed\n")
+            else:
                 sys.stdout.write(f"[{ext}] Writing\n")
-                with open(work_dir.joinpath(ext), "w+", encoding="utf-8") as f:
+                with open(path, "w+", encoding="utf-8") as f:
                     v = project_tpl_dict[ext]
                     v = v.replace("""celery_module: str = \"app_celery\"""", f"""celery_module: str = \"{names[0]}\"""")
+                    if ext == "app/api/default/aping.py":
+                        v = v.replace("from app_celery", f"from {names[0]}")
                     f.write(v)
-            else:
-                sys.stdout.write(f"[{ext}] Existed\n")
 
 
 if __name__ == "__main__":

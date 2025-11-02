@@ -2,6 +2,7 @@
 
 ## v0.4.2
 - add@celery集成运行脚本
+- chg@调整文档
 
 ## v0.4.1
 - chg@celery集成可选

@@ -22,11 +22,13 @@ def main(
     parser.add_argument("-S", "--scheduler", type=str, default=None, metavar="", help="调度器类型")
     parser.add_argument("--pidfile", type=str, default=None, metavar="", help="pid文件")
     parser.add_argument("--max-interval", type=int, default=5, metavar="", help="检测任务间隔")
+    parser.add_argument("--celery-module", type=str, default="app_celery", metavar="", help="celery模块")
     args = parser.parse_args()
     loglevel = args.loglevel or loglevel
     scheduler = args.scheduler or scheduler
     pidfile = args.pidfile or pidfile
     max_interval = args.max_interval or max_interval
+    celery_module = args.celery_module or celery_module
     command = [
         "celery",
         "-A",
