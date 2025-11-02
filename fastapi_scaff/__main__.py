@@ -520,7 +520,18 @@ redis_max_connections:
                     tplpath.parent.mkdir(parents=True, exist_ok=True)
                     with open(tplpath, "w+", encoding="utf-8") as f:
                         v = v.replace("from app_celery", f"from {name}")
+                        if k == "app_celery/__init__.py":
+                            v = v.replace(f"""main=\"app_celery\"""", f"""main=\"{name}\"""")
                         f.write(v)
+        for ext in ["runcbeat.py", "runcworker.py"]:
+            if not work_dir.joinpath(ext).is_file():
+                sys.stdout.write(f"[{ext}] Writing\n")
+                with open(work_dir.joinpath(ext), "w+", encoding="utf-8") as f:
+                    v = project_tpl_dict[ext]
+                    v = v.replace("""celery_module: str = \"app_celery\"""", f"""celery_module: str = \"{names[0]}\"""")
+                    f.write(v)
+            else:
+                sys.stdout.write(f"[{ext}] Existed\n")
 
 
 if __name__ == "__main__":
