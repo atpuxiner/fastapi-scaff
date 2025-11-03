@@ -45,7 +45,7 @@ def main():
         "-e",
         "--edition",
         default="standard",
-        choices=["standard", "light", "micro"],
+        choices=["standard", "light", "tiny"],
         metavar="",
         help="`new`时可指定项目结构版本(默认标准版)")
     parser.add_argument(
@@ -170,7 +170,7 @@ class CMD:
             "app/initializer.py",
             "app/middleware.py",
         ]:
-            if edition == "micro":
+            if edition == "tiny":
                 return k, v
             return None, None
         if not celery:
@@ -213,7 +213,7 @@ celery_task_reject_on_worker_lost: true
             "docs/",
             "tests/",
         ]
-        if edition == "micro":
+        if edition == "tiny":
             filter_list = [
                 "app/api/v1/user.py",
                 "app/initializer/",
@@ -366,8 +366,8 @@ redis_max_connections:
             ]):
                 target = "light"
                 if not work_dir.joinpath("app/services").is_dir():
-                    target = "micro"
-        if target in ["a", "micro"]:
+                    target = "tiny"
+        if target in ["a", "tiny"]:
             tpl_mods = [
                 "app/api",
             ]
@@ -405,7 +405,7 @@ redis_max_connections:
                 #   - light:
                 #       - 创建a时，如果se存在为0，不存在为1
                 #       - 创建se时，如果a存在为0，不存在为1
-                # a|micro (a)
+                # a|tiny (a)
                 "0": [1],
                 "1": [1],
                 # as (a, se, sc)

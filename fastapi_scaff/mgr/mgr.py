@@ -37,9 +37,9 @@ def gen_project_json():
         if include_mods_comp.search(file_str.split("/")[0]) and not exclude_exts_comp.search(file_str):
             with open(file, "r", encoding="utf-8") as f:
                 data[file_str] = f.read()
-    with open("_micro_sp/initializer.py", "r", encoding="utf-8") as f:
+    with open("_tiny_sp/initializer.py", "r", encoding="utf-8") as f:
         data["app/initializer.py"] = f.read()
-    with open("_micro_sp/middleware.py", "r", encoding="utf-8") as f:
+    with open("_tiny_sp/middleware.py", "r", encoding="utf-8") as f:
         data["app/middleware.py"] = f.read()
     with open(project_dir.joinpath(f"{pkg_mod_name}/_project_tpl.json"), "w+", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
