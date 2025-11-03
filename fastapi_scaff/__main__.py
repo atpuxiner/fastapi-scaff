@@ -507,7 +507,12 @@ redis_max_connections:
         with open(here.joinpath("_project_tpl.json"), "r", encoding="utf-8") as f:
             project_tpl_dict = json.loads(f.read())
         sys.stdout.write(f"Adding celery:\n")
+        f = False
         for name in names:
+            if name == "celery":
+                sys.stdout.write(f"[{name}] Can't be `celery`\n")
+                continue
+            f = True
             celery_dir = work_dir.joinpath(name)
             if celery_dir.is_dir():
                 sys.stdout.write(f"[{name}] Existed\n")
@@ -519,13 +524,9 @@ redis_max_connections:
                     tplpath = celery_dir.joinpath(k.replace("app_celery/", ""))
                     tplpath.parent.mkdir(parents=True, exist_ok=True)
                     with open(tplpath, "w+", encoding="utf-8") as f:
-                        v = v.replace("from app_celery", f"from {name}")
-                        if k == "app_celery/__init__.py":
-                            v = v.replace(f"""main=\"app_celery\"""", f"""main=\"{name}\"""")
-                        elif k == "app_celery/README.md":
-                            v = v.replace("# app-celery", f"# {name}")
-                            v = v.replace("app_celery", name)
+                        v = v.replace("app_celery", name).replace("app-celery", name.replace("_", "-"))
                         f.write(v)
+        if not f: return
         for ext in ["runcbeat.py", "runcworker.py", "app/api/default/aping.py"]:
             if ext == "app/api/default/aping.py" and not (work_dir / "app/api/default").is_dir():
                 continue
@@ -536,9 +537,7 @@ redis_max_connections:
                 sys.stdout.write(f"[{ext}] Writing\n")
                 with open(path, "w+", encoding="utf-8") as f:
                     v = project_tpl_dict[ext]
-                    v = v.replace("""celery_module: str = \"app_celery\"""", f"""celery_module: str = \"{names[0]}\"""")
-                    if ext == "app/api/default/aping.py":
-                        v = v.replace("from app_celery", f"from {names[0]}")
+                    v = v.replace("app_celery", names[0])
                     f.write(v)
 
 

@@ -2,6 +2,7 @@
 
 ## v0.4.4
 - chg@微型版>微小版
+- fix@celery集成
 
 ## v0.4.3
 - opt@优化celery
