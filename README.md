@@ -20,6 +20,7 @@
         - standard
         - light
         - tiny
+        - single
     - more documents: [请点击链接](https://blog.csdn.net/atpuxiner/article/details/144291336?fromshare=blogdetail&sharetype=blogdetail&sharerId=144291336&sharerefer=PC&sharesource=atpuxiner&sharefrom=from_link)
 
 ## Project structure
@@ -64,6 +65,7 @@
 - 【Other structure】
     - light：Please create and view (with `-e light`)
     - tiny：Please create and view (with `-e tiny`)
+    - single：Please create and view (with `-e single`)
 
 ## Installation
 
@@ -78,6 +80,7 @@ This package can be installed using pip (Python>=3.11):
     - `fastapi-scaff new <myproj>`
     - *light structure*: `fastapi-scaff new <myproj> -e light`
     - *tiny structure*: `fastapi-scaff new <myproj> -e tiny`
+    - *single structure*: `fastapi-scaff new <myproj> -e single`
 - 3）add api
     - `cd to project root dir`
     - `fastapi-scaff add <myapi>`

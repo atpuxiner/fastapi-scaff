@@ -114,7 +114,7 @@ class ApiKeyUser(BaseModel):
 
 async def get_current_api_key(api_key: str | None = Security(_API_KEY_HEADER)):
     if not api_key:
-        raise CustomException(status=Status.FORBIDDEN_ERROR)
+        raise CustomException(status=Status.UNAUTHORIZED_ERROR)
     user_api_key = ApiKeyUser.get_user_api_key()
     if not user_api_key:
         raise CustomException(status=Status.UNAUTHORIZED_ERROR)

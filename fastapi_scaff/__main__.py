@@ -45,7 +45,7 @@ def main():
         "-e",
         "--edition",
         default="standard",
-        choices=["standard", "light", "tiny"],
+        choices=["standard", "light", "tiny", "single"],
         metavar="",
         help="`new`时可指定项目结构版本(默认标准版)")
     parser.add_argument(
@@ -159,20 +159,24 @@ class CMD:
                 f.write(v)
         sys.stdout.write("Done. Now run:\n"
                          f"> 1. cd {name}\n"
-                         f"> 2. modify config, eg: db\n"
+                         f"> 2. modify config{', eg: db' if self.args.edition != 'single' else ''}\n"
                          f"> 3. pip install -r requirements.txt\n"
                          f"> 4. python runserver.py\n"
                          f"----- More see README.md -----\n")
 
     @staticmethod
     def _edition_handler(k: str, v: str, edition: str, celery: bool):
-        if k in [
-            "app/initializer.py",
-            "app/middleware.py",
-        ]:
+        if "tiny" in k:
             if edition == "tiny":
+                k = k.replace("tiny_", "")
                 return k, v
             return None, None
+        elif "single" in k:
+            if edition == "single":
+                k = k.replace("single_", "")
+                return k, v
+            return None, None
+
         if not celery:
             if k.startswith("app_celery/") or k in [
                 "app/api/default/aping.py",
@@ -200,20 +204,23 @@ celery_task_reject_on_worker_lost: true
 """, "")
             elif k == "requirements.txt":
                 v = re.sub(r'^celery==.*\n?', '', v, flags=re.MULTILINE)
+
         if edition == "standard":
             return k, v
-        filter_list = [
-            "app/api/v1/user.py",
-            "app/initializer/_redis.py",
-            "app/initializer/_snow.py",
-            "app/models/",
-            "app/schemas/",
-            "app/services/user.py",
-            "deploy/",
-            "docs/",
-            "tests/",
-        ]
-        if edition == "tiny":
+
+        if edition == "light":
+            filter_list = [
+                "app/api/v1/user.py",
+                "app/initializer/_redis.py",
+                "app/initializer/_snow.py",
+                "app/models/",
+                "app/schemas/",
+                "app/services/user.py",
+                "deploy/",
+                "docs/",
+                "tests/",
+            ]
+        elif edition == "tiny":
             filter_list = [
                 "app/api/v1/user.py",
                 "app/initializer/",
@@ -225,8 +232,16 @@ celery_task_reject_on_worker_lost: true
                 "docs/",
                 "tests/",
             ]
+        else:
+            filter_list = [
+                "app/",
+                "deploy/",
+                "docs/",
+                "tests/",
+            ]
         if re.match(r"^({filter_k})".format(filter_k="|".join(filter_list)), k) is not None:
             return None, None
+
         if k == "app/api/status.py":
             v = v.replace("""USER_OR_PASSWORD_ERROR = (10002, '用户名或密码错误')
 """, "")
@@ -295,7 +310,7 @@ class User(DeclBase):
     id = Column(String(20), primary_key=True, comment="主键")
     name = Column(String(50), nullable=False, comment="名称")
 \"\"\"""")
-        elif k == "config/.env":
+        if k == "config/.env":
             v = v.replace("""# 雪花算法数据中心id（取值：0-31，在分布式部署时需确保每个节点的取值不同）
 snow_datacenter_id=0
 """, "")
@@ -306,9 +321,24 @@ redis_db:
 redis_password:
 redis_max_connections:
 """, "")
+            if edition == "single":
+                v = v.replace("""app_log_serialize: false
+app_log_intercept_standard: false
+""", "").replace("""# #
+db_url: sqlite:///app_dev.sqlite
+db_async_url: sqlite+aiosqlite:///app_dev.sqlite
+""", "").replace("""# #
+db_url: sqlite:///app_test.sqlite
+db_async_url: sqlite+aiosqlite:///app_test.sqlite
+""", "").replace("""# #
+db_url: sqlite:///app_prod.sqlite
+db_async_url: sqlite+aiosqlite:///app_prod.sqlite
+""", "")
         elif k == "requirements.txt":
             if not celery:
                 v = re.sub(r'^redis==.*\n?', '', v, flags=re.MULTILINE)
+            if edition == "single":
+                v = re.sub(r'^(loguru==|PyJWT==|bcrypt==|SQLAlchemy==|aiosqlite==).*\n?', '', v, flags=re.MULTILINE)
         return k, v
 
     @staticmethod
