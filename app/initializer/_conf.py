@@ -42,6 +42,8 @@ class Config:
     app_log_intercept_standard: bool = False
     app_disable_docs: bool = True
     app_allow_origins: list = ["*"]
+    app_allow_methods: list = ["*"]
+    app_allow_headers: list = ["*"]
     # #
     db_url: str = None
     db_async_url: str = None

@@ -15,8 +15,8 @@ def register_middlewares(app: FastAPI):
     """注册中间件"""
     app.add_middleware(
         middleware_class=Cors.middleware_class,
-        allow_origins=Cors.allow_origins,
         allow_credentials=Cors.allow_credentials,
+        allow_origins=Cors.allow_origins,
         allow_methods=Cors.allow_methods,
         allow_headers=Cors.allow_headers,
     )

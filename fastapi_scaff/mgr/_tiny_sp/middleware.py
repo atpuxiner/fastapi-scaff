@@ -26,10 +26,10 @@ def register_middlewares(app: FastAPI):
     """注册中间件"""
     app.add_middleware(
         middleware_class=CORSMiddleware,  # type: ignore
-        allow_origins=g.config.app_allow_origins,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_origins=g.config.app_allow_origins,
+        allow_methods=g.config.app_allow_methods,
+        allow_headers=g.config.app_allow_headers,
     )
     app.add_middleware(HeadersMiddleware)  # type: ignore
     app.add_exception_handler(CustomException, ExceptionsHandler.custom_exception_handler)  # type: ignore

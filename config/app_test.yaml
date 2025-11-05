@@ -10,6 +10,10 @@ app_log_intercept_standard: false
 app_disable_docs: false
 app_allow_origins:
   - '*'
+app_allow_methods:
+  - '*'
+app_allow_headers:
+  - '*'
 # #
 db_url: sqlite:///app_test.sqlite
 db_async_url: sqlite+aiosqlite:///app_test.sqlite
