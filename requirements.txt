@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # Python>=3.11
-fastapi==0.120.3
+fastapi==0.121.0
 uvicorn==0.38.0
 orjson==3.11.4
-toollib==1.8.6
+toollib==1.8.8
 python-dotenv==1.2.1
 PyYAML==6.0.3
 loguru==0.7.3
