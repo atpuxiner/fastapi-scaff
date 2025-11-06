@@ -40,7 +40,7 @@ class Config:
     app_log_dir: str = "./logs"
     app_log_serialize: bool = False
     app_log_intercept_standard: bool = False
-    app_disable_docs: bool = True
+    app_disable_docs: bool = False
     app_allow_origins: list = ["*"]
     app_allow_methods: list = ["*"]
     app_allow_headers: list = ["*"]

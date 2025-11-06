@@ -216,7 +216,6 @@ celery_task_reject_on_worker_lost: true
                 "app/models/",
                 "app/schemas/",
                 "app/services/user.py",
-                "deploy/",
                 "docs/",
                 "tests/",
             ]
@@ -228,14 +227,12 @@ celery_task_reject_on_worker_lost: true
                 "app/models/",
                 "app/schemas/",
                 "app/services/",
-                "deploy/",
                 "docs/",
                 "tests/",
             ]
         else:
             filter_list = [
                 "app/",
-                "deploy/",
                 "docs/",
                 "tests/",
             ]

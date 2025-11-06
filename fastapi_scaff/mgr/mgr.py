@@ -13,7 +13,6 @@ def gen_project_json():
         "app",
         "app_celery",
         "config",
-        "deploy",
         "docs",
         "logs",
         "tests",
