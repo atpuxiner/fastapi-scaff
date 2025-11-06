@@ -103,21 +103,9 @@ def get_current_user(
 _API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
-class ApiKeyUser(BaseModel):
-
-    @staticmethod
-    def get_user_api_key(user_id: str = None) -> list:
-        if user_id:
-            return g.config.api_keys.get(user_id)
-        return g.config.api_keys
-
-
 async def get_current_api_key(api_key: str | None = Security(_API_KEY_HEADER)):
     if not api_key:
-        raise CustomException(status=Status.UNAUTHORIZED_ERROR)
-    user_api_key = ApiKeyUser.get_user_api_key()
-    if not user_api_key:
-        raise CustomException(status=Status.UNAUTHORIZED_ERROR)
-    if api_key not in user_api_key:
-        raise CustomException(status=Status.UNAUTHORIZED_ERROR)
+        raise CustomException(status=Status.UNAUTHORIZED_ERROR, msg="API key is required")
+    if api_key not in g.config.api_keys:
+        raise CustomException(status=Status.UNAUTHORIZED_ERROR, msg="Invalid API key")
     return api_key

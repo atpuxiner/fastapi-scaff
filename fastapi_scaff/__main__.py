@@ -138,12 +138,6 @@ class CMD:
             tplpath.parent.mkdir(parents=True, exist_ok=True)
             with open(tplpath, "w+", encoding="utf-8") as f:
                 # rpl
-                if re.search(r"README\.md$", k):
-                    v = v.replace(f"# {prog}", f"# {prog} ( => yourProj)")
-                if re.search(r"requirements\.txt$", k):
-                    _default = self._db_requirements_map("default")
-                    _user = self._db_requirements_map(self.args.db)
-                    v = re.sub(rf'^{_default}.*\n?', '\n'.join(_user) + '\n', v, flags=re.MULTILINE)
                 if _env := re.search(r"app_(.*?).yaml$", k):
                     _rpl_name = f"/app_{_env.group(1)}"
                     _default = self._db_yaml_map("default")
@@ -155,6 +149,18 @@ class CMD:
                         _default["db_async_url"].replace("/app_dev", _rpl_name),
                         _user["db_async_url"].replace("/app_dev", _rpl_name)
                     )
+                elif k == "build.sh":
+                    v = v.replace("fastapi-scaff", self.args.name.replace("_", "-"))
+                elif k.startswith("docker-compose."):
+                    v = v.replace("fastapi-scaff", self.args.name.replace("_", "-"))
+                elif k == "README.md":
+                    v = v.replace(f"# {prog}", f"# {prog} ( => yourProj)")
+                elif k == "requirements.txt":
+                    _default = self._db_requirements_map("default")
+                    _user = self._db_requirements_map(self.args.db)
+                    v = re.sub(rf'^{_default}.*\n?', '\n'.join(_user) + '\n', v, flags=re.MULTILINE)
+                elif k == "config/nginx.conf":
+                    v = v.replace("server backend:", f"server {self.args.name.replace('_', '-')}-prod_backend:")
                 # < rpl
                 f.write(v)
         sys.stdout.write("Done. Now run:\n"

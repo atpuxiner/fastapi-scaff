@@ -1,0 +1,15 @@
+services:
+
+  backend:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    image: fastapi-scaff:v1.0.0  # 强烈建议不要用 :latest
+    restart: unless-stopped
+    environment:
+      app_env: prod
+    volumes:
+      - /data/fastapi-scaff/logs:/backend/logs
+    ports:
+      - "8000:8000"
+    command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 3 --log-level info"

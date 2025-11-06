@@ -15,6 +15,7 @@
         - integrated sqlalchemy
         - integrated jwt\api-key
         - integrated celery
+        - integrated docker deployment
         - ...
     - about structure:
         - standard
@@ -52,12 +53,15 @@
       ├── docs                        (文档目录)
       ├── logs                        (日志目录)
       ├── tests                       (测试目录)
+      ├── .dockerignore
       ├── .gitignore
+      ├── .python-version
+      ├── build.sh
+      ├── docker-compose.yaml
+      ├── Dockerfile
       ├── LICENSE
       ├── README.md
       ├── requirements.txt
-      └── runcbeat.py
-      └── runcworker.py
       └── runserver.py
   ```
 
@@ -96,6 +100,10 @@ This package can be installed using pip (Python>=3.11):
     - more parameters see:
         - about uvicorn: [click here](https://www.uvicorn.org/)
         - about gunicorn: [click here](https://docs.gunicorn.org/en/stable/)
+- 5）docker, please see:
+    - build.sh
+    - docker-compose.yaml / docker-compose.swarm.yaml[config/nginx.conf]
+    - Dockerfile / Dockerfile.slim
 
 ## License
 

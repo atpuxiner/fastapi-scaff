@@ -9,23 +9,18 @@ pkg_mod_name = "fastapi_scaff"
 
 
 def gen_project_json():
-    include_mods_comp = re.compile('|'.join([
-        "app",
-        "app_celery",
-        "config",
-        "docs",
-        "logs",
-        "tests",
-        ".gitignore",
-        ".python-version",
-        "LICENSE",
-        "README.md",
-        "requirements.txt",
-        "runcbeat.py",
-        "runcworker.py",
-        "runserver.py",
-    ]))
-    exclude_exts_comp = re.compile('|'.join([
+    exclude_pat = re.compile('|'.join([
+        "^.git(/.*)?$",
+        "^.idea(/.*)?$",
+        "^.vscode(/.*)?$",
+        "^build(/.*)?$",
+        "^dist(/.*)?$",
+        "^fastapi_scaff(/.*)?$",
+        "^fastapi_scaff.egg-info(/.*)?$",
+        "^.history$",
+        "^pyproject.toml$",
+        "^setup.py$",
+        # #
         ".pyc$",
         ".log$",
         ".sqlite3?$",
@@ -33,25 +28,16 @@ def gen_project_json():
     data = {}
     for file in listfile(project_dir, is_r=True):
         file_str = file.as_posix().replace(project_dir.as_posix(), "").lstrip("/")
-        if include_mods_comp.search(file_str.split("/")[0]) and not exclude_exts_comp.search(file_str):
+        if not exclude_pat.search(file_str):
             with open(file, "r", encoding="utf-8") as f:
                 data[file_str] = f.read()
-
-    # tiny
-    with open("_tiny/initializer.py", "r", encoding="utf-8") as f:
-        data["app/tiny_initializer.py"] = f.read()
-    with open("_tiny/middleware.py", "r", encoding="utf-8") as f:
-        data["app/tiny_middleware.py"] = f.read()
-    # single
-    with open("_single/__init__.py", "r", encoding="utf-8") as f:
-        data["app/single___init__.py"] = f.read()
-    with open("_single/api.py", "r", encoding="utf-8") as f:
-        data["app/single_api.py"] = f.read()
-    with open("_single/core.py", "r", encoding="utf-8") as f:
-        data["app/single_core.py"] = f.read()
-    with open("_single/main.py", "r", encoding="utf-8") as f:
-        data["app/single_main.py"] = f.read()
-
+    for m in [
+        "_tiny",
+        "_single"
+    ]:
+        for file in listfile(m):
+            with open(file, "r", encoding="utf-8") as f:
+                data[f"app/{m[1:]}_{file.name}"] = f.read()
     with open(project_dir.joinpath(f"{pkg_mod_name}/_project_tpl.json"), "w+", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 

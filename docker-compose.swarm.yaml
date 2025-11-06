@@ -1,0 +1,143 @@
+services:
+
+  backend:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    image: fastapi-scaff:v1.0.0  # 强烈建议不要用 :latest
+    environment:
+      app_env: prod
+    volumes:
+      - ./config:/backend/config
+      - ./logs:/backend/logs
+    command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 3 --log-level info"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first  # 先启动新副本，再停止旧的（零停机）
+        failure_action: rollback
+        monitor: 60s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    networks:
+      app-network:
+        aliases:
+          - backend
+
+  nginx:
+    image: nginx:1.29.3
+    ports:
+      - target: 80
+        published: 8000
+        protocol: tcp
+        mode: host  # 或 global 模式；若多节点建议用 ingress（默认）
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.role == manager  # 可选：只在 manager 跑 nginx
+    networks:
+      - app-network
+    depends_on:
+      - backend
+
+networks:
+  app-network:
+    driver: overlay
+    attachable: true
+
+
+# =============================================================================
+# 部署执行步骤（请按顺序操作）
+# =============================================================================
+
+# 1️。【前提】确保已在目标机器上安装 Docker Engine 并启用 Swarm 模式
+#    - 安装 Docker：https://docs.docker.com/engine/install/
+#    - 初始化 Swarm（仅首次执行一次）：
+#        docker swarm init --advertise-addr 本机IP
+#    - 其他节点若加入 Swarm 集群，可通过以下命令获取加入命令：
+#        - 获取 manager 加入命令：docker swarm join-token manager
+#        - 获取 worker 加入命令：docker swarm join-token worker
+
+# 2️。【准备】在部署目录下创建必要本地目录（与 volumes 对应）
+#    mkdir -p ./config ./logs
+#    - 将项目配置文件放入 ./config/
+#    - 确保 ./config/nginx.conf 存在（内容参考标准 Nginx 反向代理配置）
+
+# 3️。【镜像准备】确保所有节点能拉取所需镜像
+#    - 方式 A（推荐）：将镜像推送到私有/公共镜像仓库（如 Harbor、Docker Hub）
+#        docker tag fastapi-scaff:v1.0.0 your-registry/fastapi-scaff:v1.0.0
+#        docker push your-registry/fastapi-scaff:v1.0.0
+#        （然后将 compose 文件中的 image 改为完整路径）
+#    - 方式 B（单节点测试）：在部署节点本地构建并加载镜像
+#        （也可使用脚本 build.sh 编译）
+#        docker build -t fastapi-scaff:v1.0.0 .
+
+# 4️。【部署】使用 docker stack deploy 启动服务栈
+#    - 启动 docker-compose.swarm.yaml
+#        docker stack deploy -c docker-compose.swarm.yaml fastapi-scaff-prod
+#    - 栈名 "fastapi-scaff-prod" 可自定义，服务名将变为 fastapi-scaff-prod_backend 和 fastapi-scaff-prod_nginx
+#        - 确保 nginx.conf 配置正确：
+#            upstream backend_upstream {
+#              server fastapi-scaff-prod_backend:8000;
+#              keepalive 32;
+#            }
+
+# 5️。【验证】检查服务状态
+#    - 查看服务列表：
+#        docker service ls
+#    - 查看 backend 副本运行情况：
+#        docker service ps fastapi-scaff-prod_backend
+#    - 查看日志（例如查看一个 backend 实例）：
+#        docker service logs fastapi-scaff-prod_backend --follow
+
+# 6。【访问】测试 API 是否可用
+#    - 在部署节点（或任意 Swarm 节点，若 ports 使用 ingress 模式）访问：
+#        curl http://localhost:8000/api/ping
+#    - 应返回接口定义的响应
+
+# 7️。【更新】滚动升级应用（例如升级到 v1.0.1）
+#    - 修改 image 为 fastapi-scaff:v1.0.1
+#    - 重新执行部署命令（Swarm 自动执行滚动更新）：
+#        docker stack deploy -c docker-compose.swarm.yaml fastapi-scaff-prod
+#    - 观察更新过程：
+#        watch docker service ps fastapi-scaff-prod_backend
+
+# 8️。【清理】（可选）删除整个应用栈
+#        docker stack rm fastapi-scaff-prod
+
+# 9。【参考】官方文档：https://docs.docker.com/manuals/
+
+# =============================================================================
+# 注意事项
+# =============================================================================
+# - 当前 nginx 使用 `mode: host`，仅在其运行的节点上可通过 :8000 访问。
+#   如需多节点高可用，请将 ports 改为：
+#       ports:
+#         - "8000:80"   # 默认 ingress 模式，所有节点 8000 均可访问
+# - 若移除 `placement.constraints`，nginx 可调度到任意节点，配合 ingress 更健壮。
+# - 确保宿主机防火墙开放 8000 端口（如 ufw、iptables、云安全组）。
+# - 生产环境建议将敏感配置通过 Docker secrets 管理，而非明文挂载。
+# =============================================================================

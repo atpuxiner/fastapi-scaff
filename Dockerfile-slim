@@ -1,0 +1,24 @@
+FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/backend \
+    TZ=Asia/Shanghai \
+    app_env=prod
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+WORKDIR /backend
+
+# 安装依赖编译所需的基础工具（如需要编译 C 扩展）
+# 如果 requirements.txt 中全是纯 Python 包（如 fastapi, uvicorn），可省略
+# RUN apt-get update && apt-get install -y --no-install-recommends gcc musl-dev && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/ && \
+    rm requirements.txt
+
+COPY config ./config
+COPY app ./app
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "5", "--log-level", "info"]

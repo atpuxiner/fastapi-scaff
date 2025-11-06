@@ -1,0 +1,56 @@
+# Python 字节码和缓存文件
+__pycache__/
+#*.py[cod]
+#*.so
+.Python
+*.pth
+
+# 虚拟环境文件
+venv/
+env/
+.venv/
+
+# 日志文件
+logs/
+*.log
+
+# 版本控制系统文件
+.git/
+.gitignore
+.gitattributes
+
+# IDE 和编辑器配置文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 测试文件
+tests/
+test/
+testing/
+.tox/
+.coverage
+.pytest_cache/
+
+# 构建产物和分发文件
+build/
+dist/
+*.egg-info/
+
+# 文档文件
+README.md
+LICENSE
+docs/
+
+# 操作系统生成的文件
+.DS_Store
+Thumbs.db
+
+# 其他
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.yaml
+build.sh
+config/.env
