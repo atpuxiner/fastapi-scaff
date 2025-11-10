@@ -59,10 +59,10 @@ class HeadersMiddleware(BaseHTTPMiddleware):
             request_id_ctx_var.reset(ctx_token)
 
     @staticmethod
-    def _get_or_create_request_id(request: Request) -> str:
+    def _get_or_create_request_id(request: Request, prefix: str = "req-") -> str:
         request_id = request.headers.get("X-Request-ID")
         if not request_id:
-            request_id = f"req-{uuid.uuid4()}"
+            request_id = f"{prefix}{uuid.uuid4()}"
         return request_id
 
 

@@ -18,6 +18,7 @@ services:
       retries: 3
       start_period: 60s
     deploy:
+      mode: replicated
       replicas: 3
       update_config:
         parallelism: 1
@@ -29,6 +30,7 @@ services:
         condition: on-failure
         delay: 5s
         max_attempts: 3
+        window: 180s
       resources:
         limits:
           memory: 1G
@@ -47,20 +49,33 @@ services:
       - target: 80
         published: 8000
         protocol: tcp
-        mode: host  # 或 global 模式；若多节点建议用 ingress（默认）
+        mode: ingress  # ingress | host
     volumes:
       - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     deploy:
       mode: replicated
       replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+        monitor: 60s
       restart_policy:
-        condition: on-failure
-      placement:
-        constraints:
-          - node.role == manager  # 可选：只在 manager 跑 nginx
+        condition: any
+        delay: 5s
+        max_attempts: 15
+        window: 180s
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.3'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
     networks:
       - app-network
-    depends_on:
+    depends_on:  # 据说 swarm 模式下无效
       - backend
 
 networks:
@@ -130,14 +145,4 @@ networks:
 
 # 9。【参考】官方文档：https://docs.docker.com/manuals/
 
-# =============================================================================
-# 注意事项
-# =============================================================================
-# - 当前 nginx 使用 `mode: host`，仅在其运行的节点上可通过 :8000 访问。
-#   如需多节点高可用，请将 ports 改为：
-#       ports:
-#         - "8000:80"   # 默认 ingress 模式，所有节点 8000 均可访问
-# - 若移除 `placement.constraints`，nginx 可调度到任意节点，配合 ingress 更健壮。
-# - 确保宿主机防火墙开放 8000 端口（如 ufw、iptables、云安全组）。
-# - 生产环境建议将敏感配置通过 Docker secrets 管理，而非明文挂载。
-# =============================================================================
+# 10。【注意】请根据自身需求修改

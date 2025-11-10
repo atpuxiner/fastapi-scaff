@@ -8,3 +8,7 @@ def gen_api_key(prefix: str = "", length: int = _API_KEY_LENGTH) -> str:
     if prefix:
         return f"{prefix}_{api_key}"
     return api_key
+
+
+if __name__ == '__main__':
+    print(gen_api_key())
