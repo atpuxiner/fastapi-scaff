@@ -48,9 +48,16 @@ docs/
 Thumbs.db
 
 # 其他
-Dockerfile
 .dockerignore
+Dockerfile
+Dockerfile-slim
 docker-compose.yml
 docker-compose.yaml
+docker-compose.swarm.yml
+docker-compose.swarm.yaml
 build.sh
 config/.env
+*.sqlite3
+*.sqlite
+*.db
+celerybeat-schedule*

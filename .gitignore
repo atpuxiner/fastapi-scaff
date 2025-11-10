@@ -140,5 +140,7 @@ cython_debug/
 # Append
 .idea
 .vscode
+*.sqlite3
 *.sqlite
-celerybeat-schedule.*
+*.db
+celerybeat-schedule*
