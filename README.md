@@ -101,9 +101,11 @@ This package can be installed using pip (Python>=3.11):
         - about uvicorn: [click here](https://www.uvicorn.org/)
         - about gunicorn: [click here](https://docs.gunicorn.org/en/stable/)
 - 5）docker, please see:
-    - build.sh
-    - docker-compose.yaml | docker-compose.swarm.yaml[config/nginx.conf]
-    - Dockerfile | Dockerfile.slim
+    - project files:
+        - build.sh
+        - docker-compose.yaml | docker-compose.swarm.yaml[config/nginx.conf]
+        - Dockerfile | Dockerfile.slim
+    - [more click here](https://docs.docker.com/)
 
 ## License
 
