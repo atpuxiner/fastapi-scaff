@@ -15,7 +15,7 @@ from starlette.responses import JSONResponse
 from app.api.exceptions import CustomException
 from app.api.responses import Responses
 from app.api.status import Status
-from app.initializer import g, request_id_ctx_var
+from app.initializer import g, request_id_var
 
 __all__ = [
     "register_middlewares",
@@ -47,7 +47,7 @@ class HeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         request_id = self._get_or_create_request_id(request)
         request.state.request_id = request_id
-        ctx_token = request_id_ctx_var.set(request_id)
+        ctx_token = request_id_var.set(request_id)
         try:
             response = await call_next(request)
             response.headers["X-Request-ID"] = request_id
@@ -56,7 +56,7 @@ class HeadersMiddleware(BaseHTTPMiddleware):
                     response.headers[key] = value
             return response
         finally:
-            request_id_ctx_var.reset(ctx_token)
+            request_id_var.reset(ctx_token)
 
     @staticmethod
     def _get_or_create_request_id(request: Request, prefix: str = "req-") -> str:

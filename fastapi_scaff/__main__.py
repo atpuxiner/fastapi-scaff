@@ -325,9 +325,7 @@ redis_password:
 redis_max_connections:
 """, "")
             if edition == "single":
-                v = v.replace("""app_log_serialize: false
-app_log_intercept_standard: false
-""", "").replace("""# #
+                v = v.replace("""# #
 db_url: sqlite:///app_dev.sqlite
 db_async_url: sqlite+aiosqlite:///app_dev.sqlite
 """, "").replace("""# #

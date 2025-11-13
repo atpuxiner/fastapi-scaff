@@ -1,9 +1,7 @@
 """
 初始化
 """
-import logging
 import os
-import sys
 import threading
 from contextvars import ContextVar
 from functools import cached_property
@@ -16,13 +14,14 @@ from loguru._logger import Logger  # noqa
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import scoped_session, sessionmaker
+from toollib.logu import init_logger as logu_init_logger, LogInterception
 from toollib.utils import Singleton, get_cls_attrs, parse_variable
 
 from app import APP_DIR
 
 __all__ = [
     "g",
-    "request_id_ctx_var",
+    "request_id_var",
 ]
 
 _CONFIG_DIR = APP_DIR.parent.joinpath("config")
@@ -39,7 +38,7 @@ app_yaml = Path(
 if not app_yaml.is_file():
     raise RuntimeError(f"配置文件不存在：{app_yaml}")
 
-request_id_ctx_var: ContextVar[str] = ContextVar("request_id", default="N/A")
+request_id_var: ContextVar[str] = ContextVar("request_id", default="N/A")
 
 
 class Config:
@@ -56,8 +55,8 @@ class Config:
     app_description: str = "xxxApp"
     app_version: str = "1.0.0"
     app_debug: bool = True
-    app_log_dir: str = "./logs"
     app_log_serialize: bool = False
+    app_log_basedir: str = "./logs"
     app_log_intercept_standard: bool = False
     app_disable_docs: bool = False
     app_allow_origins: list = ["*"]
@@ -90,97 +89,22 @@ class Config:
             return self._yaml_conf
 
 
-_LOG_TEXT_FORMAT = "{time:YYYY-MM-DD HH:mm:ss.SSS} {level} {extra[request_id]} {file}:{line} {message}"
-_LOG_FILE_PREFIX = "app"
-_LOG_ROTATION = "100 MB"
-_LOG_RETENTION = "15 days"
-_LOG_COMPRESSION = None
-_LOG_ENQUEUE = True
-_LOG_BACKTRACE = False
-_LOG_DIAGNOSE = False
-_LOG_CATCH = False
-_LOG_PID = False
-
-
-class InterceptHandler(logging.Handler):
-    def emit(self, record: logging.LogRecord):
-        try:
-            level = logger.level(record.levelname).name
-        except ValueError:
-            level = record.levelno
-        frame, depth = logging.currentframe(), 2
-        while frame.f_code.co_filename == logging.__file__:
-            frame = frame.f_back
-            depth += 1
-        logger.opt(depth=depth, exception=record.exc_info).log(
-            level, record.getMessage()
-        )
-
-
 def init_logger(
-        debug: bool,
-        log_dir: str = None,
+        level: str,
         serialize: bool = False,
+        basedir: str = None,
         intercept_standard: bool = False,
 ) -> Logger:
-    logger.remove(None)
-    _lever = "DEBUG" if debug else "INFO"
+    interception = None
     if intercept_standard:
-        logging.basicConfig(handlers=[InterceptHandler()], level=_lever)
-
-    def _filter(record: dict) -> bool:
-        record["extra"]["request_id"] = request_id_ctx_var.get()
-        return True
-
-    logger.add(
-        sys.stdout,
-        format=_LOG_TEXT_FORMAT,
+        interception = LogInterception
+    return logu_init_logger(
+        level=level,
+        request_id_var=request_id_var,
         serialize=serialize,
-        level=_lever,
-        enqueue=_LOG_ENQUEUE,
-        backtrace=_LOG_BACKTRACE,
-        diagnose=_LOG_DIAGNOSE,
-        catch=_LOG_CATCH,
-        filter=_filter,
+        basedir=basedir,
+        interception=interception,
     )
-    if log_dir:
-        _log_dir = Path(log_dir)
-        _log_access_file = _log_dir.joinpath(f"{_LOG_FILE_PREFIX}-access.log")
-        _log_error_file = _log_dir.joinpath(f"{_LOG_FILE_PREFIX}-error.log")
-        if _LOG_PID:
-            _log_access_file = str(_log_access_file).replace(".log", f".{os.getpid()}.log")
-            _log_error_file = str(_log_error_file).replace(".log", f".{os.getpid()}.log")
-        logger.add(
-            _log_access_file,
-            encoding="utf-8",
-            format=_LOG_TEXT_FORMAT,
-            serialize=serialize,
-            level=_lever,
-            rotation=_LOG_ROTATION,
-            retention=_LOG_RETENTION,
-            compression=_LOG_COMPRESSION,
-            enqueue=_LOG_ENQUEUE,
-            backtrace=_LOG_BACKTRACE,
-            diagnose=_LOG_DIAGNOSE,
-            catch=_LOG_CATCH,
-            filter=_filter,
-        )
-        logger.add(
-            _log_error_file,
-            encoding="utf-8",
-            format=_LOG_TEXT_FORMAT,
-            serialize=serialize,
-            level="ERROR",
-            rotation=_LOG_ROTATION,
-            retention=_LOG_RETENTION,
-            compression=_LOG_COMPRESSION,
-            enqueue=_LOG_ENQUEUE,
-            backtrace=_LOG_BACKTRACE,
-            diagnose=_LOG_DIAGNOSE,
-            catch=_LOG_CATCH,
-            filter=_filter,
-        )
-    return logger
 
 
 def init_db_session(
@@ -256,10 +180,9 @@ class G(metaclass=Singleton):
     @cached_property
     def logger(self) -> Logger:
         return init_logger(
-            debug=self.config.app_debug,
-            log_dir=self.config.app_log_dir,
+            level="DEBUG" if self.config.app_debug else "INFO",
             serialize=self.config.app_log_serialize,
-            intercept_standard=self.config.app_log_intercept_standard,
+            basedir=self.config.app_log_basedir,
         )
 
     @cached_property

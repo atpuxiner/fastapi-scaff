@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Python>=3.11
-toollib==1.8.9
+toollib==1.9.0
 python-dotenv==1.2.1
 PyYAML==6.0.3
 pydantic==2.12.4

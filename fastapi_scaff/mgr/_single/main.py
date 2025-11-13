@@ -11,8 +11,9 @@ from app.core import config
 config.setup()
 logger = init_logger(
     __name__,
-    debug=config.app_debug,
-    log_dir=config.app_log_dir,
+    level="DEBUG" if config.app_debug else "INFO",
+    serialize=config.app_log_serialize,
+    basedir=config.app_log_basedir,
 )
 # #
 openapi_url = "/openapi.json"

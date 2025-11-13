@@ -43,10 +43,9 @@ class G(metaclass=Singleton):
     @cached_property
     def logger(self) -> Logger:
         return init_logger(
-            debug=self.config.app_debug,
-            log_dir=self.config.app_log_dir,
+            level="DEBUG" if self.config.app_debug else "INFO",
             serialize=self.config.app_log_serialize,
-            intercept_standard=self.config.app_log_intercept_standard,
+            basedir=self.config.app_log_basedir,
         )
 
     @cached_property
