@@ -244,8 +244,11 @@ celery_task_reject_on_worker_lost: true
             ]
         if re.match(r"^({filter_k})".format(filter_k="|".join(filter_list)), k) is not None:
             return None, None
-
-        if k == "app/api/status.py":
+        if k == "app/api/responses.py":
+            if edition == "tiny":
+                v = v.replace("""from app.initializer.context import request_id_var""",
+                              """from app.initializer import request_id_var""")
+        elif k == "app/api/status.py":
             v = v.replace("""USER_OR_PASSWORD_ERROR = (10002, '用户名或密码错误')
 """, "")
         elif k == "app/initializer/__init__.py":
@@ -313,7 +316,7 @@ class User(DeclBase):
     id = Column(String(20), primary_key=True, comment="主键")
     name = Column(String(50), nullable=False, comment="名称")
 \"\"\"""")
-        if k == "config/.env":
+        elif k == "config/.env":
             v = v.replace("""# 雪花算法数据中心id（取值：0-31，在分布式部署时需确保每个节点的取值不同）
 snow_datacenter_id=0
 """, "")

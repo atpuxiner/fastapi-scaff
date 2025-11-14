@@ -1,7 +1,4 @@
-import traceback
-
 from fastapi import APIRouter, Depends
-from starlette.requests import Request
 
 from app.api.dependencies import JWTUser, get_current_user
 from app.api.responses import Responses, response_docs
@@ -35,7 +32,6 @@ _tag = "user"  # 标签（默认模块名）
     ),
 )
 async def detail(
-        request: Request,
         user_id: str,
         current_user: JWTUser = Depends(get_current_user),  # 认证
 ):
@@ -45,9 +41,10 @@ async def detail(
         if not data:
             return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
-        g.logger.error(traceback.format_exc())
-        return Responses.failure(msg="userDetail失败", error=e, request=request)
-    return Responses.success(data=data, request=request)
+        msg = "userDetail操作异常"
+        g.logger.exception(msg)
+        return Responses.failure(msg=msg, error=e)
+    return Responses.success(data=data)
 
 
 @router.get(
@@ -63,7 +60,6 @@ async def detail(
     ),
 )
 async def lst(
-        request: Request,
         page: int = 1,
         size: int = 10,
         current_user: JWTUser = Depends(get_current_user),
@@ -72,9 +68,10 @@ async def lst(
         user_svc = UserListSvc(page=page, size=size)
         data, total = await user_svc.lst()
     except Exception as e:
-        g.logger.error(traceback.format_exc())
-        return Responses.failure(msg="userList失败", error=e, request=request)
-    return Responses.success(data={"items": data, "total": total}, request=request)
+        msg = "userList操作异常"
+        g.logger.exception(msg)
+        return Responses.failure(msg=msg, error=e)
+    return Responses.success(data={"items": data, "total": total})
 
 
 @router.post(
@@ -85,17 +82,17 @@ async def lst(
     }),
 )
 async def create(
-        request: Request,
         user_svc: UserCreateSvc,
 ):
     try:
         user_id = await user_svc.create()
         if not user_id:
-            return Responses.failure(status=Status.RECORD_EXISTS_ERROR, request=request)
+            return Responses.failure(status=Status.RECORD_EXISTS_ERROR)
     except Exception as e:
-        g.logger.error(traceback.format_exc())
-        return Responses.failure(msg="userCreate失败", error=e, request=request)
-    return Responses.success(data={"id": user_id}, request=request)
+        msg = "userCreate操作异常"
+        g.logger.exception(msg)
+        return Responses.failure(msg=msg, error=e)
+    return Responses.success(data={"id": user_id})
 
 
 @router.put(
@@ -106,7 +103,6 @@ async def create(
     }),
 )
 async def update(
-        request: Request,
         user_id: str,
         user_svc: UserUpdateSvc,
         current_user: JWTUser = Depends(get_current_user),
@@ -114,11 +110,12 @@ async def update(
     try:
         updated_ids = await user_svc.update(user_id)
         if not updated_ids:
-            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
+            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
-        g.logger.error(traceback.format_exc())
-        return Responses.failure(msg="userUpdate失败", error=e, request=request)
-    return Responses.success(data={"id": user_id}, request=request)
+        msg = "userUpdate操作异常"
+        g.logger.exception(msg)
+        return Responses.failure(msg=msg, error=e)
+    return Responses.success(data={"id": user_id})
 
 
 @router.delete(
@@ -129,7 +126,6 @@ async def update(
     }),
 )
 async def delete(
-        request: Request,
         user_id: str,
         current_user: JWTUser = Depends(get_current_user),
 ):
@@ -137,11 +133,12 @@ async def delete(
         user_svc = UserDeleteSvc()
         deleted_ids = await user_svc.delete(user_id)
         if not deleted_ids:
-            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
+            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
-        g.logger.error(traceback.format_exc())
-        return Responses.failure(msg="userDelete失败", error=e, request=request)
-    return Responses.success(data={"id": user_id}, request=request)
+        msg = "userDelete操作异常"
+        g.logger.exception(msg)
+        return Responses.failure(msg=msg, error=e)
+    return Responses.success(data={"id": user_id})
 
 
 @router.post(
@@ -152,17 +149,17 @@ async def delete(
     }),
 )
 async def login(
-        request: Request,
         user_svc: UserLoginSvc,
 ):
     try:
         data = await user_svc.login()
         if not data:
-            return Responses.failure(status=Status.USER_OR_PASSWORD_ERROR, request=request)
+            return Responses.failure(status=Status.USER_OR_PASSWORD_ERROR)
     except Exception as e:
-        g.logger.error(traceback.format_exc())
-        return Responses.failure(msg="userLogin失败", error=e, request=request)
-    return Responses.success(data={"token": data}, request=request)
+        msg = "userLogin操作异常"
+        g.logger.exception(msg)
+        return Responses.failure(msg=msg, error=e)
+    return Responses.success(data={"token": data})
 
 
 @router.post(
@@ -173,15 +170,15 @@ async def login(
     }),
 )
 async def token(
-        request: Request,
         user_svc: UserTokenSvc,
         current_user: JWTUser = Depends(get_current_user),
 ):
     try:
         data = await user_svc.token()
         if not data:
-            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
+            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
-        g.logger.error(traceback.format_exc())
-        return Responses.failure(msg="userToken失败", error=e, request=request)
-    return Responses.success(data={"token": data}, request=request)
+        msg = "userToken操作异常"
+        g.logger.exception(msg)
+        return Responses.failure(msg=msg, error=e)
+    return Responses.success(data={"token": data})

@@ -1,7 +1,4 @@
-import traceback
-
 from fastapi import APIRouter
-from starlette.requests import Request
 
 from app.api.responses import Responses, response_docs
 from app.api.status import Status
@@ -21,7 +18,6 @@ router = APIRouter()
     ),
 )
 async def detail(
-        request: Request,
         tpl_id: str,
         # TODO: 认证
 ):
@@ -29,8 +25,9 @@ async def detail(
         tpl_svc = TplDetailSvc(id=tpl_id)
         data = await tpl_svc.detail()
         if not data:
-            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR, request=request)
+            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
-        g.logger.error(traceback.format_exc())
-        return Responses.failure(msg="tplDetail失败", error=e, request=request)
-    return Responses.success(data=data, request=request)
+        msg = "tplDetail操作异常"
+        g.logger.exception(msg)
+        return Responses.failure(msg=msg, error=e)
+    return Responses.success(data=data)

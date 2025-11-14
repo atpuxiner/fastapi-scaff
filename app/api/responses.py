@@ -3,11 +3,11 @@ from typing import Mapping, get_type_hints, Any
 
 from fastapi.encoders import jsonable_encoder
 from starlette.background import BackgroundTask
-from starlette.requests import Request
 from starlette.responses import JSONResponse, StreamingResponse, ContentStream
 from toollib.utils import map_jsontype
 
 from app.api.status import Status
+from app.initializer.context import request_id_var
 
 
 class Responses:
@@ -19,7 +19,6 @@ class Responses:
             code: int = None,
             status: Status = Status.SUCCESS,
             is_encode_data: bool = False,
-            request: Request = None,
             status_code: int = 200,
             headers: Mapping[str, str] | None = None,
             media_type: str | None = None,
@@ -29,10 +28,8 @@ class Responses:
             "msg": msg or status.msg,
             "code": code or status.code,
             "data": Responses.encode_data(data) if is_encode_data else data,
+            "request_id": request_id_var.get(),
         }
-        if request:
-            if request_id := getattr(request.state, 'request_id', None):
-                content["request_id"] = request_id
         return JSONResponse(
             content=content,
             status_code=status_code,
@@ -49,7 +46,6 @@ class Responses:
             data: dict | list | str | None = None,
             status: Status = Status.FAILURE,
             is_encode_data: bool = False,
-            request: Request = None,
             status_code: int = 200,
             headers: Mapping[str, str] | None = None,
             media_type: str | None = None,
@@ -60,10 +56,8 @@ class Responses:
             "code": code or status.code,
             "error": str(error) if error else None,
             "data": Responses.encode_data(data) if is_encode_data else data,
+            "request_id": request_id_var.get(),
         }
-        if request:
-            if request_id := getattr(request.state, 'request_id', None):
-                content["request_id"] = request_id
         return JSONResponse(
             content=content,
             status_code=status_code,
