@@ -342,7 +342,7 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
             if not celery:
                 v = re.sub(r'^redis==.*\n?', '', v, flags=re.MULTILINE)
             if edition == "single":
-                v = re.sub(r'^(loguru==|PyJWT==|bcrypt==|SQLAlchemy==|aiosqlite==).*\n?', '', v, flags=re.MULTILINE)
+                v = re.sub(r'^(PyJWT==|bcrypt==|SQLAlchemy==|aiosqlite==).*\n?', '', v, flags=re.MULTILINE)
         return k, v
 
     @staticmethod

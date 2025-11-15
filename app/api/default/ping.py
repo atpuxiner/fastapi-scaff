@@ -7,5 +7,5 @@ router = APIRouter()
     path="/ping",
     summary="ping",
 )
-def ping():
+async def ping():
     return "pong"

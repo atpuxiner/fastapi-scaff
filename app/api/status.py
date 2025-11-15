@@ -7,6 +7,7 @@ class Status(Enum):
 
     PARAMS_ERROR = (400, '参数错误')
     UNAUTHORIZED_ERROR = (401, '认证失败')
+    INTERNAL_SERVER_ERROR = (500, '内部服务器错误')
     # 建议：业务模块错误码从10000开始
     RECORD_NOT_EXIST_ERROR = (10000, '记录不存在')
     RECORD_EXISTS_ERROR = (10001, '记录已存在')
@@ -26,3 +27,7 @@ class Status(Enum):
         for s in cls:
             text += f"{s.code} {s.msg}\n"
         return text
+
+
+if __name__ == '__main__':
+    print(Status.collect_status())

@@ -25,8 +25,8 @@ async def get_current_api_key(api_key: str | None = Security(_API_KEY_HEADER)):
 
 
 @router.get(
-    path="/ping",
+    path="/api/ping",
     summary="ping",
 )
-def ping():
+async def ping():
     return "pong"

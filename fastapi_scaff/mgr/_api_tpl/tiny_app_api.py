@@ -1,8 +1,8 @@
 from fastapi import APIRouter
+from loguru import logger
 
 from app.api.responses import Responses, response_docs
 from app.api.status import Status
-from app.initializer import g
 
 router = APIRouter()
 
@@ -22,6 +22,6 @@ async def detail(
             return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
         msg = "tplDetail操作异常"
-        g.logger.exception(msg)
+        logger.exception(msg)
         return Responses.failure(msg=msg, error=e)
     return Responses.success(data=data)

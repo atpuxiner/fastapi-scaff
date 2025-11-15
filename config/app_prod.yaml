@@ -7,6 +7,7 @@ app_debug: false
 app_log_serialize: false
 app_log_basedir: ./logs
 app_disable_docs: true
+app_allow_credentials: true
 app_allow_origins:
   - '*'
 app_allow_methods:

@@ -46,12 +46,7 @@ class Config:
     celery_task_reject_on_worker_lost: bool = True
 
     def setup(self):
-        self.setattr_from_env_or_yaml()
-        return self
-
-    def setattr_from_env_or_yaml(self):
-        cls_attrs = get_cls_attrs(Config)
-        for k, item in cls_attrs.items():
+        for k, item in get_cls_attrs(Config).items():
             v_type, v = item
             if callable(v_type):
                 if k in os.environ:  # 优先环境变量
@@ -59,6 +54,7 @@ class Config:
                 else:
                     v = parse_variable(k=k, v_type=v_type, v_from=self.load_yaml(), default=v)
             setattr(self, k, v)
+        return self
 
     def load_yaml(self, reload: bool = False) -> dict:
         if self._yaml_conf and not reload:

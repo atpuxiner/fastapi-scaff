@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
+from loguru import logger
 
 from app.api.dependencies import JWTUser, get_current_user
 from app.api.responses import Responses, response_docs
 from app.api.status import Status
-from app.initializer import g
 from app.services.user import (
     UserDetailSvc,
     UserListSvc,
@@ -42,7 +42,7 @@ async def detail(
             return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
         msg = "userDetail操作异常"
-        g.logger.exception(msg)
+        logger.exception(msg)
         return Responses.failure(msg=msg, error=e)
     return Responses.success(data=data)
 
@@ -69,7 +69,7 @@ async def lst(
         data, total = await user_svc.lst()
     except Exception as e:
         msg = "userList操作异常"
-        g.logger.exception(msg)
+        logger.exception(msg)
         return Responses.failure(msg=msg, error=e)
     return Responses.success(data={"items": data, "total": total})
 
@@ -90,7 +90,7 @@ async def create(
             return Responses.failure(status=Status.RECORD_EXISTS_ERROR)
     except Exception as e:
         msg = "userCreate操作异常"
-        g.logger.exception(msg)
+        logger.exception(msg)
         return Responses.failure(msg=msg, error=e)
     return Responses.success(data={"id": user_id})
 
@@ -113,7 +113,7 @@ async def update(
             return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
         msg = "userUpdate操作异常"
-        g.logger.exception(msg)
+        logger.exception(msg)
         return Responses.failure(msg=msg, error=e)
     return Responses.success(data={"id": user_id})
 
@@ -136,7 +136,7 @@ async def delete(
             return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
         msg = "userDelete操作异常"
-        g.logger.exception(msg)
+        logger.exception(msg)
         return Responses.failure(msg=msg, error=e)
     return Responses.success(data={"id": user_id})
 
@@ -157,7 +157,7 @@ async def login(
             return Responses.failure(status=Status.USER_OR_PASSWORD_ERROR)
     except Exception as e:
         msg = "userLogin操作异常"
-        g.logger.exception(msg)
+        logger.exception(msg)
         return Responses.failure(msg=msg, error=e)
     return Responses.success(data={"token": data})
 
@@ -179,6 +179,6 @@ async def token(
             return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
         msg = "userToken操作异常"
-        g.logger.exception(msg)
+        logger.exception(msg)
         return Responses.failure(msg=msg, error=e)
     return Responses.success(data={"token": data})

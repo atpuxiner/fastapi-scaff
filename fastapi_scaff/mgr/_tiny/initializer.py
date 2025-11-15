@@ -14,7 +14,7 @@ from loguru._logger import Logger  # noqa
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import scoped_session, sessionmaker
-from toollib.logu import init_logger as logu_init_logger, LogInterception
+from toollib import logu
 from toollib.utils import Singleton, get_cls_attrs, parse_variable
 
 from app import APP_DIR
@@ -38,8 +38,6 @@ app_yaml = Path(
 if not app_yaml.is_file():
     raise RuntimeError(f"配置文件不存在：{app_yaml}")
 
-request_id_var: ContextVar[str] = ContextVar("request_id", default="N/A")
-
 
 class Config:
     """配置"""
@@ -57,8 +55,8 @@ class Config:
     app_debug: bool = True
     app_log_serialize: bool = False
     app_log_basedir: str = "./logs"
-    app_log_intercept_standard: bool = False
     app_disable_docs: bool = False
+    app_allow_credentials: bool = True
     app_allow_origins: list = ["*"]
     app_allow_methods: list = ["*"]
     app_allow_headers: list = ["*"]
@@ -67,12 +65,7 @@ class Config:
     db_async_url: str = None
 
     def setup(self):
-        self.setattr_from_env_or_yaml()
-        return self
-
-    def setattr_from_env_or_yaml(self):
-        cls_attrs = get_cls_attrs(Config)
-        for k, item in cls_attrs.items():
+        for k, item in get_cls_attrs(Config).items():
             v_type, v = item
             if callable(v_type):
                 if k in os.environ:  # 优先环境变量
@@ -80,6 +73,7 @@ class Config:
                 else:
                     v = parse_variable(k=k, v_type=v_type, v_from=self.load_yaml(), default=v)
             setattr(self, k, v)
+        return self
 
     def load_yaml(self, reload: bool = False) -> dict:
         if self._yaml_conf and not reload:
@@ -93,17 +87,12 @@ def init_logger(
         level: str,
         serialize: bool = False,
         basedir: str = None,
-        intercept_standard: bool = False,
 ) -> Logger:
-    interception = None
-    if intercept_standard:
-        interception = LogInterception
-    return logu_init_logger(
+    return logu.init_logger(
         level=level,
         request_id_var=request_id_var,
         serialize=serialize,
         basedir=basedir,
-        interception=interception,
     )
 
 
@@ -211,3 +200,4 @@ class G(metaclass=Singleton):
 
 
 g = G()
+request_id_var: ContextVar[str] = ContextVar("request_id", default="N/A")

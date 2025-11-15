@@ -9,6 +9,6 @@ router = APIRouter()
     path="/aping",
     summary="aping",
 )
-def ping():
+async def ping():
     task_id = publisher.publish("ping")
     return f"pong > {task_id}"
