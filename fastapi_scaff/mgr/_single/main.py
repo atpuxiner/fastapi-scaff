@@ -16,13 +16,19 @@ from app.core import config, request_id_var
 _EXPOSE_ERROR = True
 
 config.setup()
+enable_console, enable_file = True, True
+if config.app_env == "prod":
+    enable_console, enable_file = False, True  # 按需调整
 logger = init_logger(
     __name__,
     level="DEBUG" if config.app_debug else "INFO",
     request_id_var=request_id_var,
     serialize=config.app_log_serialize,
+    enable_console=enable_console,
+    enable_file=enable_file,
     basedir=config.app_log_basedir,
 )
+# logger.add 可添加其他 handler
 # #
 openapi_url = "/openapi.json"
 docs_url = "/docs"
