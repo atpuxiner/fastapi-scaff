@@ -3,7 +3,7 @@
 fastapi==0.123.5
 uvicorn[standard]==0.38.0
 orjson==3.11.4
-toollib==1.9.3
+toollib==1.9.4
 python-dotenv==1.2.1
 PyYAML==6.0.3
 loguru==0.7.3
@@ -13,4 +13,4 @@ SQLAlchemy==2.0.44
 aiosqlite==0.21.0
 redis==7.1.0
 celery==5.6.0
-
+#gunicorn

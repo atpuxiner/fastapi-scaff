@@ -12,4 +12,5 @@ services:
       - /data/fastapi-scaff/logs:/backend/logs
     ports:
       - "8000:8000"
-    command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 3 --log-level info"
+    command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 5 --log-level info"
+#    command: "gunicorn app.main:app -c config/gunicorn.conf.py"  # 追加安装 gunicorn

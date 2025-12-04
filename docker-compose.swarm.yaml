@@ -10,7 +10,8 @@ services:
     volumes:
       - ./config:/backend/config
       - ./logs:/backend/logs
-    command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 3 --log-level info"
+    command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 5 --log-level info"
+#    command: "gunicorn app.main:app -c config/gunicorn.conf.py"  # 追加安装 gunicorn
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/api/ping" ]
       interval: 30s

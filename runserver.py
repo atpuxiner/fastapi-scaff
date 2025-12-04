@@ -18,7 +18,7 @@ def run_by_unicorn(
         port: int,
         workers: int,
         log_level: str,
-        is_reload: bool,
+        reload: bool,
 ):
     log_config = {
         "version": 1,
@@ -73,7 +73,7 @@ def run_by_unicorn(
         workers=workers,
         log_level=log_level,
         log_config=log_config,
-        reload=is_reload,
+        reload=reload,
     )
 
 
@@ -82,7 +82,7 @@ def run_by_gunicorn(
         port: int,
         workers: int,
         log_level: str,
-        is_reload: bool,
+        reload: bool,
 ):
     cmd = (
         "gunicorn app.main:app "
@@ -91,7 +91,7 @@ def run_by_gunicorn(
         "--workers={workers} "
         "--log-level={log_level} "
         "--access-logfile=- "
-        "--error-logfile=- "
+        "--error-logfile=-"
         .format(
             host=host,
             port=port,
@@ -99,7 +99,7 @@ def run_by_gunicorn(
             log_level=log_level,
         )
     )
-    if is_reload:
+    if reload:
         cmd += f" --reload"
     subprocess.run(cmd, shell=True)
 
@@ -109,25 +109,25 @@ def main(
         port: int,
         workers: int,
         log_level: str,
-        is_reload: bool,
-        is_gunicorn: bool,
+        reload: bool,
+        gunicorn: bool,
 ):
     parser = argparse.ArgumentParser(description="App启动器")
     parser.add_argument("--host", type=str, metavar="", help="host")
     parser.add_argument("--port", type=int, metavar="", help="port")
     parser.add_argument("--workers", type=int, metavar="", help="进程数")
     parser.add_argument("--log-level", type=str, metavar="", help="日志等级")
-    parser.add_argument("--is-reload", action="store_true", help="是否reload")
-    parser.add_argument("--is-gunicorn", action="store_true", help="是否gunicorn")
+    parser.add_argument("--reload", action="store_true", help="是否reload")
+    parser.add_argument("--gunicorn", action="store_true", help="是否gunicorn")
     args = parser.parse_args()
     kwargs = {
         "host": args.host or host,
         "port": args.port or port,
         "workers": args.workers or workers,
         "log_level": args.log_level or log_level,
-        "is_reload": args.is_reload or is_reload,
+        "reload": args.reload or reload,
     }
-    if (args.is_gunicorn or is_gunicorn) and not sys.platform.lower().startswith("win"):
+    if (args.gunicorn or gunicorn) and not sys.platform.lower().startswith("win"):
         try:
             import gunicorn  # noqa
         except ImportError:
@@ -153,6 +153,6 @@ if __name__ == '__main__':
         port=8000,
         workers=3,
         log_level="debug",
-        is_reload=False,  # For development environment
-        is_gunicorn=False,  # Not supported on Windows
+        reload=False,  # For development environment
+        gunicorn=False,  # Not supported on Windows
     )
