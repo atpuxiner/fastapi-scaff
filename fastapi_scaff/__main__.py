@@ -358,7 +358,7 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
             ],
             "postgresql": [
                 "psycopg2-binary==2.9.11",
-                "asyncpg==0.30.0",
+                "asyncpg==0.31.0",
             ],
         }.get(name)
 
