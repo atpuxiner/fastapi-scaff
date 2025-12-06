@@ -1,3 +1,4 @@
+import base64
 import json
 import re
 from pathlib import Path
@@ -29,8 +30,12 @@ def gen_project_json():
     for file in listfile(project_dir, is_r=True):
         file_str = file.as_posix().replace(project_dir.as_posix(), "").lstrip("/")
         if not exclude_pat.search(file_str):
-            with open(file, "r", encoding="utf-8") as f:
-                data[file_str] = f.read()
+            if file.suffix == ".jpg":
+                with open(file, "rb") as f:
+                    data[file_str] = base64.b64encode(f.read()).decode('utf-8')
+            else:
+                with open(file, "r", encoding="utf-8") as f:
+                    data[file_str] = f.read()
     for m in [
         "_tiny",
         "_single"

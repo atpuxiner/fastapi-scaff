@@ -7,6 +7,7 @@
 @history
 """
 import argparse
+import base64
 import json
 import os
 import re
@@ -136,7 +137,11 @@ class CMD:
                 continue
             tplpath = name.joinpath(k)
             tplpath.parent.mkdir(parents=True, exist_ok=True)
-            with open(tplpath, "w+", encoding="utf-8") as f:
+            if k.endswith(".jpg"):
+                with open(tplpath, "wb") as f:
+                    f.write(base64.b64decode(v))
+                    continue
+            with open(tplpath, "w", encoding="utf-8") as f:
                 # rpl
                 if _env := re.search(r"app_(.*?).yaml$", k):
                     _rpl_name = f"/app_{_env.group(1)}"
@@ -491,7 +496,7 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
                         if is_create.lower() == "y" or is_create == "":
                             try:
                                 curr_mod_dir.mkdir(parents=True, exist_ok=True)
-                                with open(curr_mod_dir.joinpath("__init__.py"), "w+", encoding="utf-8") as f:
+                                with open(curr_mod_dir.joinpath("__init__.py"), "w", encoding="utf-8") as f:
                                     f.write("""\"\"\"\napi-{vn}\n\"\"\"\n\n_prefix = "/api/{vn}"\n""".format(
                                         vn=vn,
                                     ))
@@ -503,7 +508,7 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
                 if subdir:
                     curr_mod_dir = curr_mod_dir.joinpath(subdir)
                     curr_mod_dir.mkdir(parents=True, exist_ok=True)
-                    with open(curr_mod_dir.joinpath("__init__.py"), "w+", encoding="utf-8") as f:
+                    with open(curr_mod_dir.joinpath("__init__.py"), "w", encoding="utf-8") as f:
                         f.write("")
                         if mod.endswith("api"):
                             f.write("""\"\"\"\n{subdir}\n\"\"\"\n\n_prefix = "/{subdir}"\n""".format(
@@ -515,7 +520,7 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
                 if e_flag[i]:
                     sys.stdout.write(f"[{name}] Existed {curr_mod_file_rel}\n")
                 else:
-                    with open(curr_mod_file, "w+", encoding="utf-8") as f:
+                    with open(curr_mod_file, "w", encoding="utf-8") as f:
                         sys.stdout.write(f"[{name}] Writing {curr_mod_file_rel}\n")
                         prefix = f"{target}_" if p_flag[i] else "only_"
                         k = prefix + mod.replace("/", "_") + ".py"
@@ -557,7 +562,7 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
                 if k.startswith("app_celery/"):
                     tplpath = celery_dir.joinpath(k.replace("app_celery/", ""))
                     tplpath.parent.mkdir(parents=True, exist_ok=True)
-                    with open(tplpath, "w+", encoding="utf-8") as f:
+                    with open(tplpath, "w", encoding="utf-8") as f:
                         v = v.replace("app_celery", name).replace("app-celery", name.replace("_", "-"))
                         f.write(v)
         if not f: return
@@ -569,7 +574,7 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
                 sys.stdout.write(f"[{ext}] Existed\n")
             else:
                 sys.stdout.write(f"[{ext}] Writing\n")
-                with open(path, "w+", encoding="utf-8") as f:
+                with open(path, "w", encoding="utf-8") as f:
                     v = project_tpl_dict[ext]
                     v = v.replace("app_celery", names[0])
                     f.write(v)
