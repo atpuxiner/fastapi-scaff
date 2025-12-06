@@ -2,7 +2,7 @@ import multiprocessing
 import os
 
 # ========================
-# 基础绑定
+# 绑定配置
 # ========================
 bind = "0.0.0.0:8000"  # 监听地址；若用 Unix Socket：bind = "unix:/tmp/gunicorn.sock"
 

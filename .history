@@ -1,5 +1,8 @@
 # history
 
+## v0.5.7
+- opt@完善文档
+
 ## v0.5.6
 - chg@升级依赖包
 - add@gunicorn
