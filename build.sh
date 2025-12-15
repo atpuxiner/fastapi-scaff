@@ -10,7 +10,7 @@ DOCKERFILE_CONTEXT="./"
 
 # ================ User Input for Tag ==================
 echo "Current image name: $IMAGE_NAME"
-read -p "Please enter the image tag to build [默认: $IMAGE_DEFAULT_TAG]: " IMAGE_TAG_INPUT
+read -p "Please enter the image tag to build [default: $IMAGE_DEFAULT_TAG]: " IMAGE_TAG_INPUT
 
 if [ -z "$IMAGE_TAG_INPUT" ]; then
     IMAGE_TAG="$IMAGE_DEFAULT_TAG"

@@ -121,7 +121,7 @@ def init_db_session(
     engine = create_engine(
         url=db_url,
         echo=db_echo,
-        echo_pool=db_echo,
+        pool_pre_ping=True,
         **kwargs,
     )
     db_session = sessionmaker(engine, expire_on_commit=False)
@@ -146,7 +146,7 @@ def init_db_async_session(
     async_engine = create_async_engine(
         url=db_url,
         echo=db_echo,
-        echo_pool=db_echo,
+        pool_pre_ping=True,
         **kwargs,
     )
     db_async_session = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)  # noqa

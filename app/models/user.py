@@ -8,7 +8,7 @@ from app.models import DeclBase
 class User(DeclBase):
     __tablename__ = "user"
 
-    id = Column(String(20), primary_key=True, default=g.snow_client.gen_uid, comment="主键")
+    id = Column(String(20), primary_key=True, default=g.snow_cli.gen_uid, comment="主键")
     phone = Column(String(15), unique=True, index=True, nullable=False, comment="手机号")
     password = Column(String(128), nullable=True, comment="密码")
     jwt_key = Column(String(128), nullable=True, comment="jwtKey")

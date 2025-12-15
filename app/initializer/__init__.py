@@ -8,14 +8,14 @@ from loguru import logger
 from loguru._logger import Logger  # noqa
 from sqlalchemy.orm import sessionmaker, scoped_session
 from toollib.guid import SnowFlake
-from toollib.rediser import RedisClient
+from toollib.rediscli import RedisCli
 from toollib.utils import Singleton
 
 from app.initializer._conf import Config, init_config
 from app.initializer._db import init_db_session, init_db_async_session
 from app.initializer._log import init_logger
-from app.initializer._redis import init_redis_client
-from app.initializer._snow import init_snow_client
+from app.initializer._redis import init_redis_cli
+from app.initializer._snow import init_snow_cli
 
 
 class G(metaclass=Singleton):
@@ -27,8 +27,8 @@ class G(metaclass=Singleton):
     _init_properties = [
         'config',
         'logger',
-        'redis_client',
-        'snow_client',
+        'redis_cli',
+        'snow_cli',
         # 'db_session',
         'db_async_session',
     ]
@@ -49,8 +49,8 @@ class G(metaclass=Singleton):
         )
 
     @cached_property
-    def redis_client(self) -> RedisClient:
-        return init_redis_client(
+    def redis_cli(self) -> RedisCli:
+        return init_redis_cli(
             host=self.config.redis_host,
             port=self.config.redis_port,
             db=self.config.redis_db,
@@ -59,9 +59,9 @@ class G(metaclass=Singleton):
         )
 
     @cached_property
-    def snow_client(self) -> SnowFlake:
-        return init_snow_client(
-            redis_client=self.redis_client,
+    def snow_cli(self) -> SnowFlake:
+        return init_snow_cli(
+            redis_cli=self.redis_cli,
             datacenter_id=self.config.snow_datacenter_id,
         )
 

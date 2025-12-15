@@ -43,7 +43,7 @@ def gen_project_json():
         for file in listfile(m):
             with open(file, "r", encoding="utf-8") as f:
                 data[f"app/{m[1:]}_{file.name}"] = f.read()
-    with open(project_dir.joinpath(f"{pkg_mod_name}/_project_tpl.json"), "w+", encoding="utf-8") as f:
+    with open(project_dir.joinpath(f"{pkg_mod_name}/_project_tpl.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
 
@@ -53,7 +53,7 @@ def gen_api_json():
     for file in listfile(_api_tpl):
         with open(file, "r", encoding="utf-8") as f:
             data[file.name] = f.read()
-    with open(project_dir.joinpath(f"{pkg_mod_name}/_api_tpl.json"), "w+", encoding="utf-8") as f:
+    with open(project_dir.joinpath(f"{pkg_mod_name}/_api_tpl.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
 

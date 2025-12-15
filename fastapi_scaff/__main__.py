@@ -130,8 +130,8 @@ class CMD:
             sys.exit(1)
         name.mkdir(parents=True, exist_ok=True)
         with open(here.joinpath("_project_tpl.json"), "r") as f:
-            project = json.loads(f.read())
-        for k, v in project.items():
+            project_tpl = json.loads(f.read())
+        for k, v in project_tpl.items():
             k, v = self._edition_handler(k, v, edition=self.args.edition, celery=self.args.celery)
             if not k:
                 continue
@@ -258,14 +258,14 @@ celery_task_reject_on_worker_lost: true
 """, "")
         elif k == "app/initializer/__init__.py":
             v = v.replace("""from toollib.guid import SnowFlake
-from toollib.rediser import RedisClient
-""", "").replace("""from app.initializer._redis import init_redis_client
-from app.initializer._snow import init_snow_client
-""", "").replace("""'redis_client',
-        'snow_client',
+from toollib.rediscli import RedisCli
+""", "").replace("""from app.initializer._redis import init_redis_cli
+from app.initializer._snow import init_snow_cli
+""", "").replace("""'redis_cli',
+        'snow_cli',
         """, "").replace("""@cached_property
-    def redis_client(self) -> RedisClient:
-        return init_redis_client(
+    def redis_cli(self) -> RedisCli:
+        return init_redis_cli(
             host=self.config.redis_host,
             port=self.config.redis_port,
             db=self.config.redis_db,
@@ -274,9 +274,9 @@ from app.initializer._snow import init_snow_client
         )
 
     @cached_property
-    def snow_client(self) -> SnowFlake:
-        return init_snow_client(
-            redis_client=self.redis_client,
+    def snow_cli(self) -> SnowFlake:
+        return init_snow_cli(
+            redis_cli=self.redis_cli,
             datacenter_id=self.config.snow_datacenter_id,
         )
 
@@ -544,7 +544,7 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
     def _add_celery_handler(names: list):
         work_dir = Path.cwd()
         with open(here.joinpath("_project_tpl.json"), "r", encoding="utf-8") as f:
-            project_tpl_dict = json.loads(f.read())
+            project_tpl = json.loads(f.read())
         sys.stdout.write(f"Adding celery:\n")
         f = False
         for name in names:
@@ -558,7 +558,7 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
                 continue
             sys.stdout.write(f"[{name}] Writing\n")
             celery_dir.mkdir(parents=True, exist_ok=True)
-            for k, v in project_tpl_dict.items():
+            for k, v in project_tpl.items():
                 if k.startswith("app_celery/"):
                     tplpath = celery_dir.joinpath(k.replace("app_celery/", ""))
                     tplpath.parent.mkdir(parents=True, exist_ok=True)
@@ -575,7 +575,7 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
             else:
                 sys.stdout.write(f"[{ext}] Writing\n")
                 with open(path, "w", encoding="utf-8") as f:
-                    v = project_tpl_dict[ext]
+                    v = project_tpl[ext]
                     v = v.replace("app_celery", names[0])
                     f.write(v)
 
