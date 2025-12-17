@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # Python>=3.11
-fastapi-scaff==0.5.8
+fastapi-scaff==0.6.0
 fastapi==0.123.5
 uvicorn[standard]==0.38.0
-orjson==3.11.4
-toollib==1.9.5
+toollib==1.9.7
 python-dotenv==1.2.1
 PyYAML==6.0.3
+orjson==3.11.4
 loguru==0.7.3
 PyJWT==2.10.1
 bcrypt==5.0.0

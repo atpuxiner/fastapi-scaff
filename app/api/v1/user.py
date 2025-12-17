@@ -3,7 +3,6 @@ from loguru import logger
 
 from app.api.dependencies import JWTUser, get_current_user
 from app.api.responses import Responses, response_docs
-from app.api.status import Status
 from app.services.user import (
     UserDetailSvc,
     UserListSvc,
@@ -38,8 +37,6 @@ async def detail(
     try:
         user_svc = UserDetailSvc(id=user_id)
         data = await user_svc.detail()
-        if not data:
-            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
         msg = "userDetail操作异常"
         logger.exception(msg)
@@ -85,14 +82,12 @@ async def create(
         user_svc: UserCreateSvc,
 ):
     try:
-        user_id = await user_svc.create()
-        if not user_id:
-            return Responses.failure(status=Status.RECORD_EXISTS_ERROR)
+        created_id = await user_svc.create()
     except Exception as e:
         msg = "userCreate操作异常"
         logger.exception(msg)
         return Responses.failure(msg=msg, error=e)
-    return Responses.success(data={"id": user_id})
+    return Responses.success(data={"id": created_id})
 
 
 @router.put(
@@ -108,14 +103,12 @@ async def update(
         current_user: JWTUser = Depends(get_current_user),
 ):
     try:
-        updated_ids = await user_svc.update(user_id)
-        if not updated_ids:
-            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
+        updated_id = await user_svc.update(user_id)
     except Exception as e:
         msg = "userUpdate操作异常"
         logger.exception(msg)
         return Responses.failure(msg=msg, error=e)
-    return Responses.success(data={"id": user_id})
+    return Responses.success(data={"id": updated_id})
 
 
 @router.delete(
@@ -131,14 +124,12 @@ async def delete(
 ):
     try:
         user_svc = UserDeleteSvc()
-        deleted_ids = await user_svc.delete(user_id)
-        if not deleted_ids:
-            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
+        deleted_id = await user_svc.delete(user_id)
     except Exception as e:
         msg = "userDelete操作异常"
         logger.exception(msg)
         return Responses.failure(msg=msg, error=e)
-    return Responses.success(data={"id": user_id})
+    return Responses.success(data={"id": deleted_id})
 
 
 @router.post(
@@ -153,8 +144,6 @@ async def login(
 ):
     try:
         data = await user_svc.login()
-        if not data:
-            return Responses.failure(status=Status.USER_OR_PASSWORD_ERROR)
     except Exception as e:
         msg = "userLogin操作异常"
         logger.exception(msg)
@@ -175,8 +164,6 @@ async def token(
 ):
     try:
         data = await user_svc.token()
-        if not data:
-            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
         msg = "userToken操作异常"
         logger.exception(msg)

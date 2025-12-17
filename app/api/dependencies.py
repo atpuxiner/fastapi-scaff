@@ -2,12 +2,13 @@ from fastapi import Depends, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
 from fastapi.security.utils import get_authorization_scheme_param
 from pydantic import BaseModel
+from sqlalchemy.sql.elements import quoted_name
 from starlette.requests import Request
 
 from app.api.exceptions import CustomException
 from app.api.status import Status
 from app.initializer import g
-from app.utils.db_async_util import sqlfetch_one
+from app.utils.db_util import sqlfetch_one
 from app.utils.jwt_util import verify_jwt
 
 
@@ -24,10 +25,9 @@ class JWTUser(BaseModel):
     @staticmethod
     async def get_user_jwt_key(user_id: str) -> str:
         # 建议：jwt_key进行redis缓存
+        table = quoted_name("user", quote=True)
+        sql = f"SELECT jwt_key FROM {table} WHERE id = :id"  # noqa
         async with g.db_async_session() as session:
-            sql = 'SELECT jwt_key FROM `user` WHERE id = :id'  # noqa
-            if session.bind.dialect.name == "postgresql":
-                sql = 'SELECT jwt_key FROM "user" WHERE id = :id'  # noqa
             data = await sqlfetch_one(
                 session=session,
                 sql=sql,

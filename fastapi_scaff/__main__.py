@@ -225,6 +225,7 @@ celery_task_reject_on_worker_lost: true
                 "app/initializer/_redis.py",
                 "app/initializer/_snow.py",
                 "app/models/",
+                "app/repositories/",
                 "app/schemas/",
                 "app/services/user.py",
                 "docs/",
@@ -236,6 +237,7 @@ celery_task_reject_on_worker_lost: true
                 "app/initializer/",
                 "app/middleware/",
                 "app/models/",
+                "app/repositories/",
                 "app/schemas/",
                 "app/services/",
                 "docs/",
@@ -427,6 +429,7 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
                 "app/services",
                 "app/schemas",
                 "app/models",
+                "app/repositories",
             ]
         for mod in tpl_mods:
             if not work_dir.joinpath(mod).is_dir():
@@ -437,13 +440,14 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
             flags = {
                 # - 键：目标是否存在: 0-不存在，1-存在
                 # - 值：创建是否关联: 0-不关联，1-关联
-                #   - 创建a时，如果se存在为0，不存在为1
-                #   - 创建se时，如果sc存在为0，不存在为1
+                #   - 创建a时，如果se 1为0，0为1
+                #   - 创建se时，如果sc 1为0，0为1
                 #   - 创建sc时，全为1
                 #   - 创建m时，全为1
+                #   - 创建r时，如果m 1为0，0为1
                 #   - light:
-                #       - 创建a时，如果se存在为0，不存在为1
-                #       - 创建se时，如果a存在为0，不存在为1
+                #       - 创建a时，如果se 1为0，0为1
+                #       - 创建se时，如果a 1为0，0为1
                 # a|tiny (a)
                 "0": [1],
                 "1": [1],
@@ -456,23 +460,39 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
                 "101": [1, 0, 1],
                 "110": [0, 1, 1],
                 "111": [0, 0, 1],
-                # asm (a, se, sc, m)
-                "0000": [1, 1, 1, 1],
-                "0001": [1, 1, 1, 1],
-                "0010": [1, 0, 1, 1],
-                "0011": [1, 0, 1, 1],
-                "0100": [0, 1, 1, 1],
-                "0101": [0, 1, 1, 1],
-                "0110": [0, 0, 1, 1],
-                "0111": [0, 0, 1, 1],
-                "1000": [1, 1, 1, 1],
-                "1001": [1, 1, 1, 1],
-                "1010": [1, 0, 1, 1],
-                "1011": [1, 0, 1, 1],
-                "1100": [0, 1, 1, 1],
-                "1101": [0, 1, 1, 1],
-                "1110": [0, 0, 1, 1],
-                "1111": [0, 0, 1, 1],
+                # asm (a, se, sc, m(&r))
+                "00000": [1, 1, 1, 1, 1],
+                "00001": [1, 1, 1, 1, 1],
+                "00010": [1, 1, 1, 1, 0],
+                "00011": [1, 1, 1, 1, 0],
+                "00100": [1, 0, 1, 1, 1],
+                "00101": [1, 0, 1, 1, 1],
+                "00110": [1, 0, 1, 1, 0],
+                "00111": [1, 0, 1, 1, 0],
+                "01000": [0, 1, 1, 1, 1],
+                "01001": [0, 1, 1, 1, 1],
+                "01010": [0, 1, 1, 1, 0],
+                "01011": [0, 1, 1, 1, 0],
+                "01100": [0, 0, 1, 1, 1],
+                "01101": [0, 0, 1, 1, 1],
+                "01110": [0, 0, 1, 1, 0],
+                "01111": [0, 0, 1, 1, 0],
+                "10000": [1, 1, 1, 1, 1],
+                "10001": [1, 1, 1, 1, 1],
+                "10010": [1, 1, 1, 1, 0],
+                "10011": [1, 1, 1, 1, 0],
+                "10100": [1, 0, 1, 1, 1],
+                "10101": [1, 0, 1, 1, 1],
+                "10110": [1, 0, 1, 1, 0],
+                "10111": [1, 0, 1, 1, 0],
+                "11000": [0, 1, 1, 1, 1],
+                "11001": [0, 1, 1, 1, 1],
+                "11010": [0, 1, 1, 1, 0],
+                "11011": [0, 1, 1, 1, 0],
+                "11100": [0, 0, 1, 1, 1],
+                "11101": [0, 0, 1, 1, 1],
+                "11110": [0, 0, 1, 1, 0],
+                "11111": [0, 0, 1, 1, 0],
                 # light (a, se)
                 "00": [1, 1],
                 "01": [0, 1],
@@ -524,20 +544,20 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
                         sys.stdout.write(f"[{name}] Writing {curr_mod_file_rel}\n")
                         prefix = f"{target}_" if p_flag[i] else "only_"
                         k = prefix + mod.replace("/", "_") + ".py"
-                        if subdir:
-                            v = api_tpl_dict.get(k, "").replace(
-                                "from app.schemas.tpl import (", f"from app.schemas.{subdir}.tpl import ("
-                            ).replace(
-                                "from app.services.tpl import (", f"from app.services.{subdir}.tpl import ("
-                            ).replace(
-                                "from app.models.tpl import (", f"from app.models.{subdir}.tpl import ("
-                            ).replace(
+                        v = api_tpl_dict.get(k, "")
+                        if v:
+                            if subdir:
+                                v = v.replace(
+                                    "from app.schemas.tpl import (", f"from app.schemas.{subdir}.tpl import ("
+                                ).replace(
+                                    "from app.services.tpl import (", f"from app.services.{subdir}.tpl import ("
+                                ).replace(
+                                    "from app.models.tpl import (", f"from app.models.{subdir}.tpl import ("
+                                )
+                            v = v.replace(
                                 "tpl", name).replace(
-                                "Tpl", "".join([i[0].upper() + i[1:] if i else "_" for i in name.split("_")]))
-                        else:
-                            v = api_tpl_dict.get(k, "").replace(
-                                "tpl", name).replace(
-                                "Tpl", "".join([i[0].upper() + i[1:] if i else "_" for i in name.split("_")]))
+                                "Tpl", "".join([i[0].upper() + i[1:] if i else "_" for i in name.split("_")])
+                            )
                         f.write(v)
 
     @staticmethod

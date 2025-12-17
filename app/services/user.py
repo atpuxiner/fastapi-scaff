@@ -1,5 +1,7 @@
+from app.api.exceptions import CustomException
+from app.api.status import Status
 from app.initializer import g
-from app.models.user import User
+from app.repositories.user import UserRepo
 from app.schemas.user import (
     UserDetail,
     UserList,
@@ -9,7 +11,7 @@ from app.schemas.user import (
     UserLogin,
     UserToken,
 )
-from app.utils import jwt_util, db_async_util
+from app.utils import jwt_util
 
 
 class UserDetailSvc(UserDetail):
@@ -21,12 +23,13 @@ class UserDetailSvc(UserDetail):
 
     async def detail(self):
         async with g.db_async_session() as session:
-            data = await db_async_util.fetch_one(
-                session=session,
-                model=User,
+            user_repo = UserRepo(session)
+            data = await user_repo.get_user_detail(
                 fields=self.response_fields(),
                 filter_by={"id": self.id},
             )
+            if not data:
+                raise CustomException(status=Status.RECORD_NOT_EXIST_ERROR)
             return data
 
 
@@ -39,14 +42,13 @@ class UserListSvc(UserList):
 
     async def lst(self):
         async with g.db_async_session() as session:
-            data = await db_async_util.fetch_all(
-                session=session,
-                model=User,
+            user_repo = UserRepo(session)
+            data = await user_repo.get_user_lst(
                 fields=self.response_fields(),
                 page=self.page,
                 size=self.size,
             )
-            total = await db_async_util.fetch_total(session, User)
+            total = await user_repo.get_user_total()
             return data, total
 
 
@@ -59,9 +61,8 @@ class UserCreateSvc(UserCreate):
 
     async def create(self):
         async with g.db_async_session() as session:
-            return await db_async_util.create(
-                session=session,
-                model=User,
+            user_repo = UserRepo(session)
+            user = await user_repo.create_user(
                 data={
                     "name": self.name,
                     "phone": self.phone,
@@ -70,8 +71,12 @@ class UserCreateSvc(UserCreate):
                     "password": jwt_util.hash_password(self.password),
                     "jwt_key": jwt_util.gen_jwt_key(),
                 },
-                filter_by={"phone": self.phone},
+                check_unique={"phone": self.phone},
             )
+            if not user:
+                raise CustomException(status=Status.RECORD_EXISTS_ERROR)
+            await session.commit()
+            return user.id
 
 
 class UserUpdateSvc(UserUpdate):
@@ -83,12 +88,15 @@ class UserUpdateSvc(UserUpdate):
 
     async def update(self, user_id: str):
         async with g.db_async_session() as session:
-            return await db_async_util.update(
-                session=session,
-                model=User,
+            user_repo = UserRepo(session)
+            rowcount = await user_repo.update_user(
                 data=self.model_dump(),
                 filter_by={"id": user_id},
             )
+            if not rowcount:
+                raise CustomException(status=Status.RECORD_NOT_EXIST_ERROR)
+            await session.commit()
+            return user_id
 
 
 class UserDeleteSvc(UserDelete):
@@ -101,11 +109,14 @@ class UserDeleteSvc(UserDelete):
     @staticmethod
     async def delete(user_id: str):
         async with g.db_async_session() as session:
-            return await db_async_util.delete(
-                session=session,
-                model=User,
+            user_repo = UserRepo(session)
+            rowcount = await user_repo.delete_user(
                 filter_by={"id": user_id},
             )
+            if not rowcount:
+                raise CustomException(status=Status.RECORD_NOT_EXIST_ERROR)
+            await session.commit()
+            return user_id
 
 
 class UserLoginSvc(UserLogin):
@@ -117,33 +128,39 @@ class UserLoginSvc(UserLogin):
 
     async def login(self):
         async with g.db_async_session() as session:
-            data = await db_async_util.fetch_one(
-                session=session,
-                model=User,
+            user_repo = UserRepo(session)
+            data = await user_repo.get_user_detail(
+                fields=("id", "phone", "name", "age", "gender", "password"),
                 filter_by={"phone": self.phone},
             )
-            if not data or not jwt_util.verify_password(self.password, data.get("password")):
-                return None
-            new_jwt_key = jwt_util.gen_jwt_key()
-            token = jwt_util.gen_jwt(
-                payload={
-                    "id": data.get("id"),
-                    "phone": data.get("phone"),
-                    "name": data.get("name"),
-                    "age": data.get("age"),
-                    "gender": data.get("gender"),
-                },
-                jwt_key=new_jwt_key,
-                exp_minutes=24 * 60 * 30,
-            )
-            # 更新jwt_key
-            await db_async_util.update(
-                session=session,
-                model=User,
+            if not data:
+                raise CustomException(status=Status.USER_OR_PASSWORD_ERROR)
+            stored_password = data["password"]
+            payload = {
+                "id": data.get("id"),
+                "phone": data.get("phone"),
+                "name": data.get("name"),
+                "age": data.get("age"),
+                "gender": data.get("gender"),
+            }
+
+        if not jwt_util.verify_password(self.password, stored_password):
+            raise CustomException(status=Status.USER_OR_PASSWORD_ERROR)
+        new_jwt_key = jwt_util.gen_jwt_key()
+        token = jwt_util.gen_jwt(
+            payload=payload,
+            jwt_key=new_jwt_key,
+            exp_minutes=24 * 60 * 30,
+        )
+        async with g.db_async_session() as session:
+            user_repo = UserRepo(session)
+            await user_repo.update_user(
                 data={"jwt_key": new_jwt_key},
                 filter_by={"phone": self.phone},
             )
-            return token
+            await session.commit()
+
+        return token
 
 
 class UserTokenSvc(UserToken):
@@ -155,30 +172,33 @@ class UserTokenSvc(UserToken):
 
     async def token(self):
         async with g.db_async_session() as session:
-            data = await db_async_util.fetch_one(
-                session=session,
-                model=User,
+            user_repo = UserRepo(session)
+            data = await user_repo.get_user_detail(
+                fields=("id", "phone", "name", "age", "gender"),
                 filter_by={"id": self.id},
             )
             if not data:
-                return None
-            new_jwt_key = jwt_util.gen_jwt_key()
-            token = jwt_util.gen_jwt(
-                payload={
-                    "id": data.get("id"),
-                    "phone": data.get("phone"),
-                    "name": data.get("name"),
-                    "age": data.get("age"),
-                    "gender": data.get("gender"),
-                },
-                jwt_key=new_jwt_key,
-                exp_minutes=self.exp_minutes,
-            )
-            # 更新jwt_key
-            await db_async_util.update(
-                session=session,
-                model=User,
+                raise CustomException(status=Status.RECORD_NOT_EXIST_ERROR)
+            payload = {
+                "id": data.get("id"),
+                "phone": data.get("phone"),
+                "name": data.get("name"),
+                "age": data.get("age"),
+                "gender": data.get("gender"),
+            }
+
+        new_jwt_key = jwt_util.gen_jwt_key()
+        token = jwt_util.gen_jwt(
+            payload=payload,
+            jwt_key=new_jwt_key,
+            exp_minutes=self.exp_minutes,
+        )
+        async with g.db_async_session() as session:
+            user_repo = UserRepo(session)
+            await user_repo.update_user(
                 data={"jwt_key": new_jwt_key},
                 filter_by={"id": self.id},
             )
-            return token
+            await session.commit()
+
+        return token

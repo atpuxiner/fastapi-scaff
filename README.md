@@ -29,8 +29,8 @@
 - ASM: ASM mode
     - A api
     - S services(&schemas)
-    - M models
-- Calling process: main.py(initializer) -> (middleware) - api - services(&schemas) - (models)
+    - M models(&repositories)
+- Calling process: main.py(initializer) -> (middleware) - api - services(&schemas) - (models&repositories)
 - Structure: (The naming has been finalized after multiple revisions, making it concise and easy to understand)
   ```
   └── fastapi-scaff
@@ -44,6 +44,7 @@
       │   │   └── ...                 │   └── (...)
       │   ├── middleware              ├── (中间件)
       │   ├── models                  ├── (数据模型)
+      │   ├── repositories            ├── (数据仓库)
       │   ├── schemas                 ├── (数据结构)
       │   ├── services                ├── (业务逻辑)
       │   ├── utils                   ├── (utils)

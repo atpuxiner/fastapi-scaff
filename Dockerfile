@@ -16,5 +16,3 @@ RUN pip install --upgrade pip && \
 
 COPY config ./config
 COPY app ./app
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "5", "--log-level", "info"]

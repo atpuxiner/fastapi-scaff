@@ -2,7 +2,6 @@ from fastapi import APIRouter
 from loguru import logger
 
 from app.api.responses import Responses, response_docs
-from app.api.status import Status
 from app.services.tpl import (
     TplDetailSvc,
 )
@@ -24,8 +23,6 @@ async def detail(
     try:
         tpl_svc = TplDetailSvc(id=tpl_id)
         data = await tpl_svc.detail()
-        if not data:
-            return Responses.failure(status=Status.RECORD_NOT_EXIST_ERROR)
     except Exception as e:
         msg = "tplDetail操作异常"
         logger.exception(msg)
