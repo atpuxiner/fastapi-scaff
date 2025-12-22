@@ -3,7 +3,7 @@
 fastapi-scaff==0.6.0
 fastapi==0.123.5
 uvicorn[standard]==0.38.0
-toollib==1.9.7
+toollib==1.9.8
 python-dotenv==1.2.1
 PyYAML==6.0.3
 orjson==3.11.4

@@ -438,16 +438,16 @@ db_async_url: sqlite+aiosqlite:///app_prod.sqlite
         for name in self.args.name.split(","):
             sys.stdout.write(f"Adding api:\n")
             flags = {
-                # - 键：目标是否存在: 0-不存在，1-存在
-                # - 值：创建是否关联: 0-不关联，1-关联
-                #   - 创建a时，如果se 1为0，0为1
-                #   - 创建se时，如果sc 1为0，0为1
+                # - 键：目标是否存在: 0-no，1-yes
+                # - 值：创建是否关联: 0-no，1-yes
+                #   - 创建a时，se取反
+                #   - 创建se时，sc取反
                 #   - 创建sc时，全为1
                 #   - 创建m时，全为1
-                #   - 创建r时，如果m 1为0，0为1
+                #   - 创建r时，m取反
                 #   - light:
-                #       - 创建a时，如果se 1为0，0为1
-                #       - 创建se时，如果a 1为0，0为1
+                #       - 创建a时，se取反
+                #       - 创建se时，a取反
                 # a|tiny (a)
                 "0": [1],
                 "1": [1],
