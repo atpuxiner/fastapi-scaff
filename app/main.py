@@ -29,7 +29,7 @@ if g.config.app_disable_docs is True:
 @asynccontextmanager
 async def lifespan(xapp: FastAPI):
     logger.info(f"Application env '{g.config.app_env}'")
-    logger.info(f"Application yaml '{g.config.app_yaml.name}'")
+    logger.info(f"Application yaml '{g.config.yaml_path.name}'")
     logger.info(f"Application title '{g.config.app_title}'")
     logger.info(f"Application version '{g.config.app_version}'")
     # #

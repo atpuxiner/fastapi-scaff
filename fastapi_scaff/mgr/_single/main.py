@@ -16,7 +16,6 @@ from app.core import config, request_id_var
 
 _EXPOSE_ERROR = True
 
-config.setup()
 enable_console, enable_file = True, True
 if config.app_env == "prod":
     enable_console, enable_file = False, True  # 按需调整
@@ -41,7 +40,7 @@ if config.app_disable_docs is True:
 @asynccontextmanager
 async def lifespan(xapp: FastAPI):
     logger.info(f"Application env '{config.app_env}'")
-    logger.info(f"Application yaml '{config.app_yaml.name}'")
+    logger.info(f"Application yaml '{config.yaml_path.name}'")
     logger.info(f"Application title '{config.app_title}'")
     logger.info(f"Application version '{config.app_version}'")
     # #
