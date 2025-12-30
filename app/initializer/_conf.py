@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from toollib.utils import ConfLoader
+from toollib.utils import ConfModel, FrozenVar
 
 from app import APP_DIR
 
@@ -13,9 +13,9 @@ if os.environ.setdefault("app_env", "dev") == "prod":  # 生产环境不加载.e
 yaml_path = _CONFIG_DIR.joinpath(f"app_{os.environ.get('app_env', 'dev')}.yaml")
 
 
-class Config(ConfLoader):
+class Config(ConfModel):
     """配置"""
-    app_dir: Path = APP_DIR
+    app_dir: FrozenVar[Path] = APP_DIR
     # #
     app_env: str = "dev"
     yaml_path: Path = yaml_path
@@ -45,9 +45,7 @@ class Config(ConfLoader):
 
 
 def init_config() -> Config:
-    c = Config(
+    return Config(
         dotenv_path=dotenv_path,
         yaml_path=yaml_path,
     )
-    c.load()
-    return c
