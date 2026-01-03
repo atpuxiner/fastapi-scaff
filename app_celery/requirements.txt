@@ -3,7 +3,7 @@
 celery==5.6.0
 redis==7.1.0
 gevent==25.9.1
-toollib==2.0.0
+toollib==2.0.2
 python-dotenv==1.2.1
 PyYAML==6.0.3
 pydantic==2.12.5
