@@ -21,16 +21,18 @@ def gen_project_json():
         "^.history$",
         "^pyproject.toml$",
         "^setup.py$",
+        "alembic/versions/.*.py$",
         # #
         ".pyc$",
         ".log$",
         ".sqlite3?$",
     ]))
     data = {}
+    base64_suffixes = (".jpg",)
     for file in listfile(project_dir, is_r=True):
         file_str = file.as_posix().replace(project_dir.as_posix(), "").lstrip("/")
         if not exclude_pat.search(file_str):
-            if file.suffix == ".jpg":
+            if file.suffix.endswith(base64_suffixes):
                 with open(file, "rb") as f:
                     data[file_str] = base64.b64encode(f.read()).decode('utf-8')
             else:
@@ -42,7 +44,7 @@ def gen_project_json():
     ]:
         for file in listfile(m):
             with open(file, "r", encoding="utf-8") as f:
-                data[f"app/{m[1:]}_{file.name}"] = f.read()
+                data[f"{m[1:]}/app/{file.name}"] = f.read()
     with open(project_dir.joinpath(f"{pkg_mod_name}/_project_tpl.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 

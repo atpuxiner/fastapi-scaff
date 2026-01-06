@@ -151,7 +151,7 @@ if __name__ == '__main__':
     main(
         host="0.0.0.0",
         port=8000,
-        workers=3,
+        workers=1,
         log_level="debug",
         reload=False,  # For development environment
         gunicorn=False,  # Not supported on Windows

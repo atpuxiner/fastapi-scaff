@@ -35,8 +35,14 @@ class Config(ConfModel):
     app_allow_methods: list = ["*"]
     app_allow_headers: list = ["*"]
     # #
-    db_url: str
-    db_async_url: str
+    db_drivername: str
+    db_async_drivername: str
+    db_database: str
+    db_username: str = None
+    db_password: str = None
+    db_host: str = None
+    db_port: int = None
+    db_charset: str = None
     redis_host: str = None
     redis_port: int = None
     redis_db: int = None

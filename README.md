@@ -12,8 +12,9 @@
         - auto register router
         - auto register middleware
         - ...
-        - integrated sqlalchemy
         - integrated jwt\api-key
+        - integrated sqlalchemy
+        - integrated migration
         - integrated celery
         - integrated docker deployment
         - ...
@@ -43,6 +44,7 @@
       │   │   ├── log                 │   ├── (日志)
       │   │   └── ...                 │   └── (...)
       │   ├── middleware              ├── (中间件)
+      │   ├── migrations              ├── (数据库迁移)
       │   ├── models                  ├── (数据模型)
       │   ├── repositories            ├── (数据仓库)
       │   ├── schemas                 ├── (数据结构)
@@ -101,7 +103,12 @@ This package can be installed using pip (Python>=3.11):
     - more parameters see:
         - about uvicorn: [click here](https://www.uvicorn.org/)
         - about gunicorn: [click here](https://docs.gunicorn.org/en/stable/)
-- 5）docker, please see:
+- 5）migration
+    - eg:
+        - generate: `python runmigration.py generate init`
+        - upgrade: `python runmigration.py upgrade`
+    - about alembic: [click here](https://alembic.sqlalchemy.org/en/latest/)
+- 6）docker, please see:
     - project files:
         - build.sh
         - docker-compose.yaml | docker-compose.swarm.yaml[config/nginx.conf]

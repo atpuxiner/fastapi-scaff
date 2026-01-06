@@ -131,42 +131,20 @@ class CMD:
         name.mkdir(parents=True, exist_ok=True)
         with open(here.joinpath("_project_tpl.json"), "r") as f:
             project_tpl = json.loads(f.read())
+        base64_suffixes = (".jpg",)
         for k, v in project_tpl.items():
-            k, v = self._edition_handler(k, v, edition=self.args.edition, celery=self.args.celery)
+            base64_flag = k.endswith(base64_suffixes)
+            if not base64_flag:
+                k, v = self._replace_handler(k, v)
             if not k:
                 continue
             tplpath = name.joinpath(k)
             tplpath.parent.mkdir(parents=True, exist_ok=True)
-            if k.endswith(".jpg"):
+            if base64_flag:
                 with open(tplpath, "wb") as f:
                     f.write(base64.b64decode(v))
                     continue
             with open(tplpath, "w", encoding="utf-8") as f:
-                # rpl
-                if _env := re.search(r"app_(.*?).yaml$", k):
-                    _rpl_name = f"/app_{_env.group(1)}"
-                    _default = self._db_yaml_map("default")
-                    _user = self._db_yaml_map(self.args.db)
-                    v = v.replace(
-                        _default["db_url"].replace("/app_dev", _rpl_name),
-                        _user["db_url"].replace("/app_dev", _rpl_name)
-                    ).replace(
-                        _default["db_async_url"].replace("/app_dev", _rpl_name),
-                        _user["db_async_url"].replace("/app_dev", _rpl_name)
-                    )
-                elif k == "build.sh":
-                    v = v.replace("fastapi-scaff", self.args.name.replace("_", "-"))
-                elif k.startswith("docker-compose."):
-                    v = v.replace("fastapi-scaff", self.args.name.replace("_", "-"))
-                elif k == "README.md":
-                    v = v.replace(f"# {prog}", f"# {prog} ( => yourProj)")
-                elif k == "requirements.txt":
-                    _default = self._db_requirements_map("default")
-                    _user = self._db_requirements_map(self.args.db)
-                    v = re.sub(rf'^{_default}.*\n?', '\n'.join(_user) + '\n', v, flags=re.MULTILINE)
-                elif k == "config/nginx.conf":
-                    v = v.replace("server backend:", f"server {self.args.name.replace('_', '-')}-prod_backend:")
-                # < rpl
                 f.write(v)
         sys.stdout.write("Done. Now run:\n"
                          f"> 1. cd {name}\n"
@@ -175,89 +153,130 @@ class CMD:
                          f"> 4. python runserver.py\n"
                          f"----- More see README.md -----\n")
 
-    @staticmethod
-    def _edition_handler(k: str, v: str, edition: str, celery: bool):
-        if "tiny" in k:
-            if edition == "tiny":
-                k = k.replace("tiny_", "")
-                return k, v
-            return None, None
-        elif "single" in k:
-            if edition == "single":
-                k = k.replace("single_", "")
-                return k, v
-            return None, None
-
-        if not celery:
+    def _replace_handler(self, k: str, v: str):
+        if not self.args.celery:
             if k.startswith("app_celery/") or k in [
                 "app/api/default/aping.py",
                 "runcbeat.py",
                 "runcworker.py",
             ]:
                 return None, None
-            elif k.startswith("config/app_"):
-                v = v.replace("""# #
-celery_broker_url: redis://:<password>@<host>:<port>/<db>
-celery_backend_url: redis://:<password>@<host>:<port>/<db>
-celery_timezone: Asia/Shanghai
-celery_enable_utc: true
-celery_task_serializer: json
-celery_result_serializer: json
-celery_accept_content: [ json ]
-celery_task_ignore_result: false
-celery_result_expire: 86400
-celery_task_track_started: true
-celery_worker_concurrency: 8
-celery_worker_prefetch_multiplier: 2
-celery_worker_max_tasks_per_child: 100
-celery_broker_connection_retry_on_startup: true
-celery_task_reject_on_worker_lost: true
-""", "")
-            elif k == "requirements.txt":
-                v = re.sub(r'^celery==.*\n?', '', v, flags=re.MULTILINE)
-
-        if edition == "standard":
-            return k, v
-
-        if edition == "light":
-            filter_list = [
-                "app/api/v1/user.py",
-                "app/initializer/_redis.py",
-                "app/initializer/_snow.py",
-                "app/models/",
-                "app/repositories/",
-                "app/schemas/",
-                "app/services/user.py",
-                "docs/",
-                "tests/",
-            ]
-        elif edition == "tiny":
-            filter_list = [
-                "app/api/v1/user.py",
-                "app/initializer/",
-                "app/middleware/",
-                "app/models/",
-                "app/repositories/",
-                "app/schemas/",
-                "app/services/",
-                "docs/",
-                "tests/",
-            ]
-        else:
-            filter_list = [
-                "app/",
-                "docs/",
-                "tests/",
-            ]
-        if re.match(r"^({filter_k})".format(filter_k="|".join(filter_list)), k) is not None:
+        if "tiny" in k and self.args.edition != "tiny":
             return None, None
-        if k == "app/api/responses.py":
-            if edition == "tiny":
-                v = v.replace("""from app.initializer.context import request_id_var""",
-                              """from app.initializer import request_id_var""")
-        elif k == "app/api/status.py":
-            v = v.replace("""USER_OR_PASSWORD_ERROR = (10002, '用户名或密码错误')
-""", "")
+        elif "single" in k and self.args.edition != "single":
+            return None, None
+        if self.args.edition == "standard":
+            k, v = self._replace_by_standard(k, v)
+        elif self.args.edition == "light":
+            k, v = self._replace_by_light(k, v)
+        elif self.args.edition == "tiny":
+            k, v = self._replace_by_tiny(k, v)
+        elif self.args.edition == "single":
+            k, v = self._replace_by_single(k, v)
+        if not k:
+            return k, v
+        if k == "app/api/status.py":
+            if self.args.edition in ["light", "tiny"]:
+                v = re.sub(r'^\s*USER_OR_PASSWORD_ERROR.*$\n?', '', v, flags=re.MULTILINE)
+        elif k == "config/.env":
+            if self.args.edition != "standard":
+                v = re.sub(r'^\s*# 雪花算法数据中心id.*$\n^\s*snow_datacenter_id=.*$\n?', '', v, flags=re.MULTILINE)
+        elif env := re.search(r"config/app_(.*).yaml$", k):
+            if not self.args.celery:
+                v = re.sub(r'^\s*# #\s*\n(?:^\s*celery_.*$\n?)+', '', v, flags=re.MULTILINE)
+            if self.args.edition != "standard":
+                v = re.sub(r'^\s*redis_.*$\n?', '', v, flags=re.MULTILINE)
+            if self.args.edition == "single":
+                v = re.sub(r'^\s*# #\s*\n(?:^\s*db_.*$\n?)+', '', v, flags=re.MULTILINE)
+            else:
+                _env = env.group(1)
+                if self.args.db == "mysql":
+                    v = v.replace(f"""db_drivername: sqlite
+db_async_drivername: sqlite+aiosqlite
+db_database: app_{_env}.sqlite
+db_username:
+db_password:
+db_host:
+db_port:
+db_charset:""", """db_drivername: mysql+pymysql
+db_async_drivername: mysql+aiomysql
+db_database: <database>
+db_username: <username>
+db_password: <password>
+db_host: <host>
+db_port: <port>
+db_charset: utf8mb4""")
+                elif self.args.db == "postgresql":
+                    v = v.replace(f"""db_drivername: sqlite
+db_async_drivername: sqlite+aiosqlite
+db_database: app_{_env}.sqlite
+db_username:
+db_password:
+db_host:
+db_port:
+db_charset:""", """db_drivername: postgresql+psycopg2
+db_async_drivername: postgresql+asyncpg
+db_database: <database>
+db_username: <username>
+db_password: <password>
+db_host: <host>
+db_port: <port>
+db_charset:""")
+        elif k == "config/nginx.conf":
+            v = v.replace("server backend:", f"server {self.args.name.replace('_', '-')}-prod_backend:")
+        elif k.startswith((
+                "build.sh",
+                "docker-compose.",
+        )):
+            v = v.replace("fastapi-scaff", self.args.name.replace("_", "-"))
+        elif k == "README.md":
+            v = v.replace(f"# {prog}", f"# {prog} ( => yourProj)")
+        elif k == "requirements.txt":
+            if not self.args.celery:
+                v = re.sub(r'^celery==.*$\n?', '', v, flags=re.MULTILINE)
+                if self.args.edition != "standard":
+                    v = re.sub(r'^redis==.*$\n?', '', v, flags=re.MULTILINE)
+            if self.args.edition == "single":
+                v = re.sub(r'^(PyJWT==|bcrypt==|SQLAlchemy==|alembic==|aiosqlite==).*$\n?', '', v, flags=re.MULTILINE)
+            else:
+                if self.args.db != "sqlite":
+                    _default = "aiosqlite=="
+                    _user = {
+                        "sqlite": [
+                            "aiosqlite==0.21.0",
+                        ],
+                        "mysql": [
+                            "PyMySQL==1.1.2",
+                            "aiomysql==0.3.2",
+                        ],
+                        "postgresql": [
+                            "psycopg2-binary==2.9.11",
+                            "asyncpg==0.31.0",
+                        ],
+                    }.get(self.args.db)
+                    v = re.sub(rf'^{_default}.*$\n?', '\n'.join(_user) + '\n', v, flags=re.MULTILINE)
+                if self.args.edition == "tiny":
+                    v = re.sub(r'^alembic==.*$\n?', '', v, flags=re.MULTILINE)
+        return k, v
+
+    @staticmethod
+    def _replace_by_standard(k, v):
+        return k, v
+
+    @staticmethod
+    def _replace_by_light(k, v):
+        if re.match(r"^({filter_k})".format(filter_k="|".join([
+            "app/api/v1/user.py",
+            "app/initializer/_redis.py",
+            "app/initializer/_snow.py",
+            "app/models/",
+            "app/repositories/",
+            "app/schemas/",
+            "app/services/user.py",
+            "docs/",
+            "tests/",
+        ])), k) is not None:
+            return None, None
         elif k == "app/initializer/__init__.py":
             v = v.replace("""from toollib.guid import SnowFlake
 from toollib.rediscli import RedisCli
@@ -285,18 +304,14 @@ from app.initializer._snow import init_snow_cli
     """, "")
         elif k == "app/initializer/_conf.py":
             v = v.replace("""snow_datacenter_id: int = None
-    """, "").replace("""redis_host: str = None
-    redis_port: int = None
-    redis_db: int = None
-    redis_password: str = None
-    redis_max_connections: int = None
-""", "")
+    """, "")
+            v = re.sub(r'^\s*redis_.*$\n?', '', v, flags=re.MULTILINE)
         elif k == "app/initializer/_db.py":
-            v = v.replace("""_MODELS_MOD_DIR = APP_DIR.joinpath("models")
-_MODELS_MOD_BASE = "app.models"
-""", """_MODELS_MOD_DIR = APP_DIR.joinpath("services")
-_MODELS_MOD_BASE = "app.services"
-""")
+            v = v.replace(
+                """_MODELS_MOD_DIR = APP_DIR.joinpath("models")""",
+                """_MODELS_MOD_DIR = APP_DIR.joinpath("services")""").replace(
+                """_MODELS_MOD_BASE = "app.models\"""",
+                """_MODELS_MOD_BASE = "app.services\"""")
         elif k == "app/services/__init__.py":
             v = v.replace("""\"\"\"
 业务逻辑
@@ -323,72 +338,43 @@ class User(DeclBase):
     id = Column(String(20), primary_key=True, comment="主键")
     name = Column(String(50), nullable=False, comment="名称")
 \"\"\"""")
-        elif k == "config/.env":
-            v = v.replace("""# 雪花算法数据中心id（取值：0-31，在分布式部署时需确保每个节点的取值不同）
-snow_datacenter_id=0
-""", "")
-        elif k.startswith("config/app_"):
-            v = v.replace("""redis_host: localhost
-redis_port: 6379
-redis_db: 0
-redis_password:
-redis_max_connections:
-""", "")
-            if edition == "single":
-                v = v.replace("""# #
-db_url: sqlite:///app_dev.sqlite
-db_async_url: sqlite+aiosqlite:///app_dev.sqlite
-""", "").replace("""# #
-db_url: sqlite:///app_test.sqlite
-db_async_url: sqlite+aiosqlite:///app_test.sqlite
-""", "").replace("""# #
-db_url: sqlite:///app_prod.sqlite
-db_async_url: sqlite+aiosqlite:///app_prod.sqlite
-""", "")
-        elif k == "requirements.txt":
-            if not celery:
-                v = re.sub(r'^redis==.*\n?', '', v, flags=re.MULTILINE)
-            if edition == "single":
-                v = re.sub(r'^(PyJWT==|bcrypt==|SQLAlchemy==|aiosqlite==).*\n?', '', v, flags=re.MULTILINE)
         return k, v
 
     @staticmethod
-    def _db_requirements_map(name: str):
-        return {
-            "default": "aiosqlite==",
-            "sqlite": [
-                "aiosqlite==0.21.0",
-            ],
-            "mysql": [
-                "PyMySQL==1.1.2",
-                "aiomysql==0.3.2",
-            ],
-            "postgresql": [
-                "psycopg2-binary==2.9.11",
-                "asyncpg==0.31.0",
-            ],
-        }.get(name)
+    def _replace_by_tiny(k, v):
+        if re.match(r"^({filter_k})".format(filter_k="|".join([
+            "app/api/v1/user.py",
+            "app/initializer/",
+            "app/middleware/",
+            "app/migrations/",
+            "app/models/",
+            "app/repositories/",
+            "app/schemas/",
+            "app/services/",
+            "docs/",
+            "tests/",
+            "runmigration.py",
+        ])), k) is not None:
+            return None, None
+        elif k.startswith("tiny/"):
+            k = k.replace("tiny/", "")
+        elif k == "app/api/responses.py":
+            v = v.replace("""from app.initializer.context import request_id_var""",
+                          """from app.initializer import request_id_var""")
+        return k, v
 
     @staticmethod
-    def _db_yaml_map(name: str):
-        return {
-            "default": {
-                "db_url": "db_url: sqlite:///app_dev.sqlite",
-                "db_async_url": "db_async_url: sqlite+aiosqlite:///app_dev.sqlite",
-            },
-            "sqlite": {
-                "db_url": "db_url: sqlite:///app_dev.sqlite",
-                "db_async_url": "db_async_url: sqlite+aiosqlite:///app_dev.sqlite",
-            },
-            "mysql": {
-                "db_url": "db_url: mysql+pymysql://<username>:<password>@<host>:<port>/<database>?charset=utf8mb4",
-                "db_async_url": "db_async_url: mysql+aiomysql://<username>:<password>@<host>:<port>/<database>?charset=utf8mb4",
-            },
-            "postgresql": {
-                "db_url": "db_url: postgresql://<username>:<password>@<host>:<port>/<database>",
-                "db_async_url": "db_async_url: postgresql+asyncpg://<username>:<password>@<host>:<port>/<database>",
-            },
-        }.get(name)
+    def _replace_by_single(k, v):
+        if re.match(r"^({filter_k})".format(filter_k="|".join([
+            "app/",
+            "docs/",
+            "tests/",
+            "runmigration.py",
+        ])), k) is not None:
+            return None, None
+        elif k.startswith("single/"):
+            k = k.replace("single/", "")
+        return k, v
 
     def add(self):
         if self.args.celery:

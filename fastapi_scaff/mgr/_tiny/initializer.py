@@ -9,7 +9,7 @@ from pathlib import Path
 
 from loguru import logger
 from loguru._logger import Logger  # noqa
-from sqlalchemy import create_engine
+from sqlalchemy import URL, create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import scoped_session, sessionmaker
 from toollib import logu
@@ -51,8 +51,14 @@ class Config(ConfModel):
     app_allow_methods: list = ["*"]
     app_allow_headers: list = ["*"]
     # #
-    db_url: str
-    db_async_url: str
+    db_drivername: str
+    db_async_drivername: str
+    db_database: str
+    db_username: str = None
+    db_password: str = None
+    db_host: str = None
+    db_port: int = None
+    db_charset: str = None
 
 
 def init_logger(
@@ -76,19 +82,36 @@ def init_logger(
 
 
 def init_db_session(
-        db_url: str,
+        db_drivername: str,
+        db_database: str,
+        db_username: str,
+        db_password: str,
+        db_host: str,
+        db_port: int,
+        db_charset: str,
         db_echo: bool,
         db_pool_size: int = 10,
         db_max_overflow: int = 5,
         db_pool_recycle: int = 3600,
 ) -> scoped_session:
+    db_url = make_db_url(
+        drivername=db_drivername,
+        database=db_database,
+        username=db_username,
+        password=db_password,
+        host=db_host,
+        port=db_port,
+        query={
+            "charset": db_charset,
+        },
+    )
     db_echo = db_echo or False
     kwargs = {
         "pool_size": db_pool_size,
         "max_overflow": db_max_overflow,
         "pool_recycle": db_pool_recycle,
     }
-    if db_url.startswith("sqlite"):
+    if db_url.drivername.startswith("sqlite"):
         kwargs = {}
     engine = create_engine(
         url=db_url,
@@ -101,19 +124,36 @@ def init_db_session(
 
 
 def init_db_async_session(
-        db_url: str,
+        db_drivername: str,
+        db_database: str,
+        db_username: str,
+        db_password: str,
+        db_host: str,
+        db_port: int,
+        db_charset: str,
         db_echo: bool,
         db_pool_size: int = 10,
         db_max_overflow: int = 5,
         db_pool_recycle: int = 3600,
 ) -> sessionmaker:
+    db_url = make_db_url(
+        drivername=db_drivername,
+        database=db_database,
+        username=db_username,
+        password=db_password,
+        host=db_host,
+        port=db_port,
+        query={
+            "charset": db_charset,
+        },
+    )
     db_echo = db_echo or False
     kwargs = {
         "pool_size": db_pool_size,
         "max_overflow": db_max_overflow,
         "pool_recycle": db_pool_recycle,
     }
-    if db_url.startswith("sqlite"):
+    if db_url.drivername.startswith("sqlite"):
         kwargs = {}
     async_engine = create_async_engine(
         url=db_url,
@@ -123,6 +163,27 @@ def init_db_async_session(
     )
     db_async_session = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)  # noqa
     return db_async_session
+
+
+def make_db_url(
+        drivername: str,
+        database: str,
+        username: str = None,
+        password: str = None,
+        host: str = None,
+        port: int = None,
+        query: dict = None,
+) -> URL:
+    query = {k: v for k, v in query.items() if v} if query else {}
+    return URL.create(
+        drivername=drivername,
+        username=username,
+        password=password,
+        host=host,
+        port=port,
+        database=database,
+        query=query,
+    )
 
 
 class G(metaclass=Singleton):
@@ -159,14 +220,26 @@ class G(metaclass=Singleton):
     @cached_property
     def db_session(self) -> scoped_session:
         return init_db_session(
-            db_url=self.config.db_url,
+            db_drivername=self.config.db_drivername,
+            db_database=self.config.db_database,
+            db_username=self.config.db_username,
+            db_password=self.config.db_password,
+            db_host=self.config.db_host,
+            db_port=self.config.db_port,
+            db_charset=self.config.db_charset,
             db_echo=self.config.app_debug,
         )
 
     @cached_property
     def db_async_session(self) -> sessionmaker:
         return init_db_async_session(
-            db_url=self.config.db_async_url,
+            db_drivername=self.config.db_async_drivername,
+            db_database=self.config.db_database,
+            db_username=self.config.db_username,
+            db_password=self.config.db_password,
+            db_host=self.config.db_host,
+            db_port=self.config.db_port,
+            db_charset=self.config.db_charset,
             db_echo=self.config.app_debug,
         )
 

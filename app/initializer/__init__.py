@@ -68,17 +68,29 @@ class G(metaclass=Singleton):
     @cached_property
     def db_session(self) -> scoped_session:
         return init_db_session(
-            db_url=self.config.db_url,
+            db_drivername=self.config.db_drivername,
+            db_database=self.config.db_database,
+            db_username=self.config.db_username,
+            db_password=self.config.db_password,
+            db_host=self.config.db_host,
+            db_port=self.config.db_port,
+            db_charset=self.config.db_charset,
             db_echo=self.config.app_debug,
-            is_create_tables=True,
+            is_create_tables=True,  # 可通过 alembic 进行数据库迁移
         )
 
     @cached_property
     def db_async_session(self) -> sessionmaker:
         return init_db_async_session(
-            db_url=self.config.db_async_url,
+            db_drivername=self.config.db_async_drivername,
+            db_database=self.config.db_database,
+            db_username=self.config.db_username,
+            db_password=self.config.db_password,
+            db_host=self.config.db_host,
+            db_port=self.config.db_port,
+            db_charset=self.config.db_charset,
             db_echo=self.config.app_debug,
-            is_create_tables=True,
+            is_create_tables=True,  # 可通过 alembic 进行数据库迁移
         )
 
     def setup(self):
