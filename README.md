@@ -103,17 +103,17 @@ This package can be installed using pip (Python>=3.11):
     - more parameters see:
         - about uvicorn: [click here](https://www.uvicorn.org/)
         - about gunicorn: [click here](https://docs.gunicorn.org/en/stable/)
-- 5）migration
-    - eg:
+- x）migration
+    - eg (Can be executed before runserver):
         - generate: `python runmigration.py generate init`
         - upgrade: `python runmigration.py upgrade`
     - about alembic: [click here](https://alembic.sqlalchemy.org/en/latest/)
-- 6）docker, please see:
+- x）docker, please see:
     - project files:
         - build.sh
         - docker-compose.yaml | docker-compose.swarm.yaml[config/nginx.conf]
         - Dockerfile | Dockerfile.slim
-    - [more click here](https://docs.docker.com/)
+    - about docker: [click here](https://docs.docker.com/)
 
 ## License
 
