@@ -81,9 +81,6 @@ async def fetch_total(
         *,
         filter_by: dict | None = None,
 ) -> int:
-    """
-    统计总数，使用 COUNT(*)，兼容所有数据库。
-    """
     query = select(func.count()).select_from(model)
     if filter_by:
         query = query.filter_by(**filter_by)
