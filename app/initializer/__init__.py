@@ -25,12 +25,12 @@ class G(metaclass=Singleton):
     _initialized = False
     _init_lock = threading.Lock()
     _init_properties = [
-        'config',
-        'logger',
-        'redis_cli',
-        'snow_cli',
-        # 'db_session',
-        'db_async_session',
+        "config",
+        "logger",
+        "redis_cli",
+        "snow_cli",
+        # "db_session",
+        "db_async_session",
     ]
 
     def __init__(self):

@@ -193,10 +193,10 @@ class G(metaclass=Singleton):
     _initialized = False
     _init_lock = threading.Lock()
     _init_properties = [
-        'config',
-        'logger',
-        # 'db_session',
-        'db_async_session',
+        "config",
+        "logger",
+        # "db_session",
+        "db_async_session",
     ]
 
     def __init__(self):
