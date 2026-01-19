@@ -84,9 +84,9 @@ This package can be installed using pip (Python>=3.11):
     - `fastapi-scaff -h`
 - 2）new project
     - `fastapi-scaff new <myproj>`
-    - *light template*: `fastapi-scaff new <myproj> -t light`
-    - *tiny template*: `fastapi-scaff new <myproj> -t tiny`
-    - *single template*: `fastapi-scaff new <myproj> -t single`
+    - *light*: `fastapi-scaff new <myproj> -t light`
+    - *tiny*: `fastapi-scaff new <myproj> -t tiny`
+    - *single*: `fastapi-scaff new <myproj> -t single`
 - 3）add api
     - `cd to project root dir`
     - `fastapi-scaff add <myapi>`

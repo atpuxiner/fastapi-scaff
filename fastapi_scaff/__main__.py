@@ -58,7 +58,7 @@ def main():
         default="sqlite",
         choices=["sqlite", "mysql", "postgresql", "no"],
         metavar="",
-        help="`new`时可指定项目数据库(默认sqlite，若no则不集成)")
+        help="`new`时可指定项目数据库(默认sqlite,no表不集成)")
     parser.add_argument(
         "-v",
         "--vn",
