@@ -45,7 +45,7 @@ class G(metaclass=Singleton):
         return init_logger(
             level="DEBUG" if self.config.app_debug else "INFO",
             serialize=self.config.app_log_serialize,
-            basedir=self.config.app_log_basedir,
+            outdir=self.config.app_log_outdir,
         )
 
     @cached_property

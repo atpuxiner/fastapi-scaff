@@ -46,12 +46,12 @@ def main():
         type=str,
         help="项目或api名称(多个api可逗号分隔)")
     parser.add_argument(
-        "-e",
-        "--edition",
+        "-t",
+        "--template",
         default="standard",
         choices=["standard", "light", "tiny", "single"],
         metavar="",
-        help="`new`时可指定项目结构版本(默认标准版)")
+        help="`new`时可指定项目模板(默认标准版)")
     parser.add_argument(
         "-d",
         "--db",
@@ -73,13 +73,6 @@ def main():
         type=str,
         metavar="",
         help="`add`时可指定子目录(默认空)")
-    parser.add_argument(
-        "-t",
-        "--target",
-        default="asm",
-        choices=["a", "as", "asm"],
-        metavar="",
-        help="`add`时可指定目标(默认asm)")
     parser.add_argument(
         "--celery",
         action='store_true',
@@ -150,33 +143,33 @@ class CMD:
                         f.write(v)
         sys.stdout.write("Done. Now run:\n"
                          f"> 1. cd {name}\n"
-                         f"> 2. modify config{', eg: db' if (self.args.edition != 'single' or self.args.db != 'no') else ''}\n"
+                         f"> 2. modify config{'' if (self.args.template == 'single' or self.args.db == 'no') else ', eg: db'}\n"
                          f"> 3. pip install -r requirements.txt\n"
                          f"> 4. python runserver.py\n"
                          f"----- More see README.md -----\n")
 
     def _tpl_handler(self, k: str, v: str):
         if not self.args.celery:
-            if k.startswith("app_celery/"):
+            if k in [
+                "app/api/default/aping.py",
+                "runcbeat.py",
+                "runcworker.py",
+            ]:
                 k, v = None, None
-            elif k == "app/api/default/aping.py":
+            elif k.startswith("app_celery/"):
                 k, v = None, None
             elif re.search(r"config/app_(.*).yaml$", k):
                 v = re.sub(r'^\s*# #\s*\n(?:^\s*celery_.*$\n?)+', '', v, flags=re.MULTILINE)
             elif k == "requirements.txt":
                 v = re.sub(r'^celery==.*$\n?', '', v, flags=re.MULTILINE)
-                if self.args.edition != "standard":
+                if self.args.template != "standard":
                     v = re.sub(r'^redis==.*$\n?', '', v, flags=re.MULTILINE)
-            elif k == "runcbeat.py":
-                k, v = None, None
-            elif k == "runcworker.py":
-                k, v = None, None
         if k:
-            if self.args.edition == "light":
+            if self.args.template == "light":
                 k, v = self._tpl_handle_by_light(k, v)
-            elif self.args.edition == "tiny":
+            elif self.args.template == "tiny":
                 k, v = self._tpl_handle_by_tiny(k, v)
-            elif self.args.edition == "single":
+            elif self.args.template == "single":
                 k, v = self._tpl_handle_by_single(k, v)
             else:
                 k, v = self._tpl_handle_by_standard(k, v)
@@ -390,26 +383,26 @@ class CMD:
             return self._add_celery_handler(self.args.name.split(","))
         vn = self.args.vn
         subdir = self.args.subdir
-        target = self.args.target
 
         work_dir = Path.cwd()
         with open(here.joinpath("_api_tpl.json"), "r", encoding="utf-8") as f:
             api_tpl_dict = json.loads(f.read())
+
+        target = "asm"
         has_decl_base = False
-        if target != "a":
-            if not work_dir.joinpath("app/models").is_dir():
-                target = "as"
-                if not work_dir.joinpath("app/services").is_dir():
-                    target = "a"
-            else:
-                decl_file = work_dir.joinpath("app/models/__init__.py")
-                if decl_file.is_file():
-                    if re.search(
-                            r"^\s*class\s+DeclBase\s*\(\s*DeclarativeBase\s*\)\s*:",
-                            decl_file.read_text("utf-8"),
-                            re.MULTILINE
-                    ):
-                        has_decl_base = True
+        if not work_dir.joinpath("app/models").is_dir():
+            target = "as"
+            if not work_dir.joinpath("app/services").is_dir():
+                target = "a"
+        else:
+            decl_file = work_dir.joinpath("app/models/__init__.py")
+            if decl_file.is_file():
+                if re.search(
+                        r"^\s*class\s+DeclBase\s*\(\s*DeclarativeBase\s*\)\s*:",
+                        decl_file.read_text("utf-8"),
+                        re.MULTILINE
+                ):
+                    has_decl_base = True
         if target == "a":
             tpl_mods = [
                 "app/api",
@@ -518,14 +511,14 @@ class CMD:
         f = False
         for name in names:
             if name == "celery":
-                sys.stdout.write(f"[{name}] Can't be `celery`\n")
+                sys.stdout.write(f"[celery] Cannot use reserved name '{name}'\n")
                 continue
             f = True
             celery_dir = work_dir.joinpath(name)
             if celery_dir.is_dir():
-                sys.stdout.write(f"[{name}] Existed\n")
+                sys.stdout.write(f"[celery] Existed {name}\n")
                 continue
-            sys.stdout.write(f"[{name}] Writing\n")
+            sys.stdout.write(f"[celery] Writing {name}\n")
             celery_dir.mkdir(parents=True, exist_ok=True)
             for k, v in project_tpl.items():
                 if k.startswith("app_celery/"):
@@ -534,19 +527,19 @@ class CMD:
                     with open(tplpath, "w", encoding="utf-8") as f:
                         v = v.replace("app_celery", name).replace("app-celery", name.replace("_", "-"))
                         f.write(v)
-        if not f: return
-        for ext in ["runcbeat.py", "runcworker.py", "app/api/default/aping.py"]:
-            if ext == "app/api/default/aping.py" and not (work_dir / "app/api/default").is_dir():
-                continue
-            path = work_dir / ext
-            if path.is_file():
-                sys.stdout.write(f"[{ext}] Existed\n")
-            else:
-                sys.stdout.write(f"[{ext}] Writing\n")
-                with open(path, "w", encoding="utf-8") as f:
-                    v = project_tpl[ext]
-                    v = v.replace("app_celery", names[0])
-                    f.write(v)
+        if f:
+            for ext in ["runcbeat.py", "runcworker.py", "app/api/default/aping.py"]:
+                if ext == "app/api/default/aping.py" and not (work_dir / "app/api/default").is_dir():
+                    continue
+                path = work_dir / ext
+                if path.is_file():
+                    sys.stdout.write(f"[celery] Existed {ext}\n")
+                else:
+                    sys.stdout.write(f"[celery] Writing {ext}\n")
+                    with open(path, "w", encoding="utf-8") as f:
+                        v = project_tpl[ext]
+                        v = v.replace("app_celery", names[0])
+                        f.write(v)
 
 
 if __name__ == "__main__":

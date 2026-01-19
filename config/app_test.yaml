@@ -5,7 +5,7 @@ app_description: xxxApp-test
 app_version: 1.0.0
 app_debug: true
 app_log_serialize: false
-app_log_basedir: ./logs
+app_log_outdir: ./logs
 app_disable_docs: false
 app_allow_credentials: true
 app_allow_origins:

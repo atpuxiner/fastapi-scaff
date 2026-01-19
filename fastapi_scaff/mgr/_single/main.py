@@ -26,7 +26,7 @@ logger = init_logger(
     serialize=config.app_log_serialize,
     enable_console=enable_console,
     enable_file=enable_file,
-    basedir=config.app_log_basedir,
+    outdir=config.app_log_outdir,
 )
 # logger.add 可添加其他 handler
 # #

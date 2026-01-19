@@ -28,7 +28,7 @@ class Config(ConfModel):
     app_version: str = "1.0.0"
     app_debug: bool = True
     app_log_serialize: bool = False
-    app_log_basedir: str = "./logs"
+    app_log_outdir: str = "./logs"
     app_disable_docs: bool = False
     app_allow_credentials: bool = True
     app_allow_origins: list = ["*"]

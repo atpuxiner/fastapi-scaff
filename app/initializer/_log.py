@@ -9,7 +9,7 @@ from app.initializer.context import request_id_var
 def init_logger(
         level: str,
         serialize: bool = False,
-        basedir: str = None,
+        outdir: str = None,
 ) -> Logger:
     enable_console, enable_file = True, True
     if os.getenv("app_env") == "prod":
@@ -20,7 +20,7 @@ def init_logger(
         serialize=serialize,
         enable_console=enable_console,
         enable_file=enable_file,
-        basedir=basedir,
+        outdir=outdir,
     )
     # _logger.add 可添加其他 handler
     return _logger

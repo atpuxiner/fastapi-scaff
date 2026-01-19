@@ -25,14 +25,14 @@
         - single
     - more documents: [请点击链接](https://blog.csdn.net/atpuxiner/article/details/144291336?fromshare=blogdetail&sharetype=blogdetail&sharerId=144291336&sharerefer=PC&sharesource=atpuxiner&sharefrom=from_link)
 
-## Project structure
+## Project template
 
-- ASM: ASM mode
+- Architecture: ASM
     - A api
     - S services(&schemas)
     - M models(&repositories)
-- Calling process: main.py(initializer) -> (middleware) - api - services(&schemas) - (models&repositories)
-- Structure: (The naming has been finalized after multiple revisions, making it concise and easy to understand)
+- Flow: main.py(initializer) - (middleware) - api - services(&schemas) - (models&repositories)
+- Layout: (The naming has been finalized after multiple revisions, making it concise and easy to understand)
   ```
   └── fastapi-scaff
       ├── app                         (应用)
@@ -68,10 +68,10 @@
       └── runserver.py
   ```
 
-- 【Other structure】
-    - light：Please create and view (with `-e light`)
-    - tiny：Please create and view (with `-e tiny`)
-    - single：Please create and view (with `-e single`)
+- 【Other】
+    - light：Please create and view (with `-t light`)
+    - tiny：Please create and view (with `-t tiny`)
+    - single：Please create and view (with `-t single`)
 
 ## Installation
 
@@ -84,9 +84,9 @@ This package can be installed using pip (Python>=3.11):
     - `fastapi-scaff -h`
 - 2）new project
     - `fastapi-scaff new <myproj>`
-    - *light structure*: `fastapi-scaff new <myproj> -e light`
-    - *tiny structure*: `fastapi-scaff new <myproj> -e tiny`
-    - *single structure*: `fastapi-scaff new <myproj> -e single`
+    - *light template*: `fastapi-scaff new <myproj> -t light`
+    - *tiny template*: `fastapi-scaff new <myproj> -t tiny`
+    - *single template*: `fastapi-scaff new <myproj> -t single`
 - 3）add api
     - `cd to project root dir`
     - `fastapi-scaff add <myapi>`

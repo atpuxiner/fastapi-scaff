@@ -44,7 +44,7 @@ class Config(ConfModel):
     app_version: str = "1.0.0"
     app_debug: bool = True
     app_log_serialize: bool = False
-    app_log_basedir: str = "./logs"
+    app_log_outdir: str = "./logs"
     app_disable_docs: bool = False
     app_allow_credentials: bool = True
     app_allow_origins: list = ["*"]
@@ -64,7 +64,7 @@ class Config(ConfModel):
 def init_logger(
         level: str,
         serialize: bool = False,
-        basedir: str = None,
+        outdir: str = None,
 ) -> Logger:
     enable_console, enable_file = True, True
     if os.getenv("app_env") == "prod":
@@ -75,7 +75,7 @@ def init_logger(
         serialize=serialize,
         enable_console=enable_console,
         enable_file=enable_file,
-        basedir=basedir,
+        outdir=outdir,
     )
     # _logger.add 可添加其他 handler
     return _logger
@@ -214,7 +214,7 @@ class G(metaclass=Singleton):
         return init_logger(
             level="DEBUG" if self.config.app_debug else "INFO",
             serialize=self.config.app_log_serialize,
-            basedir=self.config.app_log_basedir,
+            outdir=self.config.app_log_outdir,
         )
 
     @cached_property
