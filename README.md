@@ -18,11 +18,6 @@
         - integrated celery
         - integrated docker deployment
         - ...
-    - about structure:
-        - standard
-        - light
-        - tiny
-        - single
     - more documents: [请点击链接](https://blog.csdn.net/atpuxiner/article/details/144291336?fromshare=blogdetail&sharetype=blogdetail&sharerId=144291336&sharerefer=PC&sharesource=atpuxiner&sharefrom=from_link)
 
 ## Project template
