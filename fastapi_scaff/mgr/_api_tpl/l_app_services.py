@@ -1,4 +1,4 @@
-from app.schemas.tpl import (
+from app.models.tpl import (
     TplDetail,
 )
 

@@ -1,8 +1,8 @@
 from sqlalchemy import Column, BigInteger, Integer, String
-from toollib.utils import now2timestamp
 
 from app.initializer import g
 from app.models import DeclBase
+from app.utils.ext_util import now_timestamp
 
 
 class User(DeclBase):
@@ -15,5 +15,5 @@ class User(DeclBase):
     name = Column(String(50), nullable=True, comment="名称")
     age = Column(Integer, nullable=True, comment="年龄")
     gender = Column(Integer, nullable=True, comment="性别")
-    created_at = Column(BigInteger, default=now2timestamp, comment="创建时间")
-    updated_at = Column(BigInteger, default=now2timestamp, onupdate=now2timestamp, comment="更新时间")
+    created_at = Column(BigInteger, default=now_timestamp, comment="创建时间")
+    updated_at = Column(BigInteger, default=now_timestamp, onupdate=now_timestamp, comment="更新时间")
