@@ -76,7 +76,7 @@ def main():
     parser.add_argument(
         "--celery",
         action='store_true',
-        help="`new`|`add`时可指定是否集成celery(默认不集成)")
+        help="`new`|`add`时可指定celery(默认不集成)")
     args = parser.parse_args()
     cmd = CMD(args)
     if args.command == "new":
