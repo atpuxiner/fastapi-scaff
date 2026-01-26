@@ -12,7 +12,7 @@
         - auto register router
         - auto register middleware
         - ...
-        - integrated jwt\api-key
+        - integrated api-key/jwt
         - integrated sqlalchemy
         - integrated migration
         - integrated celery
@@ -31,8 +31,8 @@
   ```
   └── fastapi-scaff
       ├── app                         (应用)
-      │   ├── api                     ├── (api)
-      │   │   └── v1                  │   └── (v1)
+      │   ├── api                     ├── (接口)
+      │   │   └── v1                  │   └── (版本1)
       │   ├── initializer             ├── (初始化)
       │   │   ├── conf                │   ├── (配置)
       │   │   ├── db                  │   ├── (数据库)
@@ -44,9 +44,9 @@
       │   ├── repositories            ├── (数据仓库)
       │   ├── schemas                 ├── (数据结构)
       │   ├── services                ├── (业务逻辑)
-      │   ├── utils                   ├── (utils)
-      │   └── main.py                 └── (main.py)
-      ├── app_celery                  (应用-celery)
+      │   ├── utils                   ├── (工具集)
+      │   └── main.py                 └── (主入口)
+      ├── app_celery                  (应用-异步任务)
       ├── config                      (配置目录)
       ├── docs                        (文档目录)
       ├── logs                        (日志目录)
@@ -67,6 +67,8 @@
     - light：Please create and view (with `-t light`)
     - tiny：Please create and view (with `-t tiny`)
     - single：Please create and view (with `-t single`)
+
+- 【Tips】Database, Redis, Snowflake and Celery can all be controlled through parameters to integrate or not, allowing you to flexibly customize the functional modules needed for your project.
 
 ## Installation
 

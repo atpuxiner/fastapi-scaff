@@ -69,7 +69,7 @@ class UserCreateSvc(UserCreate):
                     "age": self.age,
                     "gender": self.gender,
                     "password": jwt_util.hash_password(self.password),
-                    "jwt_key": jwt_util.gen_jwt_key(),
+                    "jwt_key": jwt_util.gen_jwt_key(jwt_key=g.config.jwt_key),
                 },
                 check_unique={"phone": self.phone},
             )
@@ -146,7 +146,7 @@ class UserLoginSvc(UserLogin):
 
         if not jwt_util.verify_password(self.password, stored_password):
             raise CustomException(status=Status.USER_OR_PASSWORD_ERROR)
-        new_jwt_key = jwt_util.gen_jwt_key()
+        new_jwt_key = jwt_util.gen_jwt_key(jwt_key=g.config.jwt_key)
         token = jwt_util.gen_jwt(
             payload=payload,
             jwt_key=new_jwt_key,
@@ -187,7 +187,7 @@ class UserTokenSvc(UserToken):
                 "gender": data.get("gender"),
             }
 
-        new_jwt_key = jwt_util.gen_jwt_key()
+        new_jwt_key = jwt_util.gen_jwt_key(jwt_key=g.config.jwt_key)
         token = jwt_util.gen_jwt(
             payload=payload,
             jwt_key=new_jwt_key,

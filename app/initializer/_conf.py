@@ -20,6 +20,7 @@ class Config(ConfModel):
     app_env: str = "dev"
     yaml_path: Path = yaml_path
     api_keys: list = []
+    jwt_key: str = ""
     snow_datacenter_id: int = None
     # #
     app_title: str = "xApp"

@@ -61,7 +61,7 @@ class G(metaclass=Singleton):
     @cached_property
     def snow_cli(self) -> SnowFlake:
         return init_snow_cli(
-            redis_cli=self.redis_cli,
+            redis_cli=getattr(self, "redis_cli", None),
             datacenter_id=self.config.snow_datacenter_id,
         )
 

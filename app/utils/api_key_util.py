@@ -11,4 +11,5 @@ def gen_api_key(prefix: str = "", length: int = _API_KEY_LENGTH) -> str:
 
 
 if __name__ == '__main__':
-    print(gen_api_key())
+    num = 2
+    print(",".join([gen_api_key() for _ in range(num)]))

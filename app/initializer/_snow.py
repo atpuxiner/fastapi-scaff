@@ -2,7 +2,6 @@ import os
 
 from loguru import logger
 from toollib.guid import SnowFlake
-from toollib.rediscli import RedisCli
 from toollib.utils import localip
 
 _CACHE_KEY_SNOW_WORKER_ID_INCR = "config:snow_worker_id_incr"
@@ -11,10 +10,10 @@ _CACHE_EXPIRE_SNOW = 120
 
 
 def init_snow_cli(
-        redis_cli: RedisCli,
+        redis_cli=None,  # `from toollib.rediscli import RedisCli` 实例
         datacenter_id: int = None,
-        to_str: bool = True,
-) -> SnowFlake:  # 建议：采用服务的方式调用api获取
+) -> SnowFlake:
+    # 建议：采用服务的方式调用api获取
     if datacenter_id is None:
         datacenter_id = _snow_incr(redis_cli, _CACHE_KEY_SNOW_DATACENTER_ID_INCR, _CACHE_EXPIRE_SNOW)
         if datacenter_id is None:
@@ -26,11 +25,13 @@ def init_snow_cli(
     worker_id = _snow_incr(redis_cli, _CACHE_KEY_SNOW_WORKER_ID_INCR, _CACHE_EXPIRE_SNOW)
     if worker_id is None:
         worker_id = os.getpid() % 32
-    return SnowFlake(worker_id=worker_id, datacenter_id=datacenter_id, to_str=to_str)
+    return SnowFlake(worker_id=worker_id, datacenter_id=datacenter_id)
 
 
 def _snow_incr(redis_cli, cache_key: str, cache_expire: int):
     incr = None
+    if not redis_cli:
+        return incr
     try:
         with redis_cli.connection() as r:
             resp = r.ping()

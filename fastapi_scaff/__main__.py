@@ -26,11 +26,15 @@ prog = "fastapi-scaff"
 def main():
     parser = argparse.ArgumentParser(
         prog=prog,
-        description="fastapi脚手架，一键生成项目或api，让开发变得更简单",
-        epilog="examples: \n"
-               "  `new`: %(prog)s new <myproj>\n"
-               "  `add`: %(prog)s add <myapi>\n"
-               "",
+        usage="%(prog)s <command> <name> [options]",
+        description="FastAPI scaffolding tool — generate project or API endpoints instantly to simplify development.",
+        epilog="""
+examples:
+  New project:                      fastapi-scaff new myproj
+  New project with DB & Redis:      fastapi-scaff new myproj -d postgresql --redis
+  Add an API endpoint:              fastapi-scaff add myapi
+  Add multiple APIs:                fastapi-scaff add myapi1,myapi2 -s myapi
+""",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
@@ -40,43 +44,54 @@ def main():
     parser.add_argument(
         "command",
         choices=["new", "add"],
-        help="创建项目或添加api")
+        help="Subcommand: 'new' to new a project, 'add' to add API(s)")
     parser.add_argument(
         "name",
         type=str,
-        help="项目或api名称(多个api可逗号分隔)")
+        help="Project name or API name(s) (multiple APIs can be comma-separated)")
     parser.add_argument(
         "-t",
         "--template",
         default="standard",
         choices=["standard", "light", "tiny", "single"],
         metavar="",
-        help="`new`时可指定项目模板(默认标准版)")
+        help="(new) Specify project template (default: standard)")
     parser.add_argument(
         "-d",
         "--db",
         default="sqlite",
         choices=["sqlite", "mysql", "postgresql", "no"],
         metavar="",
-        help="`new`时可指定项目数据库(默认sqlite,no表不集成)")
+        help="(new) Specify database (default: sqlite; 'no' means no integration)")
+    parser.add_argument(
+        "--redis",
+        action='store_true',
+        help="(new) Specify Redis (default: no)")
+    parser.add_argument(
+        "--snow",
+        action='store_true',
+        help="(new) Specify Snowflake (default: no)")
     parser.add_argument(
         "-v",
         "--vn",
         default="v1",
         type=str,
         metavar="",
-        help="`add`时可指定版本(默认v1)")
+        help="(add) Specify API version for the API (default: v1)")
     parser.add_argument(
         "-s",
         "--subdir",
         default="",
         type=str,
         metavar="",
-        help="`add`时可指定子目录(默认空)")
+        help="(add) Specify subdirectory for the API (default: none)")
     parser.add_argument(
         "--celery",
         action='store_true',
-        help="`new`|`add`时可指定celery(默认不集成)")
+        help="(new|add) Specify Celery (default: no)")
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit()
     args = parser.parse_args()
     cmd = CMD(args)
     if args.command == "new":
@@ -188,47 +203,44 @@ class CMD:
                 "single/",
         )):
             return None, None
-        elif re.search(r"config/app_(.*).yaml$", k):
-            if not self.args.celery:
-                v = re.sub(r'^\s*# #\s*\n(?:^\s*celery_.*$\n?)+', '', v, flags=re.MULTILINE)
-        elif k == "requirements.txt":
-            if not self.args.celery:
-                v = re.sub(r'^celery==.*$\n?', '', v, flags=re.MULTILINE)
-        return k, v
-
-    def _tpl_handle_by_light(self, k, v):
-        if re.match(r"^({filter_k})".format(filter_k="|".join([
-            "app/api/v1/user.py",
-            "app/initializer/_redis.py",
-            "app/initializer/_snow.py",
-            "app/models/user.py",
-            "app/repositories/",
-            "app/schemas/",
-            "app/services/user.py",
-            "docs/",
-            "tests/",
-            "tiny/",
-            "single/",
-        ])), k) is not None:
-            return None, None
-        elif k == "app/api/status.py":
-            v = re.sub(r'^\s*USER_OR_PASSWORD_ERROR.*$\n?', '', v, flags=re.MULTILINE)
+        elif k == "app/initializer/_redis.py":
+            if not self.args.redis:
+                return None, None
+        elif k == "app/initializer/_snow.py":
+            if not self.args.snow:
+                return None, None
         elif k == "app/initializer/__init__.py":
-            v = re.sub(r'^\s*from\s+.*?(Redis|_redis|Snow|_snow).*?$\n?', '', v, flags=re.MULTILINE)
-            v = re.sub(r'^\s*(?:#\s*)?"(redis_cli|snow_cli)",?\s*\n', '', v, flags=re.MULTILINE)
-            v = re.sub(
-                rf'^(\s*@[^\n]*\n)*\s*def\s+(redis_cli|snow_cli)\s*\([^)]*\)[^:]*:\n(?:\s+.*\n)*?(?=\n+\s+\S+|\Z)',
-                '', v, flags=re.MULTILINE
-            )
+            if not self.args.redis:
+                v = re.sub(r'^\s*from\s+.*?(Redis|_redis).*?$\n?', '', v, flags=re.MULTILINE)
+                v = re.sub(r'^\s*(?:#\s*)?"redis_cli",?\s*\n', '', v, flags=re.MULTILINE)
+                v = self._repl_funcs(func_names="redis_cli", v=v)
+            if not self.args.snow:
+                v = re.sub(r'^\s*from\s+.*?(Snow|_snow).*?$\n?', '', v, flags=re.MULTILINE)
+                v = re.sub(r'^\s*(?:#\s*)?"snow_cli",?\s*\n', '', v, flags=re.MULTILINE)
+                v = self._repl_funcs(func_names="snow_cli", v=v)
         elif k == "app/initializer/_conf.py":
-            v = re.sub(r'^\s*(redis_|snow_).*$\n?', '', v, flags=re.MULTILINE)
-        elif k == "app/models/__init__.py":
-            v = '"""\n数据模型\n"""\nfrom sqlalchemy.orm import DeclarativeBase\n\n\nclass DeclBase(DeclarativeBase):\n    pass\n\n\n# DeclBase 使用示例（官方文档：https://docs.sqlalchemy.org/en/latest/orm/quickstart.html#declare-models）\n"""\nfrom sqlalchemy import Column, String\n\nfrom app.services import DeclBase\n\n\nclass User(DeclBase):\n    __tablename__ = "user"\n\n    id = Column(String(20), primary_key=True, comment="主键")\n    name = Column(String(50), nullable=False, comment="名称")\n"""\n\n\ndef filter_fields(\n        model,\n        exclude: list = None,\n):\n    if exclude:\n        return list(set(model.model_fields.keys()) - set(exclude))\n    return list(model.model_fields.keys())\n'
+            if not self.args.redis:
+                v = re.sub(r'^\s*redis_.*$\n?', '', v, flags=re.MULTILINE)
+            if not self.args.snow:
+                v = re.sub(r'^\s*snow_.*$\n?', '', v, flags=re.MULTILINE)
+        elif k == "app/models/user.py":
+            if not self.args.snow:
+                v = re.sub(r'^\s*from\s+.*?initializer.*?$\n?', '', v, flags=re.MULTILINE)
+                v = v.replace("import gen_snow_id", "import gen_uuid_hex").replace(
+                    "id = Column(String(20), primary_key=True, default=gen_snow_id",
+                    "id = Column(String(32), primary_key=True, default=gen_uuid_hex"
+                )
+        elif k == "app/utils/ext_util.py":
+            if not self.args.snow:
+                v = re.sub(r'^\s*from\s+.*?initializer.*?$\n?', '', v, flags=re.MULTILINE)
+                v = self._repl_funcs(func_names="gen_snow_id", v=v)
         elif k == "config/.env":
-            v = re.sub(r'(?:^[ \t]*#[^\n]*\n)*^[ \t]*snow_[^\n]*\n?', '', v, flags=re.MULTILINE)
+            if not self.args.snow:
+                v = re.sub(r'(?:^[ \t]*#[^\n]*\n)*^[ \t]*snow_[^\n]*\n?', '', v, flags=re.MULTILINE)
         elif env := re.search(r"config/app_(.*).yaml$", k):
             if not self.args.celery:
                 v = re.sub(r'^\s*# #\s*\n(?:^\s*celery_.*$\n?)+', '', v, flags=re.MULTILINE)
+            if not self.args.redis:
                 v = re.sub(r'^\s*redis_.*$\n?', '', v, flags=re.MULTILINE)
             ov = f'db_drivername: sqlite\ndb_async_drivername: sqlite+aiosqlite\ndb_database: app_{env.group(1)}.sqlite\ndb_username:\ndb_password:\ndb_host:\ndb_port:\ndb_charset:'
             if self.args.db == "mysql":
@@ -239,7 +251,72 @@ class CMD:
                 v = v.replace(ov, nv)
         elif k == "requirements.txt":
             if not self.args.celery:
-                v = re.sub(r'^(celery==|redis==).*$\n?', '', v, flags=re.MULTILINE)
+                v = re.sub(r'^celery==.*$\n?', '', v, flags=re.MULTILINE)
+                if not self.args.redis:
+                    v = re.sub(r'^redis==.*$\n?', '', v, flags=re.MULTILINE)
+        return k, v
+
+    def _tpl_handle_by_light(self, k, v):
+        if re.match(r"^({filter_k})".format(filter_k="|".join([
+            "app/api/v1/user.py",
+            "app/models/user.py",
+            "app/repositories/",
+            "app/schemas/",
+            "app/services/user.py",
+            "docs/",
+            "tests/",
+            "tiny/",
+            "single/",
+        ])), k) is not None:
+            return None, None
+        elif k == "app/initializer/_redis.py":
+            if not self.args.redis:
+                return None, None
+        elif k == "app/initializer/_snow.py":
+            if not self.args.snow:
+                return None, None
+        elif k == "app/api/status.py":
+            v = re.sub(r'^\s*USER_OR_PASSWORD_ERROR.*$\n?', '', v, flags=re.MULTILINE)
+        elif k == "app/initializer/__init__.py":
+            if not self.args.redis:
+                v = re.sub(r'^\s*from\s+.*?(Redis|_redis).*?$\n?', '', v, flags=re.MULTILINE)
+                v = re.sub(r'^\s*(?:#\s*)?"redis_cli",?\s*\n', '', v, flags=re.MULTILINE)
+                v = self._repl_funcs(func_names="redis_cli", v=v)
+            if not self.args.snow:
+                v = re.sub(r'^\s*from\s+.*?(Snow|_snow).*?$\n?', '', v, flags=re.MULTILINE)
+                v = re.sub(r'^\s*(?:#\s*)?"snow_cli",?\s*\n', '', v, flags=re.MULTILINE)
+                v = self._repl_funcs(func_names="snow_cli", v=v)
+        elif k == "app/initializer/_conf.py":
+            if not self.args.redis:
+                v = re.sub(r'^\s*redis_.*$\n?', '', v, flags=re.MULTILINE)
+            if not self.args.snow:
+                v = re.sub(r'^\s*snow_.*$\n?', '', v, flags=re.MULTILINE)
+        elif k == "app/models/__init__.py":
+            v = '"""\n数据模型\n"""\nfrom sqlalchemy.orm import DeclarativeBase\n\n\nclass DeclBase(DeclarativeBase):\n    pass\n\n\n# DeclBase 使用示例（官方文档：https://docs.sqlalchemy.org/en/latest/orm/quickstart.html#declare-models）\n"""\nfrom sqlalchemy import Column, String\n\nfrom app.services import DeclBase\n\n\nclass User(DeclBase):\n    __tablename__ = "user"\n\n    id = Column(String(20), primary_key=True, comment="主键")\n    name = Column(String(50), nullable=False, comment="名称")\n"""\n\n\ndef filter_fields(\n        model,\n        exclude: list = None,\n):\n    if exclude:\n        return list(set(model.model_fields.keys()) - set(exclude))\n    return list(model.model_fields.keys())\n'
+        elif k == "app/utils/ext_util.py":
+            if not self.args.snow:
+                v = re.sub(r'^\s*from\s+.*?initializer.*?$\n?', '', v, flags=re.MULTILINE)
+                v = self._repl_funcs(func_names="gen_snow_id", v=v)
+        elif k == "config/.env":
+            if not self.args.snow:
+                v = re.sub(r'(?:^[ \t]*#[^\n]*\n)*^[ \t]*snow_[^\n]*\n?', '', v, flags=re.MULTILINE)
+        elif env := re.search(r"config/app_(.*).yaml$", k):
+            if not self.args.celery:
+                v = re.sub(r'^\s*# #\s*\n(?:^\s*celery_.*$\n?)+', '', v, flags=re.MULTILINE)
+            if not self.args.redis:
+                v = re.sub(r'^\s*redis_.*$\n?', '', v, flags=re.MULTILINE)
+            ov = f'db_drivername: sqlite\ndb_async_drivername: sqlite+aiosqlite\ndb_database: app_{env.group(1)}.sqlite\ndb_username:\ndb_password:\ndb_host:\ndb_port:\ndb_charset:'
+            if self.args.db == "mysql":
+                nv = 'db_drivername: mysql+pymysql\ndb_async_drivername: mysql+aiomysql\ndb_database: <database>\ndb_username: <username>\ndb_password: <password>\ndb_host: <host>\ndb_port: <port>\ndb_charset: utf8mb4'
+                v = v.replace(ov, nv)
+            elif self.args.db == "postgresql":
+                nv = 'db_drivername: postgresql+psycopg2\ndb_async_drivername: postgresql+asyncpg\ndb_database: <database>\ndb_username: <username>\ndb_password: <password>\ndb_host: <host>\ndb_port: <port>\ndb_charset:'
+                v = v.replace(ov, nv)
+        elif k == "requirements.txt":
+            if not self.args.celery:
+                v = re.sub(r'^celery==.*$\n?', '', v, flags=re.MULTILINE)
+                if not self.args.redis:
+                    v = re.sub(r'^redis==.*$\n?', '', v, flags=re.MULTILINE)
             if self.args.db == "mysql":
                 mysql = [
                     "PyMySQL==1.1.2",
@@ -272,6 +349,25 @@ class CMD:
             return None, None
         elif k.startswith("tiny/"):
             k = k.replace("tiny/", "")
+            if k == "app/initializer.py":
+                if not self.args.redis:
+                    v = re.sub(r'^\s*from\s+.*?(Redis|_redis).*?$\n?', '', v, flags=re.MULTILINE)
+                    v = re.sub(r'^\s*(?:#\s*)?"redis_cli",?\s*\n', '', v, flags=re.MULTILINE)
+                    v = self._repl_funcs(
+                        func_names="(init_redis_cli|redis_cli)",
+                        v=v
+                    )
+                    v = re.sub(r'^\s*redis_(?!cli).*$\n?', '', v, flags=re.MULTILINE)
+                if not self.args.snow:
+                    v = re.sub(r'^\s*from\s+.*?(Snow|_snow).*?$\n?', '', v, flags=re.MULTILINE)
+                    v = re.sub(r'^\s*(?:#\s*)?"snow_cli",?\s*\n', '', v, flags=re.MULTILINE)
+                    v = self._repl_funcs(
+                        func_names="(init_snow_cli|_snow_incr|snow_cli)",
+                        v=v
+                    )
+                    v = re.sub(r'^\s*snow_.*$\n?', '', v, flags=re.MULTILINE)
+                    v = re.sub(r'^\s*_CACHE_.*$\n?', '', v, flags=re.MULTILINE)
+                    v = v.replace("Singleton, localip", "Singleton")
         elif k == "app/api/responses.py":
             v = v.replace(
                 """from app.initializer.context import request_id_var""",
@@ -279,11 +375,17 @@ class CMD:
             )
         elif k == "app/api/status.py":
             v = re.sub(r'^\s*USER_OR_PASSWORD_ERROR.*$\n?', '', v, flags=re.MULTILINE)
+        elif k == "app/utils/ext_util.py":
+            if not self.args.snow:
+                v = re.sub(r'^\s*from\s+.*?initializer.*?$\n?', '', v, flags=re.MULTILINE)
+                v = self._repl_funcs(func_names="gen_snow_id", v=v)
         elif k == "config/.env":
-            v = re.sub(r'(?:^[ \t]*#[^\n]*\n)*^[ \t]*snow_[^\n]*\n?', '', v, flags=re.MULTILINE)
+            if not self.args.snow:
+                v = re.sub(r'(?:^[ \t]*#[^\n]*\n)*^[ \t]*snow_[^\n]*\n?', '', v, flags=re.MULTILINE)
         elif env := re.search(r"config/app_(.*).yaml$", k):
             if not self.args.celery:
                 v = re.sub(r'^\s*# #\s*\n(?:^\s*celery_.*$\n?)+', '', v, flags=re.MULTILINE)
+            if not self.args.redis:
                 v = re.sub(r'^\s*redis_.*$\n?', '', v, flags=re.MULTILINE)
             ov = f'db_drivername: sqlite\ndb_async_drivername: sqlite+aiosqlite\ndb_database: app_{env.group(1)}.sqlite\ndb_username:\ndb_password:\ndb_host:\ndb_port:\ndb_charset:'
             if self.args.db == "mysql":
@@ -294,7 +396,9 @@ class CMD:
                 v = v.replace(ov, nv)
         elif k == "requirements.txt":
             if not self.args.celery:
-                v = re.sub(r'^(celery==|redis==).*$\n?', '', v, flags=re.MULTILINE)
+                v = re.sub(r'^celery==.*$\n?', '', v, flags=re.MULTILINE)
+                if not self.args.redis:
+                    v = re.sub(r'^redis==.*$\n?', '', v, flags=re.MULTILINE)
             v = re.sub(r'^alembic==.*$\n?', '', v, flags=re.MULTILINE)
             if self.args.db == "mysql":
                 mysql = [
@@ -322,7 +426,7 @@ class CMD:
         elif k.startswith("single/"):
             k = k.replace("single/", "")
         elif k == "config/.env":
-            v = re.sub(r'(?:^[ \t]*#[^\n]*\n)*^[ \t]*snow_[^\n]*\n?', '', v, flags=re.MULTILINE)
+            v = re.sub(r'(?:^[ \t]*#[^\n]*\n)*^[ \t]*(jwt_|snow_)[^\n]*\n?', '', v, flags=re.MULTILINE)
         elif re.search(r"config/app_(.*).yaml$", k):
             if not self.args.celery:
                 v = re.sub(r'^\s*# #\s*\n(?:^\s*celery_.*$\n?)+', '', v, flags=re.MULTILINE)
@@ -331,16 +435,16 @@ class CMD:
         elif k == "requirements.txt":
             if not self.args.celery:
                 v = re.sub(r'^(celery==|redis==).*$\n?', '', v, flags=re.MULTILINE)
-            v = re.sub(r'^(PyJWT==|bcrypt==|SQLAlchemy==|alembic==|aiosqlite==).*$\n?', '', v, flags=re.MULTILINE)
+            v = re.sub(
+                r'^(PyJWT==|bcrypt==|SQLAlchemy==|alembic==|aiosqlite==).*$\n?',
+                '', v, flags=re.MULTILINE
+            )
         return k, v
 
     def _tpl_handle_by_db_no(self, k, v):
         if k in [
             "app/initializer/_db.py",
-            "app/initializer/_redis.py",
-            "app/initializer/_snow.py",
             "app/utils/db_util.py",
-            "app/utils/jwt_util.py",
             "runmigration.py",
         ]:
             return None, None
@@ -348,25 +452,25 @@ class CMD:
             return None, None
         elif k.endswith("user.py"):
             return None, None
-        elif k == "app/api/dependencies.py":
-            v = 'from fastapi import Security\nfrom fastapi.security import APIKeyHeader\n\nfrom app.api.exceptions import CustomException\nfrom app.api.status import Status\nfrom app.initializer import g\n\n# ======= api key =======\n\n_API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False)\n\n\nasync def get_current_api_key(api_key: str | None = Security(_API_KEY_HEADER)):\n    if not api_key:\n        raise CustomException(status=Status.UNAUTHORIZED_ERROR, msg="API key is required")\n    if api_key not in g.config.api_keys:\n        raise CustomException(status=Status.UNAUTHORIZED_ERROR, msg="Invalid API key")\n    return api_key\n'
         elif k == "app/initializer/__init__.py":
-            v = re.sub(r'^from.*(sqlalchemy|_db|Redis|_redis|Snow|_snow).*$\n?', '', v, flags=re.MULTILINE)
-            v = re.sub(r'^\s*(?:#\s*)?"(db_session|db_async_session|redis_cli|snow_cli)",?\s*\n',
-                       '', v, flags=re.MULTILINE)
+            v = re.sub(r'^from.*(sqlalchemy|_db).*$\n?', '', v, flags=re.MULTILINE)
             v = re.sub(
-                rf'^(\s*@[^\n]*\n)*\s*def\s+(db_session|db_async_session|redis_cli|snow_cli)\s*\([^)]*\)[^:]*:\n(?:\s+.*\n)*?(?=\n+\s+\S+|\Z)',
+                r'^\s*(?:#\s*)?"(db_session|db_async_session)",?\s*\n',
                 '', v, flags=re.MULTILINE
             )
+            v = self._repl_funcs(
+                func_names="(db_session|db_async_session)",
+                v=v
+            )
         elif k == "app/initializer/_conf.py":
-            v = re.sub(r'^\s*(db_|redis_|snow_).*$\n?', '', v, flags=re.MULTILINE)
+            v = re.sub(r'^\s*db_.*$\n?', '', v, flags=re.MULTILINE)
             v = re.sub(r'^\s*# #[ \t]*\n(?=\s*\n)', '', v, flags=re.MULTILINE)
         elif k == "app/initializer.py":
             v = re.sub(r'^from.*sqlalchemy.*$\n?', '', v, flags=re.MULTILINE)
             v = re.sub(r'^\s*db_.*$\n?', '', v, flags=re.MULTILINE)
-            v = re.sub(
-                rf'^(\s*@[^\n]*\n)*\s*def\s+(init_db_session|init_db_async_session|make_db_url|db_session|db_async_session)\s*\([^)]*\)[^:]*:\n(?:\s+.*\n)*?(?=\n+\s+\S+|\Z)',
-                '', v, flags=re.MULTILINE
+            v = self._repl_funcs(
+                func_names="(init_db_session|init_db_async_session|make_db_url|db_session|db_async_session)",
+                v=v
             )
             v = re.sub(r'^\s*(?:#\s*)?"(db_session|db_async_session)",?\s*\n', '', v, flags=re.MULTILINE)
             v = re.sub(r'^\s*# #[ \t]*\n(?=\s*\n)', '', v, flags=re.MULTILINE)
@@ -376,17 +480,21 @@ class CMD:
             v = '"""\n数据结构\n"""\n'
         elif k == "app/services/__init__.py":
             v = '"""\n业务逻辑\n"""\n'
-        elif k == "config/.env":
-            v = re.sub(r'(?:^[ \t]*#[^\n]*\n)*^[ \t]*snow_[^\n]*\n?', '', v, flags=re.MULTILINE)
         elif re.search(r"config/app_(.*).yaml$", k):
-            if not self.args.celery:
-                v = re.sub(r'^\s*redis_.*$\n?', '', v, flags=re.MULTILINE)
             v = re.sub(r'^\s*# #\s*\n(?:^\s*db_.*$\n?)+', '', v, flags=re.MULTILINE)
         elif k == "requirements.txt":
-            if not self.args.celery:
-                v = re.sub(r'^redis==.*$\n?', '', v, flags=re.MULTILINE)
-            v = re.sub(r'^(PyJWT==|bcrypt==|SQLAlchemy==|alembic==|aiosqlite==).*$\n?', '', v, flags=re.MULTILINE)
+            v = re.sub(
+                r'^(SQLAlchemy==|alembic==|aiosqlite==).*$\n?',
+                '', v, flags=re.MULTILINE
+            )
         return k, v
+
+    @staticmethod
+    def _repl_funcs(func_names: str, v: str, repl: str = "") -> str:
+        return re.sub(
+            rf'^(\s*@[^\n]*\n)*\s*def\s+{func_names}\s*\([^)]*\)(?:\s*->\s*[\w.]+)?\s*:\n(?:\s+.*\n)*?(?=\n+\s+\S+|\Z)',
+            repl, v, flags=re.MULTILINE
+        )
 
     def add(self):
         if self.args.celery:

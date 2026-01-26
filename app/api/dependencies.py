@@ -2,13 +2,13 @@ from fastapi import Depends, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
 from fastapi.security.utils import get_authorization_scheme_param
 from pydantic import BaseModel
+from sqlalchemy import text
 from sqlalchemy.sql.elements import quoted_name
 from starlette.requests import Request
 
 from app.api.exceptions import CustomException
 from app.api.status import Status
 from app.initializer import g
-from app.utils.db_util import sqlfetch_one
 from app.utils.jwt_util import verify_jwt
 
 
@@ -24,16 +24,15 @@ class JWTUser(BaseModel):
 
     @staticmethod
     async def get_user_jwt_key(user_id: str) -> str:
+        if g.config.jwt_key:  # 直接从环境中获取，适用于不存数据库的场景
+            return g.config.jwt_key
         # 建议：jwt_key进行redis缓存
         table = quoted_name("user", quote=True)
         sql = f"SELECT jwt_key FROM {table} WHERE id = :id"  # noqa
         async with g.db_async_session() as session:
-            data = await sqlfetch_one(
-                session=session,
-                sql=sql,
-                params={"id": user_id},
-            )
-            return data.get("jwt_key")
+            result = await session.execute(text(sql), params={"id": user_id})
+            row = result.fetchone()
+            return row[0] if row else None
 
 
 class JWTAuthorizationCredentials(HTTPAuthorizationCredentials):
@@ -74,13 +73,7 @@ class JWTBearer(HTTPBearer):
         if not user_jwt_key:
             raise CustomException(status=Status.UNAUTHORIZED_ERROR)
         await self._verify_jwt(credentials, jwt_key=user_jwt_key)
-        return JWTUser(
-            id=playload.get("id"),
-            phone=playload.get("phone"),
-            name=playload.get("name"),
-            age=playload.get("age"),
-            gender=playload.get("gender"),
-        )
+        return JWTUser(**playload)
 
     @staticmethod
     async def _verify_jwt(token: str, jwt_key: str = None) -> dict:
@@ -90,7 +83,7 @@ class JWTBearer(HTTPBearer):
             raise CustomException(status=Status.UNAUTHORIZED_ERROR, msg=str(e))
 
 
-def get_current_user(
+async def get_current_user(
         credentials: JWTAuthorizationCredentials | None = Depends(JWTBearer(auto_error=True))
 ) -> JWTUser:
     if not credentials:
@@ -103,7 +96,9 @@ def get_current_user(
 _API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
-async def get_current_api_key(api_key: str | None = Security(_API_KEY_HEADER)):
+async def get_current_api_key(
+        api_key: str | None = Security(_API_KEY_HEADER)
+) -> str:
     if not api_key:
         raise CustomException(status=Status.UNAUTHORIZED_ERROR, msg="API key is required")
     if api_key not in g.config.api_keys:

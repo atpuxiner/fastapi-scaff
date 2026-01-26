@@ -19,8 +19,10 @@ def verify_jwt(token: str, jwt_key: str = None, algorithms: tuple = (_JWT_ALGORI
     return jwt.decode(jwt=token, key=jwt_key, algorithms=algorithms)
 
 
-def gen_jwt_key():
-    return secrets.token_hex(16)
+def gen_jwt_key(nbytes: int = 32, jwt_key: str = None):
+    if jwt_key:
+        return jwt_key
+    return secrets.token_hex(nbytes)
 
 
 def hash_password(password: str) -> str:
@@ -31,3 +33,20 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+
+if __name__ == '__main__':
+    # jwt_key = gen_jwt_key()
+    # print(jwt_key)
+    jwt_key = "da721f64779fd1d92de7abc2060eb62c7f61cf82942c052007486f759e185f6d"
+    jwt_token = gen_jwt(
+        payload={
+            "id": "1",
+            "phone": "18810000001",
+            "name": "admin",
+            "age": 18,
+            "gender": 1
+        },
+        jwt_key=jwt_key
+    )
+    print(jwt_token)
