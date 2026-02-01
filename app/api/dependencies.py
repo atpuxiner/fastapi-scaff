@@ -15,19 +15,21 @@ from app.utils.jwt_util import verify_jwt
 # ======= jwt =======
 
 class JWTUser(BaseModel):
-    # 与实际`user`对齐
-    id: str = None
+    # 与实际字段对齐
+    id: int | str = None
     phone: str = None
+    status: int = None
+    role: str = None
     name: str = None
     age: int = None
     gender: int = None
 
     @staticmethod
-    async def get_user_jwt_key(user_id: str) -> str:
+    async def get_user_jwt_key(user_id: str) -> str | None:
         if g.config.jwt_key:  # 直接从环境中获取，适用于不存数据库的场景
             return g.config.jwt_key
         # 建议：jwt_key进行redis缓存
-        table = quoted_name("user", quote=True)
+        table = quoted_name("users", quote=True)
         sql = f"SELECT jwt_key FROM {table} WHERE id = :id"  # noqa
         async with g.db_async_session() as session:
             result = await session.execute(text(sql), params={"id": user_id})
@@ -80,7 +82,7 @@ class JWTBearer(HTTPBearer):
         try:
             return verify_jwt(token=token, jwt_key=jwt_key)
         except Exception as e:
-            raise CustomException(status=Status.UNAUTHORIZED_ERROR, msg=str(e))
+            raise CustomException(status=Status.UNAUTHORIZED_ERROR, error=e)
 
 
 async def get_current_user(

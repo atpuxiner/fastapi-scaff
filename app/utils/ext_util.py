@@ -8,7 +8,7 @@ def gen_uuid_hex() -> str:
     return uuid.uuid4().hex
 
 
-def gen_snow_id(to_str: bool = True):
+def gen_snow_id(to_str: bool = False):
     return g.snow_cli.gen_uid(to_str=to_str)
 
 

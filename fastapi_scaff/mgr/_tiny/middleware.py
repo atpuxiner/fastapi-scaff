@@ -24,12 +24,12 @@ __all__ = [
 
 def register_middlewares(app: FastAPI):
     """注册中间件"""
-    app.add_middleware(CorsMiddleware)  # type: ignore
-    app.add_middleware(HttpMiddleware)  # type: ignore
+    app.add_middleware(CorsMiddleware)
+    app.add_middleware(HttpMiddleware)
     # #
-    app.add_exception_handler(CustomException, ExceptionsHandler.custom_exception_handler)  # type: ignore
-    app.add_exception_handler(RequestValidationError, ExceptionsHandler.request_validation_handler)  # type: ignore
-    app.add_exception_handler(HTTPException, ExceptionsHandler.http_exception_handler)  # type: ignore
+    app.add_exception_handler(CustomException, ExceptionsHandler.custom_exception_handler)
+    app.add_exception_handler(RequestValidationError, ExceptionsHandler.request_validation_handler)
+    app.add_exception_handler(HTTPException, ExceptionsHandler.http_exception_handler)
 
 
 class CorsMiddleware(CORSMiddleware):

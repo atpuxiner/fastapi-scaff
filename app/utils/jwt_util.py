@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
@@ -8,7 +8,7 @@ _JWT_ALGORITHM = "HS256"
 
 
 def gen_jwt(payload: dict, jwt_key: str, exp_minutes: int = 24 * 60 * 30, algorithm: str = _JWT_ALGORITHM):
-    payload.update({"exp": datetime.utcnow() + timedelta(minutes=exp_minutes)})
+    payload.update({"exp": datetime.now(timezone.utc) + timedelta(minutes=exp_minutes)})
     encoded_jwt = jwt.encode(payload=payload, key=jwt_key, algorithm=algorithm)
     return encoded_jwt
 

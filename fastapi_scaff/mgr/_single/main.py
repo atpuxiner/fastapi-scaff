@@ -187,8 +187,8 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
 )
 # #
-app.add_middleware(CorsMiddleware)  # type: ignore
-app.add_middleware(HttpMiddleware)  # type: ignore
-app.add_exception_handler(RequestValidationError, ExceptionsHandler.request_validation_handler)  # type: ignore
-app.add_exception_handler(HTTPException, ExceptionsHandler.http_exception_handler)  # type: ignore
+app.add_middleware(CorsMiddleware)
+app.add_middleware(HttpMiddleware)
+app.add_exception_handler(RequestValidationError, ExceptionsHandler.request_validation_handler)
+app.add_exception_handler(HTTPException, ExceptionsHandler.http_exception_handler)
 app.include_router(router)

@@ -6,13 +6,13 @@ from functools import cached_property
 
 from loguru import logger
 from loguru._logger import Logger  # noqa
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import sessionmaker
 from toollib.guid import SnowFlake
 from toollib.rediscli import RedisCli
 from toollib.utils import Singleton
 
 from app.initializer._conf import Config, init_config
-from app.initializer._db import init_db_session, init_db_async_session
+from app.initializer._db import init_db_async_session
 from app.initializer._log import init_logger
 from app.initializer._redis import init_redis_cli
 from app.initializer._snow import init_snow_cli
@@ -29,7 +29,6 @@ class G(metaclass=Singleton):
         "logger",
         "redis_cli",
         "snow_cli",
-        # "db_session",
         "db_async_session",
     ]
 
@@ -66,20 +65,6 @@ class G(metaclass=Singleton):
         )
 
     @cached_property
-    def db_session(self) -> scoped_session:
-        return init_db_session(
-            db_drivername=self.config.db_drivername,
-            db_database=self.config.db_database,
-            db_username=self.config.db_username,
-            db_password=self.config.db_password,
-            db_host=self.config.db_host,
-            db_port=self.config.db_port,
-            db_charset=self.config.db_charset,
-            db_echo=self.config.app_debug,
-            is_create_tables=True,  # 可通过 alembic 进行数据库迁移
-        )
-
-    @cached_property
     def db_async_session(self) -> sessionmaker:
         return init_db_async_session(
             db_drivername=self.config.db_async_drivername,
@@ -90,7 +75,7 @@ class G(metaclass=Singleton):
             db_port=self.config.db_port,
             db_charset=self.config.db_charset,
             db_echo=self.config.app_debug,
-            is_create_tables=True,  # 可通过 alembic 进行数据库迁移
+            is_create_tables=True,
         )
 
     def setup(self):

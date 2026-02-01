@@ -1,5 +1,5 @@
 import json
-from typing import Mapping, get_type_hints, Any
+from typing import Mapping, Any
 
 from fastapi.encoders import jsonable_encoder
 from starlette.background import BackgroundTask
@@ -99,7 +99,7 @@ class Responses:
 
 
 def response_docs(
-        model=None,  # 模型(BaseModel): 自动从模型中解析字段与类型
+        model=None,  # 模型(BaseModel): 自动从模型获取response_fields
         data: dict | str = None,  # 数据(dict/str): 直接给定字段与类型/类型
         is_listwrap: bool = False,
         listwrap_key: str = None,
@@ -108,21 +108,12 @@ def response_docs(
 ):
     """响应文档"""
 
-    def _data_from_model(model_, default: str = "未知") -> dict:
+    def _data_from_model(model_, default: str = "N/A") -> dict:
         """数据模板"""
         data_ = {}
         if hasattr(model_, "response_fields"):
-            all_fields = set(model_.response_fields())
-        else:
-            all_fields = set(model_.model_fields.keys())
-        type_hints = get_type_hints(model_)
-        for field_name in all_fields:
-            try:
-                t = type_hints.get(field_name)
-                t = str(t).replace("<class '", "").replace("'>", "") if t else default
-            except Exception:
-                t = default
-            data_[field_name] = t
+            for field_name in model_.response_fields() or []:
+                data_[field_name] = default
         return data_
 
     final_data = {}

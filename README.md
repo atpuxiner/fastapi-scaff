@@ -24,9 +24,9 @@
 
 - Architecture: ASM
     - A api
-    - S services(&schemas)
-    - M models(&repositories)
-- Flow: main.py(initializer) - (middleware) - api - services(&schemas) - (models&repositories)
+    - S services
+    - M models
+- Flow: main.py(initializer) - (middleware) - api - services - models
 - Layout: (The naming has been finalized after multiple revisions, making it concise and easy to understand)
   ```
   └── fastapi-scaff
@@ -41,8 +41,6 @@
       │   ├── middleware              ├── (中间件)
       │   ├── migrations              ├── (数据库迁移)
       │   ├── models                  ├── (数据模型)
-      │   ├── repositories            ├── (数据仓库)
-      │   ├── schemas                 ├── (数据结构)
       │   ├── services                ├── (业务逻辑)
       │   ├── utils                   ├── (工具集)
       │   └── main.py                 └── (主入口)

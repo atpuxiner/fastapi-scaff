@@ -25,7 +25,7 @@ class ExceptionsHandler:
         return Responses.failure(
             msg=exc.msg,
             code=exc.code,
-            error=exc,
+            error=exc.error or exc,
             data=exc.data,
         )
 

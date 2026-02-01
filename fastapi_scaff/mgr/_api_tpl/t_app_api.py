@@ -1,5 +1,4 @@
 from fastapi import APIRouter
-from loguru import logger
 
 from app.api.responses import Responses, response_docs
 
@@ -7,18 +6,12 @@ router = APIRouter()
 
 
 @router.get(
-    path="/tpl/{tpl_id}",
-    summary="tplDetail",
+    path="/tpls",
+    summary="list",
     responses=response_docs(),
 )
-async def detail(
-        tpl_id: str,
-        # TODO: 认证
+async def list_tpl(
+        # current_user: JWTUser = Depends(get_current_user),  # TODO: 认证
 ):
-    try:
-        data = {}  # TODO: 数据
-    except Exception as e:
-        msg = "tplDetail操作异常"
-        logger.exception(msg)
-        return Responses.failure(msg=msg, error=e)
+    data = {}  # TODO: 数据
     return Responses.success(data=data)

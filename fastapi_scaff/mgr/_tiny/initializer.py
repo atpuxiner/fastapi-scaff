@@ -9,9 +9,9 @@ from pathlib import Path
 
 from loguru import logger
 from loguru._logger import Logger  # noqa
-from sqlalchemy import URL, create_engine
+from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 from toollib import logu
 from toollib.guid import SnowFlake
 from toollib.rediscli import RedisCli
@@ -156,48 +156,6 @@ def _snow_incr(redis_cli, cache_key: str, cache_expire: int):
     return incr
 
 
-def init_db_session(
-        db_drivername: str,
-        db_database: str,
-        db_username: str,
-        db_password: str,
-        db_host: str,
-        db_port: int,
-        db_charset: str,
-        db_echo: bool,
-        db_pool_size: int = 10,
-        db_max_overflow: int = 5,
-        db_pool_recycle: int = 3600,
-) -> scoped_session:
-    db_url = make_db_url(
-        drivername=db_drivername,
-        database=db_database,
-        username=db_username,
-        password=db_password,
-        host=db_host,
-        port=db_port,
-        query={
-            "charset": db_charset,
-        },
-    )
-    db_echo = db_echo or False
-    kwargs = {
-        "pool_size": db_pool_size,
-        "max_overflow": db_max_overflow,
-        "pool_recycle": db_pool_recycle,
-    }
-    if db_url.drivername.startswith("sqlite"):
-        kwargs = {}
-    engine = create_engine(
-        url=db_url,
-        echo=db_echo,
-        pool_pre_ping=True,
-        **kwargs,
-    )
-    db_session = sessionmaker(engine, expire_on_commit=False)
-    return scoped_session(db_session)
-
-
 def init_db_async_session(
         db_drivername: str,
         db_database: str,
@@ -272,7 +230,6 @@ class G(metaclass=Singleton):
         "logger",
         "redis_cli",
         "snow_cli",
-        # "db_session",
         "db_async_session",
     ]
 
@@ -309,19 +266,6 @@ class G(metaclass=Singleton):
         return init_snow_cli(
             redis_cli=getattr(self, "redis_cli", None),
             datacenter_id=self.config.snow_datacenter_id,
-        )
-
-    @cached_property
-    def db_session(self) -> scoped_session:
-        return init_db_session(
-            db_drivername=self.config.db_drivername,
-            db_database=self.config.db_database,
-            db_username=self.config.db_username,
-            db_password=self.config.db_password,
-            db_host=self.config.db_host,
-            db_port=self.config.db_port,
-            db_charset=self.config.db_charset,
-            db_echo=self.config.app_debug,
         )
 
     @cached_property

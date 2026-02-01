@@ -84,24 +84,19 @@ def run_by_gunicorn(
         log_level: str,
         reload: bool,
 ):
-    cmd = (
-        "gunicorn app.main:app "
-        "--worker-class=uvicorn.workers.UvicornWorker "
-        "--bind={host}:{port} "
-        "--workers={workers} "
-        "--log-level={log_level} "
-        "--access-logfile=- "
-        "--error-logfile=-"
-        .format(
-            host=host,
-            port=port,
-            workers=workers,
-            log_level=log_level,
-        )
-    )
+    cmd = [
+        "gunicorn",
+        "app.main:app",
+        "--worker-class", "uvicorn.workers.UvicornWorker",
+        "--bind", f"{host}:{port}",
+        "--workers", workers,
+        "--log-level", log_level,
+        "--access-logfile", "-",
+        "--error-logfile", "-",
+    ]
     if reload:
-        cmd += f" --reload"
-    subprocess.run(cmd, shell=True)
+        cmd.append("--reload")
+    subprocess.run(cmd, check=True)
 
 
 def main(
@@ -129,7 +124,7 @@ def main(
     }
     if (args.gunicorn or gunicorn) and not sys.platform.lower().startswith("win"):
         try:
-            import gunicorn  # noqa
+            import gunicorn  # type: ignore
         except ImportError:
             sys.stderr.write("gunicorn未找到，正在尝试自动安装...\n")
             try:

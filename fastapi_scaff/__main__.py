@@ -32,8 +32,14 @@ def main():
 examples:
   New project:                      fastapi-scaff new myproj
   New project with DB & Redis:      fastapi-scaff new myproj -d postgresql --redis
-  Add an API endpoint:              fastapi-scaff add myapi
-  Add multiple APIs:                fastapi-scaff add myapi1,myapi2 -s myapi
+  Add an API endpoint:              fastapi-scaff add myapi[myapis]
+  Add multiple APIs:                fastapi-scaff add myapi1[myapi1s],myapi2[myapi2s] -s myapi
+  
+  💡 Tip: API Naming Convention
+    The plural form in square brackets [myapis] is used for:
+    - RESTful URL paths (e.g., /api/v1/myapis)
+    - Database table names (e.g., myapis table)
+    If no plural form is specified, singular and plural will be the same.
 """,
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -113,7 +119,9 @@ class CMD:
                 sys.stderr.write(f"{prog}: '{args.name}' only support regex: {pattern}\n")
                 sys.exit(1)
         else:
-            pattern = r"^[A-Za-z][A-Za-z0-9_]{0,64}$"
+            pattern = r"^[A-Za-z][A-Za-z0-9_]{0,64}(\[[A-Za-z][A-Za-z0-9_]{0,69}\])?$"
+            if args.celery:
+                pattern = r"^[A-Za-z][A-Za-z0-9_]{0,64}$"
             args.name = args.name.replace("，", ",").strip(",")
             for t in args.name.split(","):
                 if not re.search(pattern, t):
@@ -146,7 +154,7 @@ class CMD:
         for k, v in project_tpl.items():
             base64_flag = k.endswith(base64_suffixes)
             if not base64_flag:
-                k, v = self._tpl_handler(k, v)
+                k, v = self._tpl_handle(k, v)
             if k:
                 tplpath = name.joinpath(k)
                 tplpath.parent.mkdir(parents=True, exist_ok=True)
@@ -163,7 +171,7 @@ class CMD:
                          f"> 4. python runserver.py\n"
                          f"----- More see README.md -----\n")
 
-    def _tpl_handler(self, k: str, v: str):
+    def _tpl_handle(self, k: str, v: str):
         if not self.args.celery:
             if k in [
                 "app/api/default/aping.py",
@@ -203,6 +211,13 @@ class CMD:
                 "single/",
         )):
             return None, None
+        elif k == "app/api/v1/user.py":
+            if not self.args.snow:
+                v = v.replace(
+                    "user_id: int", "user_id: str"
+                ).replace(
+                    '"id": "int"', '"id": "str"'
+                )
         elif k == "app/initializer/_redis.py":
             if not self.args.redis:
                 return None, None
@@ -226,73 +241,17 @@ class CMD:
         elif k == "app/models/user.py":
             if not self.args.snow:
                 v = re.sub(r'^\s*from\s+.*?initializer.*?$\n?', '', v, flags=re.MULTILINE)
-                v = v.replace("import gen_snow_id", "import gen_uuid_hex").replace(
-                    "id = Column(String(20), primary_key=True, default=gen_snow_id",
-                    "id = Column(String(32), primary_key=True, default=gen_uuid_hex"
+                v = v.replace(
+                    "import gen_snow_id", "import gen_uuid_hex"
+                ).replace(
+                    "id = mapped_column(BigInteger, primary_key=True, default=gen_snow_id",
+                    "id = mapped_column(String(32), primary_key=True, default=gen_uuid_hex"
                 )
-        elif k == "app/utils/ext_util.py":
+        elif k == "app/services/user.py":
             if not self.args.snow:
-                v = re.sub(r'^\s*from\s+.*?initializer.*?$\n?', '', v, flags=re.MULTILINE)
-                v = self._repl_funcs(func_names="gen_snow_id", v=v)
-        elif k == "config/.env":
-            if not self.args.snow:
-                v = re.sub(r'(?:^[ \t]*#[^\n]*\n)*^[ \t]*snow_[^\n]*\n?', '', v, flags=re.MULTILINE)
-        elif env := re.search(r"config/app_(.*).yaml$", k):
-            if not self.args.celery:
-                v = re.sub(r'^\s*# #\s*\n(?:^\s*celery_.*$\n?)+', '', v, flags=re.MULTILINE)
-            if not self.args.redis:
-                v = re.sub(r'^\s*redis_.*$\n?', '', v, flags=re.MULTILINE)
-            ov = f'db_drivername: sqlite\ndb_async_drivername: sqlite+aiosqlite\ndb_database: app_{env.group(1)}.sqlite\ndb_username:\ndb_password:\ndb_host:\ndb_port:\ndb_charset:'
-            if self.args.db == "mysql":
-                nv = 'db_drivername: mysql+pymysql\ndb_async_drivername: mysql+aiomysql\ndb_database: <database>\ndb_username: <username>\ndb_password: <password>\ndb_host: <host>\ndb_port: <port>\ndb_charset: utf8mb4'
-                v = v.replace(ov, nv)
-            elif self.args.db == "postgresql":
-                nv = 'db_drivername: postgresql+psycopg2\ndb_async_drivername: postgresql+asyncpg\ndb_database: <database>\ndb_username: <username>\ndb_password: <password>\ndb_host: <host>\ndb_port: <port>\ndb_charset:'
-                v = v.replace(ov, nv)
-        elif k == "requirements.txt":
-            if not self.args.celery:
-                v = re.sub(r'^celery==.*$\n?', '', v, flags=re.MULTILINE)
-                if not self.args.redis:
-                    v = re.sub(r'^redis==.*$\n?', '', v, flags=re.MULTILINE)
-        return k, v
-
-    def _tpl_handle_by_light(self, k, v):
-        if re.match(r"^({filter_k})".format(filter_k="|".join([
-            "app/api/v1/user.py",
-            "app/models/user.py",
-            "app/repositories/",
-            "app/schemas/",
-            "app/services/user.py",
-            "docs/",
-            "tests/",
-            "tiny/",
-            "single/",
-        ])), k) is not None:
-            return None, None
-        elif k == "app/initializer/_redis.py":
-            if not self.args.redis:
-                return None, None
-        elif k == "app/initializer/_snow.py":
-            if not self.args.snow:
-                return None, None
-        elif k == "app/api/status.py":
-            v = re.sub(r'^\s*USER_OR_PASSWORD_ERROR.*$\n?', '', v, flags=re.MULTILINE)
-        elif k == "app/initializer/__init__.py":
-            if not self.args.redis:
-                v = re.sub(r'^\s*from\s+.*?(Redis|_redis).*?$\n?', '', v, flags=re.MULTILINE)
-                v = re.sub(r'^\s*(?:#\s*)?"redis_cli",?\s*\n', '', v, flags=re.MULTILINE)
-                v = self._repl_funcs(func_names="redis_cli", v=v)
-            if not self.args.snow:
-                v = re.sub(r'^\s*from\s+.*?(Snow|_snow).*?$\n?', '', v, flags=re.MULTILINE)
-                v = re.sub(r'^\s*(?:#\s*)?"snow_cli",?\s*\n', '', v, flags=re.MULTILINE)
-                v = self._repl_funcs(func_names="snow_cli", v=v)
-        elif k == "app/initializer/_conf.py":
-            if not self.args.redis:
-                v = re.sub(r'^\s*redis_.*$\n?', '', v, flags=re.MULTILINE)
-            if not self.args.snow:
-                v = re.sub(r'^\s*snow_.*$\n?', '', v, flags=re.MULTILINE)
-        elif k == "app/models/__init__.py":
-            v = '"""\n数据模型\n"""\nfrom sqlalchemy.orm import DeclarativeBase\n\n\nclass DeclBase(DeclarativeBase):\n    pass\n\n\n# DeclBase 使用示例（官方文档：https://docs.sqlalchemy.org/en/latest/orm/quickstart.html#declare-models）\n"""\nfrom sqlalchemy import Column, String\n\nfrom app.services import DeclBase\n\n\nclass User(DeclBase):\n    __tablename__ = "user"\n\n    id = Column(String(20), primary_key=True, comment="主键")\n    name = Column(String(50), nullable=False, comment="名称")\n"""\n\n\ndef filter_fields(\n        model,\n        exclude: list = None,\n):\n    if exclude:\n        return list(set(model.model_fields.keys()) - set(exclude))\n    return list(model.model_fields.keys())\n'
+                v = v.replace(
+                    "user_id: int", "user_id: str"
+                )
         elif k == "app/utils/ext_util.py":
             if not self.args.snow:
                 v = re.sub(r'^\s*from\s+.*?initializer.*?$\n?', '', v, flags=re.MULTILINE)
@@ -322,13 +281,94 @@ class CMD:
                     "PyMySQL==1.1.2",
                     "aiomysql==0.3.2",
                 ]
-                v = re.sub(rf'^aiosqlite==.*$\n?', '\n'.join(mysql) + '\n', v, flags=re.MULTILINE)
+                v = re.sub(r'^aiosqlite==.*$\n?', '\n'.join(mysql) + '\n', v, flags=re.MULTILINE)
             elif self.args.db == "postgresql":
                 postgresql = [
                     "psycopg2-binary==2.9.11",
                     "asyncpg==0.31.0",
                 ]
-                v = re.sub(rf'^aiosqlite==.*$\n?', '\n'.join(postgresql) + '\n', v, flags=re.MULTILINE)
+                v = re.sub(r'^aiosqlite==.*$\n?', '\n'.join(postgresql) + '\n', v, flags=re.MULTILINE)
+        return k, v
+
+    def _tpl_handle_by_light(self, k, v):
+        if re.match(r"^({filter_k})".format(filter_k="|".join([
+            "app/api/v1/user.py",
+            "app/migrations/",
+            "app/models/",
+            "app/services/user.py",
+            "docs/",
+            "tests/",
+            "tiny/",
+            "single/",
+        ])), k) is not None:
+            return None, None
+        elif k == "app/initializer/_db.py":
+            v = v.replace(
+                '_MODELS_MOD_DIR = APP_DIR.joinpath("models")', "_MODELS_MOD_DIR = None"
+            ).replace(
+                '_MODELS_MOD_BASE = "app.models"', '_MODELS_MOD_BASE = None'
+            ).replace(
+                '_DECL_BASE_NAME = "DeclBase"', '_DECL_BASE_NAME = None'
+            )
+        elif k == "app/initializer/_redis.py":
+            if not self.args.redis:
+                return None, None
+        elif k == "app/initializer/_snow.py":
+            if not self.args.snow:
+                return None, None
+        elif k == "app/api/status.py":
+            v = re.sub(r'^\s*USER_.*$\n?', '', v, flags=re.MULTILINE)
+        elif k == "app/initializer/__init__.py":
+            if not self.args.redis:
+                v = re.sub(r'^\s*from\s+.*?(Redis|_redis).*?$\n?', '', v, flags=re.MULTILINE)
+                v = re.sub(r'^\s*(?:#\s*)?"redis_cli",?\s*\n', '', v, flags=re.MULTILINE)
+                v = self._repl_funcs(func_names="redis_cli", v=v)
+            if not self.args.snow:
+                v = re.sub(r'^\s*from\s+.*?(Snow|_snow).*?$\n?', '', v, flags=re.MULTILINE)
+                v = re.sub(r'^\s*(?:#\s*)?"snow_cli",?\s*\n', '', v, flags=re.MULTILINE)
+                v = self._repl_funcs(func_names="snow_cli", v=v)
+        elif k == "app/initializer/_conf.py":
+            if not self.args.redis:
+                v = re.sub(r'^\s*redis_.*$\n?', '', v, flags=re.MULTILINE)
+            if not self.args.snow:
+                v = re.sub(r'^\s*snow_.*$\n?', '', v, flags=re.MULTILINE)
+        elif k == "app/utils/ext_util.py":
+            if not self.args.snow:
+                v = re.sub(r'^\s*from\s+.*?initializer.*?$\n?', '', v, flags=re.MULTILINE)
+                v = self._repl_funcs(func_names="gen_snow_id", v=v)
+        elif k == "config/.env":
+            if not self.args.snow:
+                v = re.sub(r'(?:^[ \t]*#[^\n]*\n)*^[ \t]*snow_[^\n]*\n?', '', v, flags=re.MULTILINE)
+        elif env := re.search(r"config/app_(.*).yaml$", k):
+            if not self.args.celery:
+                v = re.sub(r'^\s*# #\s*\n(?:^\s*celery_.*$\n?)+', '', v, flags=re.MULTILINE)
+            if not self.args.redis:
+                v = re.sub(r'^\s*redis_.*$\n?', '', v, flags=re.MULTILINE)
+            ov = f'db_drivername: sqlite\ndb_async_drivername: sqlite+aiosqlite\ndb_database: app_{env.group(1)}.sqlite\ndb_username:\ndb_password:\ndb_host:\ndb_port:\ndb_charset:'
+            if self.args.db == "mysql":
+                nv = 'db_drivername: mysql+pymysql\ndb_async_drivername: mysql+aiomysql\ndb_database: <database>\ndb_username: <username>\ndb_password: <password>\ndb_host: <host>\ndb_port: <port>\ndb_charset: utf8mb4'
+                v = v.replace(ov, nv)
+            elif self.args.db == "postgresql":
+                nv = 'db_drivername: postgresql+psycopg2\ndb_async_drivername: postgresql+asyncpg\ndb_database: <database>\ndb_username: <username>\ndb_password: <password>\ndb_host: <host>\ndb_port: <port>\ndb_charset:'
+                v = v.replace(ov, nv)
+        elif k == "requirements.txt":
+            if not self.args.celery:
+                v = re.sub(r'^celery==.*$\n?', '', v, flags=re.MULTILINE)
+                if not self.args.redis:
+                    v = re.sub(r'^redis==.*$\n?', '', v, flags=re.MULTILINE)
+            v = re.sub(r'^alembic==.*$\n?', '', v, flags=re.MULTILINE)
+            if self.args.db == "mysql":
+                mysql = [
+                    "PyMySQL==1.1.2",
+                    "aiomysql==0.3.2",
+                ]
+                v = re.sub(r'^aiosqlite==.*$\n?', '\n'.join(mysql) + '\n', v, flags=re.MULTILINE)
+            elif self.args.db == "postgresql":
+                postgresql = [
+                    "psycopg2-binary==2.9.11",
+                    "asyncpg==0.31.0",
+                ]
+                v = re.sub(r'^aiosqlite==.*$\n?', '\n'.join(postgresql) + '\n', v, flags=re.MULTILINE)
         return k, v
 
     def _tpl_handle_by_tiny(self, k, v):
@@ -338,8 +378,6 @@ class CMD:
             "app/middleware/",
             "app/migrations/",
             "app/models/",
-            "app/repositories/",
-            "app/schemas/",
             "app/services/",
             "docs/",
             "tests/",
@@ -374,7 +412,7 @@ class CMD:
                 """from app.initializer import request_id_var"""
             )
         elif k == "app/api/status.py":
-            v = re.sub(r'^\s*USER_OR_PASSWORD_ERROR.*$\n?', '', v, flags=re.MULTILINE)
+            v = re.sub(r'^\s*USER_.*$\n?', '', v, flags=re.MULTILINE)
         elif k == "app/utils/ext_util.py":
             if not self.args.snow:
                 v = re.sub(r'^\s*from\s+.*?initializer.*?$\n?', '', v, flags=re.MULTILINE)
@@ -405,13 +443,13 @@ class CMD:
                     "PyMySQL==1.1.2",
                     "aiomysql==0.3.2",
                 ]
-                v = re.sub(rf'^aiosqlite==.*$\n?', '\n'.join(mysql) + '\n', v, flags=re.MULTILINE)
+                v = re.sub(r'^aiosqlite==.*$\n?', '\n'.join(mysql) + '\n', v, flags=re.MULTILINE)
             elif self.args.db == "postgresql":
                 postgresql = [
                     "psycopg2-binary==2.9.11",
                     "asyncpg==0.31.0",
                 ]
-                v = re.sub(rf'^aiosqlite==.*$\n?', '\n'.join(postgresql) + '\n', v, flags=re.MULTILINE)
+                v = re.sub(r'^aiosqlite==.*$\n?', '\n'.join(postgresql) + '\n', v, flags=re.MULTILINE)
         return k, v
 
     def _tpl_handle_by_single(self, k, v):
@@ -430,6 +468,7 @@ class CMD:
         elif re.search(r"config/app_(.*).yaml$", k):
             if not self.args.celery:
                 v = re.sub(r'^\s*# #\s*\n(?:^\s*celery_.*$\n?)+', '', v, flags=re.MULTILINE)
+            if not self.args.redis:
                 v = re.sub(r'^\s*redis_.*$\n?', '', v, flags=re.MULTILINE)
             v = re.sub(r'^\s*# #\s*\n(?:^\s*db_.*$\n?)+', '', v, flags=re.MULTILINE)
         elif k == "requirements.txt":
@@ -444,7 +483,6 @@ class CMD:
     def _tpl_handle_by_db_no(self, k, v):
         if k in [
             "app/initializer/_db.py",
-            "app/utils/db_util.py",
             "runmigration.py",
         ]:
             return None, None
@@ -452,14 +490,14 @@ class CMD:
             return None, None
         elif k.endswith("user.py"):
             return None, None
+        elif k == "app/api/dependencies.py":
+            v = re.sub(r'^from.*sqlalchemy.*$\n?', '', v, flags=re.MULTILINE)
+            v = re.sub(r'\n\s*# 建议：jwt_key进行redis缓存.*?(?=\n\s*\n|$)', '', v, flags=re.DOTALL)
         elif k == "app/initializer/__init__.py":
             v = re.sub(r'^from.*(sqlalchemy|_db).*$\n?', '', v, flags=re.MULTILINE)
-            v = re.sub(
-                r'^\s*(?:#\s*)?"(db_session|db_async_session)",?\s*\n',
-                '', v, flags=re.MULTILINE
-            )
+            v = re.sub(r'^\s*(?:#\s*)?"db_async_session",?\s*\n', '', v, flags=re.MULTILINE)
             v = self._repl_funcs(
-                func_names="(db_session|db_async_session)",
+                func_names="db_async_session",
                 v=v
             )
         elif k == "app/initializer/_conf.py":
@@ -469,15 +507,13 @@ class CMD:
             v = re.sub(r'^from.*sqlalchemy.*$\n?', '', v, flags=re.MULTILINE)
             v = re.sub(r'^\s*db_.*$\n?', '', v, flags=re.MULTILINE)
             v = self._repl_funcs(
-                func_names="(init_db_session|init_db_async_session|make_db_url|db_session|db_async_session)",
+                func_names="(init_db_async_session|make_db_url|db_async_session)",
                 v=v
             )
-            v = re.sub(r'^\s*(?:#\s*)?"(db_session|db_async_session)",?\s*\n', '', v, flags=re.MULTILINE)
+            v = re.sub(r'^\s*(?:#\s*)?"db_async_session",?\s*\n', '', v, flags=re.MULTILINE)
             v = re.sub(r'^\s*# #[ \t]*\n(?=\s*\n)', '', v, flags=re.MULTILINE)
         elif k == "app/models/__init__.py":
             v = '"""\n数据模型\n"""\n'
-        elif k == "app/schemas/__init__.py":
-            v = '"""\n数据结构\n"""\n'
         elif k == "app/services/__init__.py":
             v = '"""\n业务逻辑\n"""\n'
         elif re.search(r"config/app_(.*).yaml$", k):
@@ -498,7 +534,7 @@ class CMD:
 
     def add(self):
         if self.args.celery:
-            return self._add_celery_handler(self.args.name.split(","))
+            return self._add_celery_handle(self.args.name.split(","))
         vn = self.args.vn
         subdir = self.args.subdir
 
@@ -509,35 +545,41 @@ class CMD:
         target, tpl_mods = "s", [
             "app/api",
             "app/services",
-            "app/schemas",
             "app/models",
-            "app/repositories",
         ]
-        if not work_dir.joinpath("app/schemas").is_dir() or not work_dir.joinpath("app/repositories").is_dir():
+        if not work_dir.joinpath("app/models").is_dir():
             target, tpl_mods = "l", [
                 "app/api",
                 "app/services",
-                "app/models",
             ]
-            if not work_dir.joinpath("app/services").is_dir() or not work_dir.joinpath("app/models").is_dir():
+            if not work_dir.joinpath("app/services").is_dir():
                 target, tpl_mods = "t", [
                     "app/api",
                 ]
-        nodb = True
-        if target != "t":
-            decl_file = work_dir.joinpath("app/models/__init__.py")
-            if decl_file.is_file() and re.search(
-                    r"^\s*class\s+DeclBase\s*\(\s*DeclarativeBase\s*\)\s*:",
-                    decl_file.read_text("utf-8"),
-                    re.MULTILINE
-            ):
-                nodb = False
+        nodeclorm = True
+        declorm_file = work_dir.joinpath("app/models/__init__.py")
+        if declorm_file.is_file() and re.search(
+                r"^\s*class\s+DeclBase\s*\(\s*DeclarativeBase, CRUDMixin\s*\)\s*:",
+                declorm_file.read_text("utf-8"),
+                re.MULTILINE
+        ):
+            nodeclorm = False
+        nosnow = True
+        snow_file = Path("app/utils/ext_util.py")
+        if snow_file.is_file() and "def gen_snow_id" in snow_file.read_text("utf-8"):
+            nosnow = False
         for mod in tpl_mods:
             if not work_dir.joinpath(mod).is_dir():
                 sys.stderr.write(f"[error] Not exists: {mod.replace('/', os.sep)}\n")
                 sys.exit(1)
         for name in self.args.name.split(","):
-            sys.stdout.write(f"Adding api:\n")
+            if "[" in name:
+                name_parts = name.split("[")
+                name = name_parts[0]
+                names = name_parts[-1].rstrip("]")
+            else:
+                names = name
+            sys.stdout.write("Adding api:\n")
             existed_file = None
             for mod in tpl_mods:
                 if mod == "app/api":
@@ -552,7 +594,7 @@ class CMD:
                 sys.stderr.write(
                     f"[{name}] Existed {existed_file.relative_to(work_dir)}. Operation cancelled, please handle manually.\n")
                 continue
-            for i, mod in enumerate(tpl_mods):
+            for mod in tpl_mods:
                 # dir
                 curr_mod_dir = work_dir.joinpath(mod)
                 if mod.endswith("api"):
@@ -587,36 +629,52 @@ class CMD:
                 with open(curr_mod_file, "w", encoding="utf-8") as f:
                     sys.stdout.write(f"[{name}] Writing {curr_mod_file.relative_to(work_dir)}\n")
                     k = f"{target}_{mod.replace('/', '_')}.py"
-                    if nodb and k.endswith((
-                            "models.py",
-                            "repositories.py",
-                            "schemas.py",
-                    )):
-                        k = f"{k[:-3]}_nodb.py"
+                    if target == "s" and nodeclorm:
+                        k = f"{k[:-3]}_nodeclorm.py"
                     v = api_tpl_dict.get(k, "")
                     if v:
+                        v = self._add_tpl_handle(k, v, nosnow)
                         if subdir:
                             v = v.replace(
                                 "from app.services.tpl import", f"from app.services.{subdir}.tpl import"
                             ).replace(
-                                "from app.schemas.tpl import", f"from app.schemas.{subdir}.tpl import"
-                            ).replace(
                                 "from app.models.tpl import", f"from app.models.{subdir}.tpl import"
-                            ).replace(
-                                "from app.repositories.tpl import", f"from app.schemas.{subdir}.tpl import"
                             )
                         v = v.replace(
+                            "tpls", names).replace(
                             "tpl", name).replace(
                             "Tpl", "".join(word.capitalize() or "_" for word in name.split("_"))
                         )
                     f.write(v)
 
     @staticmethod
-    def _add_celery_handler(names: list):
+    def _add_tpl_handle(k, v, nosnow: bool):
+        if nosnow:
+            if "api" in k:
+                v = v.replace(
+                    "tpl_id: int", "tpl_id: str"
+                ).replace(
+                    '"id": "int"', '"id": "str"'
+                )
+            elif "services" in k:
+                v = v.replace(
+                    "tpl_id: int", "tpl_id: str"
+                )
+            elif "models" in k:
+                v = v.replace(
+                    "import gen_snow_id", "import gen_uuid_hex"
+                ).replace(
+                    "id = mapped_column(BigInteger, primary_key=True, default=gen_snow_id",
+                    "id = mapped_column(String(32), primary_key=True, default=gen_uuid_hex"
+                )
+        return v
+
+    @staticmethod
+    def _add_celery_handle(names: list):
         work_dir = Path.cwd()
         with open(here.joinpath("_project_tpl.json"), "r", encoding="utf-8") as f:
             project_tpl = json.loads(f.read())
-        sys.stdout.write(f"Adding celery:\n")
+        sys.stdout.write("Adding celery:\n")
         f = False
         for name in names:
             if name == "celery":
