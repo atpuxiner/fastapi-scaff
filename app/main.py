@@ -2,7 +2,7 @@
 @author axiner
 @version v1.0.0
 @created 2024/07/29 22:22
-@abstract main
+@abstract 主入口
 @description
 @history
 """

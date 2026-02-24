@@ -8,8 +8,8 @@ from app_celery import make_celery
 
 
 def autodiscover_task_modules(
-        task_name: str = "tasks",
-        task_module: str = "app_celery.consumer.tasks",
+    task_name: str = "tasks",
+    task_module: str = "app_celery.consumer.tasks",
 ) -> list:
     """
     自动发现任务模块

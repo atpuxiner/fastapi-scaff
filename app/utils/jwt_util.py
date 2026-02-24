@@ -1,5 +1,6 @@
 import secrets
 from datetime import datetime, timedelta, timezone
+from typing import Literal
 
 import bcrypt
 import jwt
@@ -7,16 +8,35 @@ import jwt
 _JWT_ALGORITHM = "HS256"
 
 
-def gen_jwt(payload: dict, jwt_key: str, exp_minutes: int = 24 * 60 * 30, algorithm: str = _JWT_ALGORITHM):
-    payload.update({"exp": datetime.now(timezone.utc) + timedelta(minutes=exp_minutes)})
-    encoded_jwt = jwt.encode(payload=payload, key=jwt_key, algorithm=algorithm)
+def gen_jwt(
+    payload: dict,
+    jwt_key: str,
+    token_type: Literal["access", "refresh"] = "access",
+    exp_seconds: int = 30 * 60,
+    algorithm: str = _JWT_ALGORITHM,
+) -> str:
+    final_payload = payload.copy()
+    final_payload.update({
+        "type": token_type,
+        "exp": datetime.now(timezone.utc) + timedelta(seconds=exp_seconds),
+    })
+    encoded_jwt = jwt.encode(payload=final_payload, key=jwt_key, algorithm=algorithm)
     return encoded_jwt
 
 
-def verify_jwt(token: str, jwt_key: str = None, algorithms: tuple = (_JWT_ALGORITHM,)) -> dict:
+def verify_jwt(
+    token: str,
+    jwt_key: str = None,
+    token_type: str = None,
+    algorithms: tuple = (_JWT_ALGORITHM,),
+) -> dict:
     if not jwt_key:
-        return jwt.decode(jwt=token, options={"verify_signature": False})
-    return jwt.decode(jwt=token, key=jwt_key, algorithms=algorithms)
+        payload = jwt.decode(jwt=token, options={"verify_signature": False})
+    else:
+        payload = jwt.decode(jwt=token, key=jwt_key, algorithms=algorithms)
+    if token_type is not None and payload.get("type") != token_type:
+        raise ValueError(f"Invalid token type: expected {token_type}, got {payload.get('type')}")
+    return payload
 
 
 def gen_jwt_key(nbytes: int = 32, jwt_key: str = None):
@@ -36,10 +56,10 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 
 if __name__ == '__main__':
-    # jwt_key = gen_jwt_key()
-    # print(jwt_key)
-    jwt_key = "da721f64779fd1d92de7abc2060eb62c7f61cf82942c052007486f759e185f6d"
-    jwt_token = gen_jwt(
+    # jkey = gen_jwt_key()
+    # print(jkey)
+    jkey = "da721f64779fd1d92de7abc2060eb62c7f61cf82942c052007486f759e185f6d"
+    jtoken = gen_jwt(
         payload={
             "id": "1",
             "phone": "18810000001",
@@ -47,6 +67,6 @@ if __name__ == '__main__':
             "age": 18,
             "gender": 1
         },
-        jwt_key=jwt_key
+        jwt_key=jkey
     )
-    print(jwt_token)
+    print(jtoken)

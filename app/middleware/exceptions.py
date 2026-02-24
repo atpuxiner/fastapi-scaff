@@ -13,9 +13,9 @@ class ExceptionsHandler:
 
     @staticmethod
     async def custom_exception_handler(
-            request: Request,
-            exc: CustomException,
-            is_traceback: bool = True,
+        request: Request,
+        exc: CustomException,
+        is_traceback: bool = True,
     ) -> JSONResponse:
         lmsg = f'- "{request.method} {request.url.path}" {exc.code} {exc.msg}'
         if is_traceback:
@@ -31,10 +31,10 @@ class ExceptionsHandler:
 
     @staticmethod
     async def request_validation_handler(
-            request: Request,
-            exc: RequestValidationError,
-            display_all: bool = False,
-            is_traceback: bool = True,
+        request: Request,
+        exc: RequestValidationError,
+        display_all: bool = False,
+        is_traceback: bool = True,
     ) -> JSONResponse:
         if display_all:
             msg = " & ".join([
@@ -57,9 +57,9 @@ class ExceptionsHandler:
 
     @staticmethod
     async def http_exception_handler(
-            request: Request,
-            exc: HTTPException,
-            is_traceback: bool = True,
+        request: Request,
+        exc: HTTPException,
+        is_traceback: bool = True,
     ) -> JSONResponse:
         lmsg = f'- "{request.method} {request.url.path}" {exc.status_code} {exc.detail}'
         if is_traceback:

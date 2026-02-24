@@ -13,11 +13,11 @@ from os import cpu_count
 
 
 def main(
-        name: str,  # `<celery_module>/consumer/workers`下的模块名
-        loglevel: str = "info",
-        concurrency: int = None,
-        pool: str = None,
-        celery_module: str = "app_celery",
+    name: str,  # `<celery_module>/consumer/workers`下的模块名
+    loglevel: str = "info",
+    concurrency: int = None,
+    pool: str = None,
+    celery_module: str = "app_celery",
 ):
     parser = argparse.ArgumentParser(description="CeleryWorker启动器")
     parser.add_argument("-n", "--name", type=str, metavar="", help="名称")

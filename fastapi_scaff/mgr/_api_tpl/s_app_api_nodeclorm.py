@@ -1,23 +1,37 @@
 from fastapi import APIRouter
 
 from app.api.responses import Responses, response_docs
-from app.services.tpl import (
-    TplListSvc,
+from app.models.tpl import (
+    TplList,
 )
+from app.services.tpl import TplSvc
 
 router = APIRouter()
+
+tpl_svc = TplSvc()
 
 
 @router.get(
     path="/tpls",
     summary="list",
-    responses=response_docs(
-        model=TplListSvc,
-    ),
+    responses=response_docs(data={
+        "items": [{
+            "id": "str",
+            "name": "str",
+            "created_at": "int",
+            "updated_at": "int",
+        }],
+        "total": "int",
+    }),
 )
 async def list_tpl(
-        # current_user: JWTUser = Depends(get_current_user),  # TODO: 认证
+    page: int = 1,
+    size: int = 10,
+    # current_user: JWTUser = Depends(get_current_user),  # TODO: 认证
 ):
-    tpl_svc = TplListSvc()
-    data = await tpl_svc.list_tpl()
+    req = TplList(
+        page=page,
+        size=size,
+    )
+    data = await tpl_svc.list_tpl(req)
     return Responses.success(data=data)

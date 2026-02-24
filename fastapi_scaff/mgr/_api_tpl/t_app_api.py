@@ -8,10 +8,21 @@ router = APIRouter()
 @router.get(
     path="/tpls",
     summary="list",
-    responses=response_docs(),
+    responses=response_docs(data={
+        "items": [{
+            "id": "str",
+        }],
+        "total": "int",
+    }),
 )
 async def list_tpl(
-        # current_user: JWTUser = Depends(get_current_user),  # TODO: 认证
+    page: int = 1,
+    size: int = 10,
+    # current_user: JWTUser = Depends(get_current_user),  # TODO: 认证
 ):
-    data = {}  # TODO: 数据
+    # TODO: 业务逻辑
+    data = {
+        "items": [],
+        "total": 0,
+    }
     return Responses.success(data=data)

@@ -10,8 +10,8 @@ _CACHE_EXPIRE_SNOW = 120
 
 
 def init_snow_cli(
-        redis_cli=None,  # `from toollib.rediscli import RedisCli` 实例
-        datacenter_id: int = None,
+    redis_cli=None,  # `from toollib.rediscli import RedisCli` 实例
+    datacenter_id: int = None,
 ) -> SnowFlake:
     # 建议：采用服务的方式调用api获取
     if datacenter_id is None:

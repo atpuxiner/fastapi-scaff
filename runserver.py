@@ -14,11 +14,11 @@ import uvicorn
 
 
 def run_by_unicorn(
-        host: str,
-        port: int,
-        workers: int,
-        log_level: str,
-        reload: bool,
+    host: str,
+    port: int,
+    workers: int,
+    log_level: str,
+    reload: bool,
 ):
     log_config = {
         "version": 1,
@@ -78,11 +78,11 @@ def run_by_unicorn(
 
 
 def run_by_gunicorn(
-        host: str,
-        port: int,
-        workers: int,
-        log_level: str,
-        reload: bool,
+    host: str,
+    port: int,
+    workers: int,
+    log_level: str,
+    reload: bool,
 ):
     cmd = [
         "gunicorn",
@@ -100,12 +100,12 @@ def run_by_gunicorn(
 
 
 def main(
-        host: str,
-        port: int,
-        workers: int,
-        log_level: str,
-        reload: bool,
-        gunicorn: bool,
+    host: str,
+    port: int,
+    workers: int,
+    log_level: str,
+    reload: bool,
+    gunicorn: bool,
 ):
     parser = argparse.ArgumentParser(description="App启动器")
     parser.add_argument("--host", type=str, metavar="", help="host")

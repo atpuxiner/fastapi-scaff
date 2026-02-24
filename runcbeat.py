@@ -11,11 +11,11 @@ import subprocess
 
 
 def main(
-        loglevel: str = "info",
-        scheduler: str = None,
-        pidfile: str = None,
-        max_interval: int = 5,
-        celery_module: str = "app_celery",
+    loglevel: str = "info",
+    scheduler: str = None,
+    pidfile: str = None,
+    max_interval: int = 5,
+    celery_module: str = "app_celery",
 ):
     parser = argparse.ArgumentParser(description="CeleryBeat启动器")
     parser.add_argument("-l", "--loglevel", type=str, default="info", metavar="", help="日志等级")

@@ -4,12 +4,12 @@ from app.api.status import Status
 class CustomException(Exception):
 
     def __init__(
-            self,
-            msg: str = None,
-            code: int = None,
-            error: str | Exception | None = None,
-            data: dict | list | str | None = None,
-            status: Status = Status.FAILURE,
+        self,
+        msg: str = None,
+        code: int = None,
+        error: str | Exception | None = None,
+        data: dict | list | str | None = None,
+        status: Status = Status.FAILURE,
     ):
         self.msg = msg or status.msg
         self.code = code or status.code

@@ -7,11 +7,11 @@ logger = logging.getLogger(__name__)
 
 
 def publish(
-        task_label: str,
-        task_args: tuple = None,
-        task_kwargs: dict = None,
-        task_id: str = None,
-        **task_options,
+    task_label: str,
+    task_args: tuple = None,
+    task_kwargs: dict = None,
+    task_id: str = None,
+    **task_options,
 ) -> str:
     """发布任务"""
     if task_label not in AllTasks:

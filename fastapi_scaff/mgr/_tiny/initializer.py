@@ -71,9 +71,9 @@ class Config(ConfModel):
 
 
 def init_logger(
-        level: str,
-        serialize: bool = False,
-        outdir: str = None,
+    level: str,
+    serialize: bool = False,
+    outdir: str = None,
 ) -> Logger:
     enable_console, enable_file = True, True
     if os.getenv("app_env") == "prod":
@@ -91,12 +91,12 @@ def init_logger(
 
 
 def init_redis_cli(
-        host: str,
-        port: int,
-        db: int,
-        password: str = None,
-        max_connections: int = None,
-        **kwargs,
+    host: str,
+    port: int,
+    db: int,
+    password: str = None,
+    max_connections: int = None,
+    **kwargs,
 ) -> RedisCli:
     return RedisCli(
         host=host,
@@ -114,8 +114,8 @@ _CACHE_EXPIRE_SNOW = 120
 
 
 def init_snow_cli(
-        redis_cli=None,  # `from toollib.rediscli import RedisCli` 实例
-        datacenter_id: int = None,
+    redis_cli=None,  # `from toollib.rediscli import RedisCli` 实例
+    datacenter_id: int = None,
 ) -> SnowFlake:
     # 建议：采用服务的方式调用api获取
     if datacenter_id is None:
@@ -157,17 +157,17 @@ def _snow_incr(redis_cli, cache_key: str, cache_expire: int):
 
 
 def init_db_async_session(
-        db_drivername: str,
-        db_database: str,
-        db_username: str,
-        db_password: str,
-        db_host: str,
-        db_port: int,
-        db_charset: str,
-        db_echo: bool,
-        db_pool_size: int = 10,
-        db_max_overflow: int = 5,
-        db_pool_recycle: int = 3600,
+    db_drivername: str,
+    db_database: str,
+    db_username: str,
+    db_password: str,
+    db_host: str,
+    db_port: int,
+    db_charset: str,
+    db_echo: bool,
+    db_pool_size: int = 10,
+    db_max_overflow: int = 5,
+    db_pool_recycle: int = 3600,
 ) -> sessionmaker:
     db_url = make_db_url(
         drivername=db_drivername,
@@ -199,13 +199,13 @@ def init_db_async_session(
 
 
 def make_db_url(
-        drivername: str,
-        database: str,
-        username: str = None,
-        password: str = None,
-        host: str = None,
-        port: int = None,
-        query: dict = None,
+    drivername: str,
+    database: str,
+    username: str = None,
+    password: str = None,
+    host: str = None,
+    port: int = None,
+    query: dict = None,
 ) -> URL:
     query = {k: v for k, v in query.items() if v} if query else {}
     return URL.create(

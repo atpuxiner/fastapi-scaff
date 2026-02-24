@@ -15,18 +15,18 @@ _DECL_BASE_NAME = "DeclBase"
 
 
 def init_db_async_session(
-        db_drivername: str,
-        db_database: str,
-        db_username: str,
-        db_password: str,
-        db_host: str,
-        db_port: int,
-        db_charset: str,
-        db_echo: bool,
-        db_pool_size: int = 10,
-        db_max_overflow: int = 5,
-        db_pool_recycle: int = 3600,
-        is_create_tables: bool = False,
+    db_drivername: str,
+    db_database: str,
+    db_username: str,
+    db_password: str,
+    db_host: str,
+    db_port: int,
+    db_charset: str,
+    db_echo: bool,
+    db_pool_size: int = 10,
+    db_max_overflow: int = 5,
+    db_pool_recycle: int = 3600,
+    is_create_tables: bool = False,
 ) -> sessionmaker:
     db_url = make_db_url(
         drivername=db_drivername,
@@ -79,13 +79,13 @@ def init_db_async_session(
 
 
 def make_db_url(
-        drivername: str,
-        database: str,
-        username: str = None,
-        password: str = None,
-        host: str = None,
-        port: int = None,
-        query: dict = None,
+    drivername: str,
+    database: str,
+    username: str = None,
+    password: str = None,
+    host: str = None,
+    port: int = None,
+    query: dict = None,
 ) -> URL:
     query = {k: v for k, v in query.items() if v} if query else {}
     return URL.create(

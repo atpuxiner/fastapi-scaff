@@ -11,7 +11,7 @@ _API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 async def get_current_api_key(
-        api_key: str | None = Security(_API_KEY_HEADER)
+    api_key: str | None = Security(_API_KEY_HEADER)
 ) -> str:
     if not api_key:
         raise HTTPException(

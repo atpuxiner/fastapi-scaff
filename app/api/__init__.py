@@ -1,5 +1,5 @@
 """
-api
+接口
 """
 import importlib
 import sys
@@ -15,14 +15,14 @@ _API_MOD_BASE = "app.api"
 
 
 def register_routers(
-        app: FastAPI,
-        mod_dir: Path = _API_MOD_DIR,
-        mod_base: str = _API_MOD_BASE,
-        name: str = "router",
-        prefix: str = "",
-        depth: int = 0,
-        min_depth: int = 1,
-        max_depth: int = 2,
+    app: FastAPI,
+    mod_dir: Path = _API_MOD_DIR,
+    mod_base: str = _API_MOD_BASE,
+    name: str = "router",
+    prefix: str = "",
+    depth: int = 0,
+    min_depth: int = 1,
+    max_depth: int = 2,
 ):
     """
     注册路由

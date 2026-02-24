@@ -211,13 +211,9 @@ class CMD:
                 "single/",
         )):
             return None, None
-        elif k == "app/api/v1/user.py":
+        elif k == "app/api/dependencies.py":
             if not self.args.snow:
-                v = v.replace(
-                    "user_id: int", "user_id: str"
-                ).replace(
-                    '"id": "int"', '"id": "str"'
-                )
+                v = v.replace('params={"id": int(user_id)}', 'params={"id": user_id}')
         elif k == "app/initializer/_redis.py":
             if not self.args.redis:
                 return None, None
@@ -249,8 +245,9 @@ class CMD:
                 )
         elif k == "app/services/user.py":
             if not self.args.snow:
-                v = v.replace(
-                    "user_id: int", "user_id: str"
+                v = re.sub(r'^\s*converters={"id": str},*$\n?', '', v, flags=re.MULTILINE)
+                v = v.replace('str(result.data["id"])', 'result.data["id"]').replace(
+                    'where={"id": int(user_id)},', 'where={"id": user_id},'
                 )
         elif k == "app/utils/ext_util.py":
             if not self.args.snow:
@@ -650,22 +647,17 @@ class CMD:
     @staticmethod
     def _add_tpl_handle(k, v, nosnow: bool):
         if nosnow:
-            if "api" in k:
-                v = v.replace(
-                    "tpl_id: int", "tpl_id: str"
-                ).replace(
-                    '"id": "int"', '"id": "str"'
-                )
-            elif "services" in k:
-                v = v.replace(
-                    "tpl_id: int", "tpl_id: str"
-                )
-            elif "models" in k:
+            if "models" in k:
                 v = v.replace(
                     "import gen_snow_id", "import gen_uuid_hex"
                 ).replace(
                     "id = mapped_column(BigInteger, primary_key=True, default=gen_snow_id",
                     "id = mapped_column(String(32), primary_key=True, default=gen_uuid_hex"
+                )
+            elif "services" in k:
+                v = re.sub(r'^\s*converters={"id": str},*$\n?', '', v, flags=re.MULTILINE)
+                v = v.replace('str(result.data["id"])', 'result.data["id"]').replace(
+                    'where={"id": int(tpl_id)},', 'where={"id": tpl_id},'
                 )
         return v
 

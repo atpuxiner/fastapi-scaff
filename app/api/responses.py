@@ -16,15 +16,15 @@ class Responses:
 
     @staticmethod
     def success(
-            data: dict | list | str | None = None,
-            msg: str = None,
-            code: int = None,
-            status: Status = Status.SUCCESS,
-            is_encode_data: bool = False,
-            status_code: int = 200,
-            headers: Mapping[str, str] | None = None,
-            media_type: str | None = None,
-            background: BackgroundTask | None = None,
+        data: dict | list | str | None = None,
+        msg: str = None,
+        code: int = None,
+        status: Status = Status.SUCCESS,
+        is_encode_data: bool = False,
+        status_code: int = 200,
+        headers: Mapping[str, str] | None = None,
+        media_type: str | None = None,
+        background: BackgroundTask | None = None,
     ) -> JSONResponse:
         content = {
             "msg": msg or status.msg,
@@ -42,16 +42,16 @@ class Responses:
 
     @staticmethod
     def failure(
-            msg: str = None,
-            code: int = None,
-            error: str | Exception | None = None,
-            data: dict | list | str | None = None,
-            status: Status = Status.FAILURE,
-            is_encode_data: bool = False,
-            status_code: int = 200,
-            headers: Mapping[str, str] | None = None,
-            media_type: str | None = None,
-            background: BackgroundTask | None = None,
+        msg: str = None,
+        code: int = None,
+        error: str | Exception | None = None,
+        data: dict | list | str | None = None,
+        status: Status = Status.FAILURE,
+        is_encode_data: bool = False,
+        status_code: int = 200,
+        headers: Mapping[str, str] | None = None,
+        media_type: str | None = None,
+        background: BackgroundTask | None = None,
     ) -> JSONResponse:
         content = {
             "msg": msg or status.msg,
@@ -71,7 +71,7 @@ class Responses:
 
     @staticmethod
     def encode_data(data: Any) -> Any:
-        if data is None or isinstance(data, (str, int, float, bool)):
+        if isinstance(data, (str, int, float, bool, type(None))):
             return data
         if isinstance(data, (dict, list)):
             try:
@@ -83,11 +83,11 @@ class Responses:
 
     @staticmethod
     def stream(
-            content: ContentStream,
-            status_code: int = 200,
-            headers: Mapping[str, str] | None = None,
-            media_type: str | None = None,
-            background: BackgroundTask | None = None,
+        content: ContentStream,
+        status_code: int = 200,
+        headers: Mapping[str, str] | None = None,
+        media_type: str | None = None,
+        background: BackgroundTask | None = None,
     ) -> StreamingResponse:
         return StreamingResponse(
             content=content,
@@ -99,37 +99,10 @@ class Responses:
 
 
 def response_docs(
-        model=None,  # 模型(BaseModel): 自动从模型获取response_fields
-        data: dict | str = None,  # 数据(dict/str): 直接给定字段与类型/类型
-        is_listwrap: bool = False,
-        listwrap_key: str = None,
-        listwrap_key_extra: dict = None,
-        docs_extra: dict = None,
+    data: dict = None,  # 数据(dict): key-字段，value-类型
+    docs_extra: dict = None,
 ):
     """响应文档"""
-
-    def _data_from_model(model_, default: str = "N/A") -> dict:
-        """数据模板"""
-        data_ = {}
-        if hasattr(model_, "response_fields"):
-            for field_name in model_.response_fields() or []:
-                data_[field_name] = default
-        return data_
-
-    final_data = {}
-    if model:
-        final_data = _data_from_model(model)
-    if data:
-        if isinstance(data, dict):
-            final_data.update(data)
-        else:
-            final_data = data
-    if is_listwrap:
-        final_data = [final_data] if not isinstance(final_data, list) else final_data
-        if listwrap_key:
-            final_data = {listwrap_key: final_data}
-            if listwrap_key_extra:
-                final_data.update(listwrap_key_extra)
 
     def _format_value(value):
         if isinstance(value, str):
@@ -144,7 +117,7 @@ def response_docs(
         else:
             return str(value)
 
-    format_data = _format_value(final_data)
+    format_data = _format_value(data) if data else "object | array | ..."
 
     docs = {
         200: {
@@ -154,7 +127,7 @@ def response_docs(
                     "example": {
                         "msg": "string",
                         "code": "integer",
-                        "data": format_data or "object | array | ...",
+                        "data": format_data,
                         "request_id": "string",
                     }
                 }

@@ -7,9 +7,9 @@ from app.initializer.context import request_id_var
 
 
 def init_logger(
-        level: str,
-        serialize: bool = False,
-        outdir: str = None,
+    level: str,
+    serialize: bool = False,
+    outdir: str = None,
 ) -> Logger:
     enable_console, enable_file = True, True
     if os.getenv("app_env") == "prod":
