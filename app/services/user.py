@@ -4,7 +4,7 @@ from app.initializer import g
 from app.models.user import User
 from app.utils import jwt_util
 
-_ACCESS_TOKEN_EXP_SECONDS = 30 * 60
+_ACCESS_TOKEN_EXP_SECONDS = 2 * 60 * 60
 _REFRESH_TOKEN_EXP_SECONDS = 30 * 24 * 60 * 60
 
 
@@ -16,7 +16,7 @@ class UserSvc:
         if req.name:
             where.append(User.name.contains(req.name))
         async with g.db_async_session() as session:
-            items = await User.fetch_all(
+            result = await User.fetch_all(
                 session=session,
                 columns=(
                     "id",
@@ -36,7 +36,7 @@ class UserSvc:
                 converters={"id": str},
             )
             total = await User.count(session=session, where=where)
-            return {"items": items, "total": total}
+            return {"items": result, "total": total}
 
     @staticmethod
     async def create_user(req):
@@ -58,12 +58,12 @@ class UserSvc:
             if not result:
                 raise CustomException(status=Status.RECORD_EXISTS_ERROR)
             await session.commit()
-            return str(result.data["id"])
+            return {"id": str(result.data["id"])}
 
     @staticmethod
     async def get_user(user_id: str):
         async with g.db_async_session() as session:
-            data = await User.fetch_one(
+            result = await User.fetch_one(
                 session=session,
                 where={"id": int(user_id)},
                 columns=(
@@ -79,9 +79,9 @@ class UserSvc:
                 ),
                 converters={"id": str},
             )
-            if not data:
+            if not result:
                 raise CustomException(status=Status.RECORD_NOT_EXIST_ERROR)
-            return data
+            return result
 
     @staticmethod
     async def delete_user(user_id):
@@ -93,7 +93,7 @@ class UserSvc:
             if not result:
                 raise CustomException(status=Status.RECORD_NOT_EXIST_ERROR)
             await session.commit()
-            return user_id
+            return {"id": user_id}
 
     @staticmethod
     async def update_user(req, user_id: str):
@@ -106,12 +106,12 @@ class UserSvc:
             if not result:
                 raise CustomException(status=Status.RECORD_NOT_EXIST_ERROR)
             await session.commit()
-            return user_id
+            return {"id": user_id}
 
     @staticmethod
     async def login_user(req):
         async with g.db_async_session() as session:
-            data = await User.fetch_one(
+            result = await User.fetch_one(
                 session=session,
                 where={"phone": req.phone},
                 columns=(
@@ -126,24 +126,24 @@ class UserSvc:
                 ),
                 converters={"id": str},
             )
-            if not data:
+            if not result:
                 raise CustomException(status=Status.USER_OR_PASSWORD_ERROR)
-            if data.get("status", 1) != 1:
+            if result.get("status", 1) != 1:
                 raise CustomException(status=Status.USER_ABNORMAL_ERROR)
-            stored_password = data.pop("password")
+            stored_password = result.pop("password")
 
         if not jwt_util.verify_password(req.password, stored_password):
             raise CustomException(status=Status.USER_OR_PASSWORD_ERROR)
 
         new_jwt_key = jwt_util.gen_jwt_key(jwt_key=g.config.jwt_key)
         access_token = jwt_util.gen_jwt(
-            payload=data,
+            payload=result,
             jwt_key=new_jwt_key,
             token_type="access",
             exp_seconds=_ACCESS_TOKEN_EXP_SECONDS,
         )
         refresh_token = jwt_util.gen_jwt(
-            payload={"id": data.get("id")},
+            payload={"id": result.get("id")},
             jwt_key=new_jwt_key,
             token_type="refresh",
             exp_seconds=_REFRESH_TOKEN_EXP_SECONDS,
@@ -160,7 +160,7 @@ class UserSvc:
             "access_token": access_token,
             "token_type": "Bearer",
             "expires_in": _ACCESS_TOKEN_EXP_SECONDS,
-            "user_info": data,
+            "user_info": result,
             "refresh_token": refresh_token,
             "refresh_expires_in": _REFRESH_TOKEN_EXP_SECONDS,
         }
@@ -182,7 +182,7 @@ class UserSvc:
     @staticmethod
     async def refresh_token_user(user_id: str):
         async with g.db_async_session() as session:
-            data = await User.fetch_one(
+            result = await User.fetch_one(
                 session=session,
                 where={"id": int(user_id)},
                 columns=(
@@ -196,20 +196,20 @@ class UserSvc:
                 ),
                 converters={"id": str},
             )
-            if not data:
+            if not result:
                 raise CustomException(status=Status.RECORD_NOT_EXIST_ERROR)
-            if data.get("status", 1) != 1:
+            if result.get("status", 1) != 1:
                 raise CustomException(status=Status.USER_ABNORMAL_ERROR)
 
         new_jwt_key = jwt_util.gen_jwt_key(jwt_key=g.config.jwt_key)
         access_token = jwt_util.gen_jwt(
-            payload=data,
+            payload=result,
             jwt_key=new_jwt_key,
             token_type="access",
             exp_seconds=_ACCESS_TOKEN_EXP_SECONDS,
         )
         refresh_token = jwt_util.gen_jwt(
-            payload={"id": data.get("id")},
+            payload={"id": result.get("id")},
             jwt_key=new_jwt_key,
             token_type="refresh",
             exp_seconds=_REFRESH_TOKEN_EXP_SECONDS,

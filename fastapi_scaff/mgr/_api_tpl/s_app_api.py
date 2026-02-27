@@ -55,8 +55,8 @@ async def create_tpl(
     req: TplCreate,
     current_user: JWTUser = Depends(get_current_user),
 ):
-    created_id = await tpl_svc.create_tpl(req)
-    return Responses.success(data={"id": created_id})
+    data = await tpl_svc.create_tpl(req)
+    return Responses.success(data=data)
 
 
 @router.get(
@@ -88,8 +88,8 @@ async def delete_tpl(
     tpl_id: str,
     current_user: JWTUser = Depends(get_current_user),
 ):
-    deleted_id = await tpl_svc.delete_tpl(tpl_id)
-    return Responses.success(data={"id": deleted_id})
+    data = await tpl_svc.delete_tpl(tpl_id)
+    return Responses.success(data=data)
 
 
 @router.put(
@@ -104,5 +104,5 @@ async def update_tpl(
     req: TplUpdate,
     current_user: JWTUser = Depends(get_current_user),
 ):
-    updated_id = await tpl_svc.update_tpl(req, tpl_id=tpl_id)
-    return Responses.success(data={"id": updated_id})
+    data = await tpl_svc.update_tpl(req, tpl_id=tpl_id)
+    return Responses.success(data=data)

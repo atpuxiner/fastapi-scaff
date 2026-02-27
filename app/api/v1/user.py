@@ -49,7 +49,7 @@ async def list_user(
     current_user: JWTUser = Depends(get_current_user),
 ):
     if current_user.role != "admin":
-        return Responses.failure(status=Status.USER_NOT_ADMIN_ERROR)
+        return Responses.failure(status=Status.USER_PERMISSION_ERROR)
     req = UserList(
         page=page,
         size=size,
@@ -69,8 +69,8 @@ async def list_user(
 async def create_user(
     req: UserCreate,
 ):
-    created_id = await user_svc.create_user(req)
-    return Responses.success(data={"id": created_id})
+    data = await user_svc.create_user(req)
+    return Responses.success(data=data)
 
 
 @router.get(
@@ -108,9 +108,9 @@ async def delete_user(
     current_user: JWTUser = Depends(get_current_user),
 ):
     if current_user.role != "admin":
-        return Responses.failure(status=Status.USER_NOT_ADMIN_ERROR)
-    deleted_id = await user_svc.delete_user(user_id)
-    return Responses.success(data={"id": deleted_id})
+        return Responses.failure(status=Status.USER_PERMISSION_ERROR)
+    data = await user_svc.delete_user(user_id)
+    return Responses.success(data=data)
 
 
 @router.put(
@@ -125,8 +125,8 @@ async def update_user(
     req: UserUpdate,
     current_user: JWTUser = Depends(get_current_user),
 ):
-    updated_id = await user_svc.update_user(req, user_id=user_id)
-    return Responses.success(data={"id": updated_id})
+    data = await user_svc.update_user(req, user_id=user_id)
+    return Responses.success(data=data)
 
 
 @router.post(

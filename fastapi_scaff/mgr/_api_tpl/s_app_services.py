@@ -14,7 +14,7 @@ class TplSvc:
         if req.name:
             where.append(Tpl.name.contains(req.name))
         async with g.db_async_session() as session:
-            items = await Tpl.fetch_all(
+            result = await Tpl.fetch_all(
                 session=session,
                 columns=(
                     "id",
@@ -29,7 +29,7 @@ class TplSvc:
                 converters={"id": str},
             )
             total = await Tpl.count(session=session, where=where)
-            return {"items": items, "total": total}
+            return {"items": result, "total": total}
 
     @staticmethod
     async def create_tpl(req):
@@ -45,12 +45,12 @@ class TplSvc:
             if not result:
                 raise CustomException(status=Status.RECORD_EXISTS_ERROR)
             await session.commit()
-            return str(result.data["id"])
+            return {"id": str(result.data["id"])}
 
     @staticmethod
     async def get_tpl(tpl_id):
         async with g.db_async_session() as session:
-            data = await Tpl.fetch_one(
+            result = await Tpl.fetch_one(
                 session=session,
                 where={"id": int(tpl_id)},
                 columns=(
@@ -61,9 +61,9 @@ class TplSvc:
                 ),
                 converters={"id": str},
             )
-            if not data:
+            if not result:
                 raise CustomException(status=Status.RECORD_NOT_EXIST_ERROR)
-            return data
+            return result
 
     @staticmethod
     async def delete_tpl(tpl_id):
@@ -75,7 +75,7 @@ class TplSvc:
             if not result:
                 raise CustomException(status=Status.RECORD_NOT_EXIST_ERROR)
             await session.commit()
-            return tpl_id
+            return {"id": tpl_id}
 
     @staticmethod
     async def update_tpl(req, tpl_id: str):
@@ -91,4 +91,4 @@ class TplSvc:
                 await session.commit()
             except IntegrityError:
                 raise CustomException(status=Status.RECORD_EXISTS_ERROR)
-            return tpl_id
+            return {"id": tpl_id}

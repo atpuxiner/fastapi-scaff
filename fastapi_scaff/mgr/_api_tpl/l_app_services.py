@@ -11,5 +11,6 @@ class TplSvc:
     @staticmethod
     async def list_tpl(req):
         # TODO: 业务逻辑
-        items, total = [], 0
-        return {"items": items, "total": total}
+        result = []
+        total = 0
+        return {"items": result, "total": total}
