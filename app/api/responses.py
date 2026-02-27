@@ -99,7 +99,7 @@ class Responses:
 
 
 def response_docs(
-    data: dict = None,  # 数据(dict): key-字段，value-类型
+    data: dict = None,  # data文档（key=字段名，value=字段类型或示例）
     docs_extra: dict = None,
 ):
     """响应文档"""

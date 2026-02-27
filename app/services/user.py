@@ -12,6 +12,9 @@ class UserSvc:
 
     @staticmethod
     async def list_user(req):
+        where = []
+        if req.name:
+            where.append(User.name.contains(req.name))
         async with g.db_async_session() as session:
             items = await User.fetch_all(
                 session=session,
@@ -26,12 +29,13 @@ class UserSvc:
                     "created_at",
                     "updated_at",
                 ),
+                where=where,
                 order_by="-created_at",
                 offset=(req.page - 1) * req.size,
                 limit=req.size,
                 converters={"id": str},
             )
-            total = await User.count(session=session)
+            total = await User.count(session=session, where=where)
             return {"items": items, "total": total}
 
     @staticmethod

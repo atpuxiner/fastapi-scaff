@@ -28,6 +28,7 @@ class User(DeclBase):
 class UserList(BaseModel):
     page: int = Field(1, ge=1)
     size: int = Field(10, ge=1, le=200)
+    name: str | None = Field(None, min_length=1, max_length=50)
 
 
 class UserCreate(BaseModel):
@@ -40,8 +41,8 @@ class UserCreate(BaseModel):
 
     @field_validator("password")
     def validate_password(cls, v):
-        if not re.match(r"^(?=.*[A-Za-z])(?=.*\d)\S{6,20}$", v):
-            raise ValueError("密码必须包含至少一个字母和一个数字，长度为6-20位的非空白字符组合")
+        if not re.match(r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=\[\]{}|;:,.<>?~]{8,20}$", v):
+            raise ValueError("密码必须包含至少一个字母和一个数字，长度为8-20位，可包含英文、数字和特殊字符")
         return v
 
     @field_validator("name")

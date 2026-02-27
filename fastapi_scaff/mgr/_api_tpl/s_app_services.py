@@ -10,6 +10,9 @@ class TplSvc:
 
     @staticmethod
     async def list_tpl(req):
+        where = []
+        if req.name:
+            where.append(Tpl.name.contains(req.name))
         async with g.db_async_session() as session:
             items = await Tpl.fetch_all(
                 session=session,
@@ -19,12 +22,13 @@ class TplSvc:
                     "created_at",
                     "updated_at",
                 ),
+                where=where,
                 order_by="-created_at",
                 offset=(req.page - 1) * req.size,
                 limit=req.size,
                 converters={"id": str},
             )
-            total = await Tpl.count(session=session)
+            total = await Tpl.count(session=session, where=where)
             return {"items": items, "total": total}
 
     @staticmethod

@@ -45,6 +45,7 @@ user_svc = UserSvc()
 async def list_user(
     page: int = 1,
     size: int = 10,
+    name: str | None = None,
     current_user: JWTUser = Depends(get_current_user),
 ):
     if current_user.role != "admin":
@@ -52,6 +53,7 @@ async def list_user(
     req = UserList(
         page=page,
         size=size,
+        name=name,
     )
     data = await user_svc.list_user(req)
     return Responses.success(data=data)

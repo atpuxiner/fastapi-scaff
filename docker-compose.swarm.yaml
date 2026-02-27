@@ -34,11 +34,11 @@ services:
         window: 180s
       resources:
         limits:
-          memory: 1G
-          cpus: '1.0'
+          memory: 2G
+          cpus: '2.0'
         reservations:
-          memory: 256M
-          cpus: '0.25'
+          memory: 512M
+          cpus: '0.5'
     networks:
       app-network:
         aliases:
@@ -69,11 +69,11 @@ services:
         window: 180s
       resources:
         limits:
-          memory: 256M
-          cpus: '0.3'
+          memory: 1G
+          cpus: '1.0'
         reservations:
-          memory: 64M
-          cpus: '0.1'
+          memory: 256M
+          cpus: '0.5'
     networks:
       - app-network
     depends_on:  # 据说 swarm 模式下无效
