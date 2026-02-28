@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from app.api.responses import Responses, response_docs
 from app.models.tpl import (
@@ -27,13 +27,8 @@ tpl_svc = TplSvc()
     }),
 )
 async def list_tpl(
-    page: int = 1,
-    size: int = 10,
+    req: TplList = Query(...),
     # current_user: JWTUser = Depends(get_current_user),  # TODO: 认证
 ):
-    req = TplList(
-        page=page,
-        size=size,
-    )
     data = await tpl_svc.list_tpl(req)
     return Responses.success(data=data)

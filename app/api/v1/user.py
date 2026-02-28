@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from app.api.dependencies import JWTUser, get_current_user, get_current_user_from_refresh_token
 from app.api.responses import Responses, response_docs
@@ -43,18 +43,11 @@ user_svc = UserSvc()
     }),
 )
 async def list_user(
-    page: int = 1,
-    size: int = 10,
-    name: str | None = None,
+    req: UserList = Query(...),
     current_user: JWTUser = Depends(get_current_user),
 ):
     if current_user.role != "admin":
         return Responses.failure(status=Status.USER_PERMISSION_ERROR)
-    req = UserList(
-        page=page,
-        size=size,
-        name=name,
-    )
     data = await user_svc.list_user(req)
     return Responses.success(data=data)
 

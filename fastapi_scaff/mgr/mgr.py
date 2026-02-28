@@ -42,7 +42,7 @@ def gen_project_json():
         "_tiny",
         "_single"
     ]:
-        for file in Path(m).glob("*"):
+        for file in project_dir.joinpath(f"{pkg_mod_name}/mgr/{m}").glob("*"):
             if not file.is_file():
                 continue
             with open(file, "r", encoding="utf-8") as f:

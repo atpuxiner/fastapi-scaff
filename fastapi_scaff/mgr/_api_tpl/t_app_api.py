@@ -1,10 +1,16 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
+from pydantic import BaseModel, Field
 
 from app.api.responses import Responses, response_docs
 
 # -------------------- 请根据自身需求修改 --------------------
 
 router = APIRouter()
+
+
+class TplList(BaseModel):
+    page: int = Field(1, ge=1)
+    size: int = Field(10, ge=1, le=200)
 
 
 @router.get(
@@ -18,8 +24,7 @@ router = APIRouter()
     }),
 )
 async def list_tpl(
-    page: int = 1,
-    size: int = 10,
+    req: TplList = Query(...),
     # current_user: JWTUser = Depends(get_current_user),  # TODO: 认证
 ):
     # TODO: 业务逻辑
