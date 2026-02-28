@@ -13,13 +13,13 @@ from app.models.user import (
 from app.services.user import UserSvc
 from app.utils.cookie_util import set_refresh_token_cookie, clear_refresh_token_cookie
 
+# 注意：`user`仅为模块示例，请根据自身需求修改
+# 注意：`user`仅为模块示例，请根据自身需求修改
+# 注意：`user`仅为模块示例，请根据自身需求修改
+
 router = APIRouter()
 _active = True  # 激活状态（默认激活）
 _tag = "user"  # 标签（默认模块名）
-
-# 注意：`user`仅为模块示例，请根据自身需求修改
-# 注意：`user`仅为模块示例，请根据自身需求修改
-# 注意：`user`仅为模块示例，请根据自身需求修改
 
 user_svc = UserSvc()
 
