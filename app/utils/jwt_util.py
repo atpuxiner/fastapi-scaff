@@ -10,38 +10,38 @@ _JWT_ALGORITHM = "HS256"
 
 def gen_jwt(
     payload: dict,
-    jwt_key: str,
-    token_type: Literal["access", "refresh"] = "access",
+    key: str,
+    typ: Literal["access", "refresh"] = "access",
     exp_seconds: int = 30 * 60,
     algorithm: str = _JWT_ALGORITHM,
 ) -> str:
     final_payload = payload.copy()
     final_payload.update({
-        "type": token_type,
+        "typ": typ,
         "exp": datetime.now(timezone.utc) + timedelta(seconds=exp_seconds),
     })
-    encoded_jwt = jwt.encode(payload=final_payload, key=jwt_key, algorithm=algorithm)
+    encoded_jwt = jwt.encode(payload=final_payload, key=key, algorithm=algorithm)
     return encoded_jwt
 
 
 def verify_jwt(
     token: str,
-    jwt_key: str = None,
-    token_type: str = None,
+    key: str = None,
+    typ: str = None,
     algorithms: tuple = (_JWT_ALGORITHM,),
 ) -> dict:
-    if not jwt_key:
+    if not key:
         payload = jwt.decode(jwt=token, options={"verify_signature": False})
     else:
-        payload = jwt.decode(jwt=token, key=jwt_key, algorithms=algorithms)
-    if token_type is not None and payload.get("type") != token_type:
-        raise ValueError(f"Invalid token type: expected {token_type}, got {payload.get('type')}")
+        payload = jwt.decode(jwt=token, key=key, algorithms=algorithms)
+    if typ is not None and payload.get("typ") != typ:
+        raise ValueError(f"Invalid token type: expected {typ}, got {payload.get('typ')}")
     return payload
 
 
-def gen_jwt_key(nbytes: int = 32, jwt_key: str = None):
-    if jwt_key:
-        return jwt_key
+def gen_jwt_key(nbytes: int = 32, key: str = None):
+    if key:
+        return key
     return secrets.token_hex(nbytes)
 
 
@@ -62,11 +62,13 @@ if __name__ == '__main__':
     jtoken = gen_jwt(
         payload={
             "id": "1",
-            "phone": "18810000001",
+            "phone": "18900189000",
+            "status": 1,
+            "role": "admin",
             "name": "admin",
             "age": 18,
             "gender": 1
         },
-        jwt_key=jkey
+        key=jkey
     )
     print(jtoken)

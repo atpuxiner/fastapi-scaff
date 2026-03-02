@@ -44,7 +44,7 @@ class JWTAuthorizationCredentials(HTTPAuthorizationCredentials):
     jwt_user: JWTUser
 
 
-async def verify_jwt_token(token: str, token_type: str) -> JWTUser:
+async def verify_jwt_token(token: str, typ: str) -> JWTUser:
     try:
         # 获取
         payload = verify_jwt(token=token)
@@ -54,7 +54,7 @@ async def verify_jwt_token(token: str, token_type: str) -> JWTUser:
         if not user_jwt_key:
             raise CustomException(status=Status.UNAUTHORIZED_ERROR)
         # 验证
-        verify_jwt(token=token, jwt_key=user_jwt_key, token_type=token_type)
+        verify_jwt(token=token, key=user_jwt_key, typ=typ)
     except Exception as e:
         raise CustomException(status=Status.UNAUTHORIZED_ERROR, error=e)
     return JWTUser(**payload)
@@ -80,7 +80,7 @@ class JWTBearer(HTTPBearer):
                     error="Invalid authentication credentials",
                 )
             return None
-        jwt_user = await verify_jwt_token(credentials, token_type="access")
+        jwt_user = await verify_jwt_token(credentials, typ="access")
         return JWTAuthorizationCredentials(scheme=scheme, credentials=credentials, jwt_user=jwt_user)
 
 
@@ -100,7 +100,7 @@ class JWTCookie:
                     error="Refresh token is missing or empty",
                 )
             return None
-        return await verify_jwt_token(token, token_type="refresh")
+        return await verify_jwt_token(token, typ="refresh")
 
 
 async def get_current_user(

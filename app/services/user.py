@@ -50,7 +50,7 @@ class UserSvc:
                 values={
                     "phone": req.phone,
                     "password": jwt_util.hash_password(req.password),
-                    "jwt_key": jwt_util.gen_jwt_key(jwt_key=g.config.jwt_key),
+                    "jwt_key": jwt_util.gen_jwt_key(key=g.config.jwt_key),
                     "role": req.role,
                     "name": req.name,
                     "age": req.age,
@@ -139,17 +139,17 @@ class UserSvc:
         if not jwt_util.verify_password(req.password, stored_password):
             raise CustomException(status=Status.USER_OR_PASSWORD_ERROR)
 
-        new_jwt_key = jwt_util.gen_jwt_key(jwt_key=g.config.jwt_key)
+        new_jwt_key = jwt_util.gen_jwt_key(key=g.config.jwt_key)
         access_token = jwt_util.gen_jwt(
             payload=result,
-            jwt_key=new_jwt_key,
-            token_type="access",
+            key=new_jwt_key,
+            typ="access",
             exp_seconds=_ACCESS_TOKEN_EXP_SECONDS,
         )
         refresh_token = jwt_util.gen_jwt(
             payload={"id": result.get("id")},
-            jwt_key=new_jwt_key,
-            token_type="refresh",
+            key=new_jwt_key,
+            typ="refresh",
             exp_seconds=_REFRESH_TOKEN_EXP_SECONDS,
         )
         async with g.db_async_session() as session:
@@ -171,7 +171,7 @@ class UserSvc:
 
     @staticmethod
     async def logout_user(user_id: str):
-        new_jwt_key = jwt_util.gen_jwt_key(jwt_key=g.config.jwt_key)
+        new_jwt_key = jwt_util.gen_jwt_key(key=g.config.jwt_key)
         async with g.db_async_session() as session:
             result = await User.update(
                 session=session,
@@ -205,17 +205,17 @@ class UserSvc:
             if result.get("status", 1) != 1:
                 raise CustomException(status=Status.USER_ABNORMAL_ERROR)
 
-        new_jwt_key = jwt_util.gen_jwt_key(jwt_key=g.config.jwt_key)
+        new_jwt_key = jwt_util.gen_jwt_key(key=g.config.jwt_key)
         access_token = jwt_util.gen_jwt(
             payload=result,
-            jwt_key=new_jwt_key,
-            token_type="access",
+            key=new_jwt_key,
+            typ="access",
             exp_seconds=_ACCESS_TOKEN_EXP_SECONDS,
         )
         refresh_token = jwt_util.gen_jwt(
             payload={"id": result.get("id")},
-            jwt_key=new_jwt_key,
-            token_type="refresh",
+            key=new_jwt_key,
+            typ="refresh",
             exp_seconds=_REFRESH_TOKEN_EXP_SECONDS,
         )
         async with g.db_async_session() as session:
