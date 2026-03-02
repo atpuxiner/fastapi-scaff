@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from pydantic import BaseModel, Field
 
 
@@ -14,3 +16,8 @@ class TplSvc:
         result = []
         total = 0
         return {"items": result, "total": total}
+
+
+@lru_cache(maxsize=128)
+def get_tpl_svc() -> TplSvc:
+    return TplSvc()

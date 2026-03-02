@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from app.api.exceptions import CustomException
 from app.api.status import Status
 from app.initializer import g
@@ -229,3 +231,8 @@ class UserSvc:
             "refresh_token": refresh_token,
             "refresh_expires_in": _REFRESH_TOKEN_EXP_SECONDS,
         }
+
+
+@lru_cache(maxsize=128)
+def get_user_svc() -> UserSvc:
+    return UserSvc()

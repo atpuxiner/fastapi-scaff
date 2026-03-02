@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from sqlalchemy.exc import IntegrityError
 
 from app.api.exceptions import CustomException
@@ -92,3 +94,8 @@ class TplSvc:
             except IntegrityError:
                 raise CustomException(status=Status.RECORD_EXISTS_ERROR)
             return {"id": tpl_id}
+
+
+@lru_cache(maxsize=128)
+def get_tpl_svc() -> TplSvc:
+    return TplSvc()

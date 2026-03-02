@@ -7,13 +7,11 @@ from app.models.tpl import (
     TplCreate,
     TplUpdate,
 )
-from app.services.tpl import TplSvc
+from app.services.tpl import TplSvc, get_tpl_svc
 
 # -------------------- 请根据自身需求修改 --------------------
 
 router = APIRouter()
-
-tpl_svc = TplSvc()
 
 
 @router.get(
@@ -31,6 +29,7 @@ tpl_svc = TplSvc()
 )
 async def list_tpl(
     req: TplList = Query(...),
+    tpl_svc: TplSvc = Depends(get_tpl_svc),
     current_user: JWTUser = Depends(get_current_user),
 ):
     data = await tpl_svc.list_tpl(req)
@@ -46,6 +45,7 @@ async def list_tpl(
 )
 async def create_tpl(
     req: TplCreate,
+    tpl_svc: TplSvc = Depends(get_tpl_svc),
     current_user: JWTUser = Depends(get_current_user),
 ):
     data = await tpl_svc.create_tpl(req)
@@ -64,6 +64,7 @@ async def create_tpl(
 )
 async def get_tpl(
     tpl_id: str,
+    tpl_svc: TplSvc = Depends(get_tpl_svc),
     current_user: JWTUser = Depends(get_current_user),  # 认证
 ):
     data = await tpl_svc.get_tpl(tpl_id)
@@ -79,6 +80,7 @@ async def get_tpl(
 )
 async def delete_tpl(
     tpl_id: str,
+    tpl_svc: TplSvc = Depends(get_tpl_svc),
     current_user: JWTUser = Depends(get_current_user),
 ):
     data = await tpl_svc.delete_tpl(tpl_id)
@@ -95,6 +97,7 @@ async def delete_tpl(
 async def update_tpl(
     tpl_id: str,
     req: TplUpdate,
+    tpl_svc: TplSvc = Depends(get_tpl_svc),
     current_user: JWTUser = Depends(get_current_user),
 ):
     data = await tpl_svc.update_tpl(req, tpl_id=tpl_id)

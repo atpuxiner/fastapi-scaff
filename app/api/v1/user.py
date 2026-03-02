@@ -10,7 +10,7 @@ from app.models.user import (
     UserUpdate,
     UserLogin,
 )
-from app.services.user import UserSvc
+from app.services.user import UserSvc, get_user_svc
 from app.utils.cookie_util import set_refresh_token_cookie, clear_refresh_token_cookie
 
 # 注意：`user`仅为模块示例，请根据自身需求修改
@@ -20,8 +20,6 @@ from app.utils.cookie_util import set_refresh_token_cookie, clear_refresh_token_
 router = APIRouter()
 _active = True  # 激活状态（默认激活）
 _tag = "user"  # 标签（默认模块名）
-
-user_svc = UserSvc()
 
 
 @router.get(
@@ -44,7 +42,8 @@ user_svc = UserSvc()
 )
 async def list_user(
     req: UserList = Query(...),
-    current_user: JWTUser = Depends(get_current_user),
+    user_svc: UserSvc = Depends(get_user_svc),
+    current_user: JWTUser = Depends(get_current_user),  # 认证
 ):
     if current_user.role != "admin":
         return Responses.failure(status=Status.USER_PERMISSION_ERROR)
@@ -61,6 +60,7 @@ async def list_user(
 )
 async def create_user(
     req: UserCreate,
+    user_svc: UserSvc = Depends(get_user_svc),
 ):
     data = await user_svc.create_user(req)
     return Responses.success(data=data)
@@ -83,7 +83,8 @@ async def create_user(
 )
 async def get_user(
     user_id: str,
-    current_user: JWTUser = Depends(get_current_user),  # 认证
+    user_svc: UserSvc = Depends(get_user_svc),
+    current_user: JWTUser = Depends(get_current_user),
 ):
     data = await user_svc.get_user(user_id)
     return Responses.success(data=data)
@@ -98,6 +99,7 @@ async def get_user(
 )
 async def delete_user(
     user_id: str,
+    user_svc: UserSvc = Depends(get_user_svc),
     current_user: JWTUser = Depends(get_current_user),
 ):
     if current_user.role != "admin":
@@ -116,6 +118,7 @@ async def delete_user(
 async def update_user(
     user_id: str,
     req: UserUpdate,
+    user_svc: UserSvc = Depends(get_user_svc),
     current_user: JWTUser = Depends(get_current_user),
 ):
     data = await user_svc.update_user(req, user_id=user_id)
@@ -142,6 +145,7 @@ async def update_user(
 )
 async def login_user(
     req: UserLogin,
+    user_svc: UserSvc = Depends(get_user_svc),
 ):
     data = await user_svc.login_user(req)
     refresh_token = data.pop("refresh_token")
@@ -164,6 +168,7 @@ async def login_user(
     }),
 )
 async def logout_user(
+    user_svc: UserSvc = Depends(get_user_svc),
     current_user: JWTUser = Depends(get_current_user),
 ):
     data = await user_svc.logout_user(current_user.id)
@@ -182,6 +187,7 @@ async def logout_user(
     }),
 )
 async def refresh_token_user(
+    user_svc: UserSvc = Depends(get_user_svc),
     current_user: JWTUser = Depends(get_current_user_from_refresh_token),
 ):
     data = await user_svc.refresh_token_user(current_user.id)
