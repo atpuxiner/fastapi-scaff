@@ -31,6 +31,7 @@ class User(DeclBase):
 class UserList(BaseModel):
     page: int = Field(1, ge=1)
     size: int = Field(10, ge=1, le=200)
+    phone: str | None = Field(None, min_length=1, max_length=11)
     name: str | None = Field(None, min_length=1, max_length=50)
 
 

@@ -15,6 +15,8 @@ class UserSvc:
     @staticmethod
     async def list_user(req):
         where = []
+        if req.phone:
+            where.append(User.phone.contains(req.phone))
         if req.name:
             where.append(User.name.contains(req.name))
         async with g.db_async_session() as session:
