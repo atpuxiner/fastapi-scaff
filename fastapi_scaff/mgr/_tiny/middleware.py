@@ -1,6 +1,7 @@
 """
 中间件
 """
+
 import uuid
 
 from fastapi import FastAPI
@@ -36,11 +37,11 @@ class CorsMiddleware(CORSMiddleware):
     def __init__(self, app, **kwargs):
         super().__init__(
             app,
-            allow_credentials=g.config.app_allow_credentials,
-            allow_origins=g.config.app_allow_origins,
-            allow_methods=g.config.app_allow_methods,
-            allow_headers=g.config.app_allow_headers,
-            **kwargs
+            allow_credentials=g.config.APP_ALLOW_CREDENTIALS,
+            allow_origins=g.config.APP_ALLOW_ORIGINS,
+            allow_methods=g.config.APP_ALLOW_METHODS,
+            allow_headers=g.config.APP_ALLOW_HEADERS,
+            **kwargs,
         )
 
 
@@ -50,7 +51,8 @@ class HttpMiddleware(BaseHTTPMiddleware):
     }
 
     async def dispatch(
-        self, request: Request,
+        self,
+        request: Request,
         call_next: RequestResponseEndpoint,
     ) -> Response:
         request_id = self._get_or_create_request_id(request)
@@ -81,7 +83,9 @@ class HttpMiddleware(BaseHTTPMiddleware):
         exc: Exception,
         is_traceback: bool = True,
     ) -> JSONResponse:
-        lmsg = f'- "{request.method} {request.url.path}" {Status.INTERNAL_SERVER_ERROR.code} {type(exc).__name__}: {exc}'
+        lmsg = (
+            f'- "{request.method} {request.url.path}" {Status.INTERNAL_SERVER_ERROR.code} {type(exc).__name__}: {exc}'
+        )
         if is_traceback:
             logger.exception(lmsg)
         else:
@@ -93,7 +97,6 @@ class HttpMiddleware(BaseHTTPMiddleware):
 
 
 class ExceptionsHandler:
-
     @staticmethod
     async def custom_exception_handler(
         request: Request,
@@ -120,10 +123,12 @@ class ExceptionsHandler:
         is_traceback: bool = True,
     ) -> JSONResponse:
         if display_all:
-            msg = " & ".join([
-                f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"
-                for error in exc.errors()
-            ])
+            msg = " & ".join(
+                [
+                    f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"
+                    for error in exc.errors()
+                ]
+            )
         else:
             error = exc.errors()[0]
             msg = f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"

@@ -6,7 +6,9 @@
 @description
 @history
 """
+
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from loguru import logger
@@ -22,16 +24,16 @@ g.setup()
 openapi_url = "/openapi.json"
 docs_url = "/docs"
 redoc_url = "/redoc"
-if g.config.app_disable_docs is True:
+if g.config.APP_DISABLE_DOCS is True:
     openapi_url, docs_url, redoc_url = None, None, None
 
 
 @asynccontextmanager
 async def lifespan(xapp: FastAPI):
-    logger.info(f"Application env '{g.config.app_env}'")
-    logger.info(f"Application yaml '{g.config.yaml_path.name}'")
-    logger.info(f"Application title '{g.config.app_title}'")
-    logger.info(f"Application version '{g.config.app_version}'")
+    logger.info(f"Application env '{g.config.APP_ENV}'")
+    logger.info(f"Application yaml '{g.config.YAML_PATH.name}'")
+    logger.info(f"Application title '{g.config.APP_TITLE}'")
+    logger.info(f"Application version '{g.config.APP_VERSION}'")
     # #
     logger.info("Application server running")
     yield
@@ -39,11 +41,11 @@ async def lifespan(xapp: FastAPI):
 
 
 app = FastAPI(
-    title=g.config.app_title,
-    summary=g.config.app_summary,
-    description=g.config.app_description,
-    version=g.config.app_version,
-    debug=g.config.app_debug,
+    title=g.config.APP_TITLE,
+    summary=g.config.APP_SUMMARY,
+    description=g.config.APP_DESCRIPTION,
+    version=g.config.APP_VERSION,
+    debug=g.config.APP_DEBUG,
     openapi_url=openapi_url,
     docs_url=docs_url,
     redoc_url=redoc_url,

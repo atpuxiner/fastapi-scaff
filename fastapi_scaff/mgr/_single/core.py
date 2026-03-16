@@ -4,39 +4,41 @@ from pathlib import Path
 
 from toollib.utils import ConfModel, FrozenVar
 
-_APP_DIR = Path(__file__).absolute().parent
-_CONFIG_DIR = _APP_DIR.parent.joinpath("config")
+from app import APP_DIR
 
-dotenv_path = _CONFIG_DIR.joinpath(".env")
-if os.environ.setdefault("app_env", "dev") == "prod":  # 生产环境不加载.env（请根据自身需求修改）
-    dotenv_path = None
-yaml_path = _CONFIG_DIR.joinpath(f"app_{os.environ.get('app_env', 'dev')}.yaml")
+_CONFIG_DIR = APP_DIR.parent.joinpath("config")
+
+DOTENV_PATH = _CONFIG_DIR.joinpath(".env")
+if os.environ.setdefault("APP_ENV", "dev") == "prod":  # 生产环境不加载.env（请根据自身需求修改）
+    DOTENV_PATH = None
+YAML_PATH = _CONFIG_DIR.joinpath(f"app_{os.environ.get('APP_ENV', 'dev')}.yaml")
 
 
 class Config(ConfModel):
     """配置"""
-    app_dir: FrozenVar[Path] = _APP_DIR
+
+    APP_DIR: FrozenVar[Path] = APP_DIR
     # #
-    app_env: str = "dev"
-    yaml_path: Path = yaml_path
-    api_keys: list = []
+    APP_ENV: str = "dev"
+    YAML_PATH: Path = YAML_PATH
+    API_KEYS: list = []
     # #
-    app_title: str = "xApp"
-    app_summary: str = "xxApp"
-    app_description: str = "xxxApp"
-    app_version: str = "1.0.0"
-    app_debug: bool = True
-    app_log_serialize: bool = False
-    app_log_outdir: str = "./logs"
-    app_disable_docs: bool = False
-    app_allow_credentials: bool = True
-    app_allow_origins: list = ["*"]
-    app_allow_methods: list = ["*"]
-    app_allow_headers: list = ["*"]
+    APP_TITLE: str = "xApp"
+    APP_SUMMARY: str = "xxApp"
+    APP_DESCRIPTION: str = "xxxApp"
+    APP_VERSION: str = "1.0.0"
+    APP_DEBUG: bool = True
+    APP_LOG_SERIALIZE: bool = False
+    APP_LOG_OUTDIR: str = "./logs"
+    APP_DISABLE_DOCS: bool = False
+    APP_ALLOW_CREDENTIALS: bool = True
+    APP_ALLOW_ORIGINS: list = ["*"]
+    APP_ALLOW_METHODS: list = ["*"]
+    APP_ALLOW_HEADERS: list = ["*"]
 
 
 config = Config(
-    dotenv_path=dotenv_path,
-    yaml_path=yaml_path,
+    dotenv_path=DOTENV_PATH,
+    yaml_path=YAML_PATH,
 )
 request_id_var: ContextVar[str] = ContextVar("request_id", default="N/A")

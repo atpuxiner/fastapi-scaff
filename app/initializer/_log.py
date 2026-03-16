@@ -1,6 +1,6 @@
 import os
 
-from loguru._logger import Logger  # noqa
+from loguru._logger import Logger
 from toollib import logu
 
 from app.initializer.context import request_id_var
@@ -9,10 +9,10 @@ from app.initializer.context import request_id_var
 def init_logger(
     level: str,
     serialize: bool = False,
-    outdir: str = None,
+    outdir: str | None = None,
 ) -> Logger:
     enable_console, enable_file = True, True
-    if os.getenv("app_env") == "prod":
+    if os.getenv("APP_ENV") == "prod":
         enable_console, enable_file = False, True  # 按需调整
     _logger = logu.init_logger(
         level=level,

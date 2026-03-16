@@ -17,32 +17,31 @@ from app.core import config, request_id_var
 _EXPOSE_ERROR = True
 
 enable_console, enable_file = True, True
-if config.app_env == "prod":
+if config.APP_ENV == "prod":
     enable_console, enable_file = False, True  # 按需调整
 logger = init_logger(
-    __name__,
-    level="DEBUG" if config.app_debug else "INFO",
+    level="DEBUG" if config.APP_DEBUG else "INFO",
     request_id_var=request_id_var,
-    serialize=config.app_log_serialize,
+    serialize=config.APP_LOG_SERIALIZE,
     enable_console=enable_console,
     enable_file=enable_file,
-    outdir=config.app_log_outdir,
+    outdir=config.APP_LOG_OUTDIR,
 )
 # logger.add 可添加其他 handler
 # #
 openapi_url = "/openapi.json"
 docs_url = "/docs"
 redoc_url = "/redoc"
-if config.app_disable_docs is True:
+if config.APP_DISABLE_DOCS is True:
     openapi_url, docs_url, redoc_url = None, None, None
 
 
 @asynccontextmanager
 async def lifespan(xapp: FastAPI):
-    logger.info(f"Application env '{config.app_env}'")
-    logger.info(f"Application yaml '{config.yaml_path.name}'")
-    logger.info(f"Application title '{config.app_title}'")
-    logger.info(f"Application version '{config.app_version}'")
+    logger.info(f"Application env '{config.APP_ENV}'")
+    logger.info(f"Application yaml '{config.YAML_PATH.name}'")
+    logger.info(f"Application title '{config.APP_TITLE}'")
+    logger.info(f"Application version '{config.APP_VERSION}'")
     # #
     logger.info("Application server running")
     yield
@@ -53,11 +52,11 @@ class CorsMiddleware(CORSMiddleware):
     def __init__(self, xapp, **kwargs):
         super().__init__(
             xapp,
-            allow_credentials=config.app_allow_credentials,
-            allow_origins=config.app_allow_origins,
-            allow_methods=config.app_allow_methods,
-            allow_headers=config.app_allow_headers,
-            **kwargs
+            allow_credentials=config.APP_ALLOW_CREDENTIALS,
+            allow_origins=config.APP_ALLOW_ORIGINS,
+            allow_methods=config.APP_ALLOW_METHODS,
+            allow_headers=config.APP_ALLOW_HEADERS,
+            **kwargs,
         )
 
 
@@ -67,7 +66,8 @@ class HttpMiddleware(BaseHTTPMiddleware):
     }
 
     async def dispatch(
-        self, request: Request,
+        self,
+        request: Request,
         call_next: RequestResponseEndpoint,
     ) -> Response:
         request_id = self._get_or_create_request_id(request)
@@ -118,7 +118,6 @@ class HttpMiddleware(BaseHTTPMiddleware):
 
 
 class ExceptionsHandler:
-
     @staticmethod
     async def request_validation_handler(
         request: Request,
@@ -127,10 +126,12 @@ class ExceptionsHandler:
         is_traceback: bool = True,
     ) -> JSONResponse:
         if display_all:
-            msg = " & ".join([
-                f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"
-                for error in exc.errors()
-            ])
+            msg = " & ".join(
+                [
+                    f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"
+                    for error in exc.errors()
+                ]
+            )
         else:
             error = exc.errors()[0]
             msg = f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"
@@ -175,11 +176,11 @@ class ExceptionsHandler:
 
 
 app = FastAPI(
-    title=config.app_title,
-    summary=config.app_summary,
-    description=config.app_description,
-    version=config.app_version,
-    debug=config.app_debug,
+    title=config.APP_TITLE,
+    summary=config.APP_SUMMARY,
+    description=config.APP_DESCRIPTION,
+    version=config.APP_VERSION,
+    debug=config.APP_DEBUG,
     openapi_url=openapi_url,
     docs_url=docs_url,
     redoc_url=redoc_url,

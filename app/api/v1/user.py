@@ -25,20 +25,24 @@ _tag = "user"  # 标签（默认模块名）
 @router.get(
     path="/users",
     summary="list",
-    responses=response_docs(data={
-        "items": [{
-            "id": "str",
-            "phone": "str",
-            "status": "int",
-            "role": "str",
-            "name": "str",
-            "age": "int",
-            "gender": "int",
-            "created_at": "int",
-            "updated_at": "int",
-        }],
-        "total": "int",
-    }),
+    responses=response_docs(
+        data={
+            "items": [
+                {
+                    "id": "str",
+                    "phone": "str",
+                    "status": "int",
+                    "role": "str",
+                    "name": "str",
+                    "age": "int",
+                    "gender": "int",
+                    "created_at": "int",
+                    "updated_at": "int",
+                }
+            ],
+            "total": "int",
+        }
+    ),
 )
 async def list_user(
     req: UserList = Query(...),
@@ -54,9 +58,11 @@ async def list_user(
 @router.post(
     path="/users",
     summary="create",
-    responses=response_docs(data={
-        "id": "str",
-    }),
+    responses=response_docs(
+        data={
+            "id": "str",
+        }
+    ),
 )
 async def create_user(
     req: UserCreate,
@@ -69,17 +75,19 @@ async def create_user(
 @router.get(
     path="/users/{user_id}",
     summary="get",
-    responses=response_docs(data={
-        "id": "str",
-        "phone": "str",
-        "status": "int",
-        "role": "str",
-        "name": "str",
-        "age": "int",
-        "gender": "int",
-        "created_at": "int",
-        "updated_at": "int",
-    }),
+    responses=response_docs(
+        data={
+            "id": "str",
+            "phone": "str",
+            "status": "int",
+            "role": "str",
+            "name": "str",
+            "age": "int",
+            "gender": "int",
+            "created_at": "int",
+            "updated_at": "int",
+        }
+    ),
 )
 async def get_user(
     user_id: str,
@@ -93,9 +101,11 @@ async def get_user(
 @router.delete(
     path="/users/{user_id}",
     summary="delete",
-    responses=response_docs(data={
-        "id": "str",
-    }),
+    responses=response_docs(
+        data={
+            "id": "str",
+        }
+    ),
 )
 async def delete_user(
     user_id: str,
@@ -111,9 +121,11 @@ async def delete_user(
 @router.put(
     path="/users/{user_id}",
     summary="update",
-    responses=response_docs(data={
-        "id": "str",
-    }),
+    responses=response_docs(
+        data={
+            "id": "str",
+        }
+    ),
 )
 async def update_user(
     user_id: str,
@@ -128,20 +140,22 @@ async def update_user(
 @router.post(
     path="/users/login",
     summary="login",
-    responses=response_docs(data={
-        "access_token": "str",
-        "token_type": "str",
-        "expires_in": "int",
-        "user_info": {
-            "id": "str",
-            "phone": "str",
-            "status": "int",
-            "role": "str",
-            "name": "str",
-            "age": "int",
-            "gender": "int",
+    responses=response_docs(
+        data={
+            "access_token": "str",
+            "token_type": "str",
+            "expires_in": "int",
+            "user_info": {
+                "id": "str",
+                "phone": "str",
+                "status": "int",
+                "role": "str",
+                "name": "str",
+                "age": "int",
+                "gender": "int",
+            },
         }
-    }),
+    ),
 )
 async def login_user(
     req: UserLogin,
@@ -155,7 +169,7 @@ async def login_user(
         response,
         refresh_token=refresh_token,
         max_age=refresh_expires_in,
-        secure=(g.config.app_env == "prod"),
+        secure=(g.config.APP_ENV == "prod"),
     )
     return response
 
@@ -163,9 +177,11 @@ async def login_user(
 @router.post(
     path="/users/logout",
     summary="logout",
-    responses=response_docs(data={
-        "id": "str",
-    }),
+    responses=response_docs(
+        data={
+            "id": "str",
+        }
+    ),
 )
 async def logout_user(
     user_svc: UserSvc = Depends(get_user_svc),
@@ -180,11 +196,13 @@ async def logout_user(
 @router.post(
     path="/users/refresh-token",
     summary="refresh-token",
-    responses=response_docs(data={
-        "access_token": "str",
-        "token_type": "str",
-        "expires_in": "int",
-    }),
+    responses=response_docs(
+        data={
+            "access_token": "str",
+            "token_type": "str",
+            "expires_in": "int",
+        }
+    ),
 )
 async def refresh_token_user(
     user_svc: UserSvc = Depends(get_user_svc),
@@ -198,6 +216,6 @@ async def refresh_token_user(
         response,
         refresh_token=refresh_token,
         max_age=refresh_expires_in,
-        secure=(g.config.app_env == "prod"),
+        secure=(g.config.APP_ENV == "prod"),
     )
     return response

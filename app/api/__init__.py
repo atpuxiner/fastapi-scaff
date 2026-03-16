@@ -1,6 +1,7 @@
 """
 接口
 """
+
 import importlib
 import sys
 from pathlib import Path
@@ -62,7 +63,7 @@ def register_routers(
                 prefix=new_prefix,
                 name=name,
                 depth=depth + 1,
-                max_depth=max_depth
+                max_depth=max_depth,
             )
         elif item.is_file() and item.suffix == ".py" and depth >= min_depth:
             mod_name = item.stem
@@ -73,16 +74,11 @@ def register_routers(
                     logger.info(f"Register router skipping inactive module: {final_mod}")
                     sys.modules.pop(final_mod)
                     continue
-                if router := getattr(mod, name, None):
-                    if isinstance(router, APIRouter):
-                        tag = getattr(mod, "_tag", None)
-                        if not tag:
-                            tag = item.parent.stem if depth > 1 else mod_name
-                        app.include_router(
-                            router=router,
-                            prefix=prefix.replace("//", "/").rstrip("/"),
-                            tags=[tag]
-                        )
+                if (router := getattr(mod, name, None)) and isinstance(router, APIRouter):
+                    tag = getattr(mod, "_tag", None)
+                    if not tag:
+                        tag = item.parent.stem if depth > 1 else mod_name
+                    app.include_router(router=router, prefix=prefix.replace("//", "/").rstrip("/"), tags=[tag])
             except ImportError as e:
                 logger.error(f"Register router failed to import module: {final_mod} ({e})")
                 continue

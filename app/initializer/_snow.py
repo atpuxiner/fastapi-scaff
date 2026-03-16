@@ -11,7 +11,7 @@ _CACHE_EXPIRE_SNOW = 120
 
 def init_snow_cli(
     redis_cli=None,  # `from toollib.rediscli import RedisCli` 实例
-    datacenter_id: int = None,
+    datacenter_id: int | None = None,
 ) -> SnowFlake:
     # 建议：采用服务的方式调用api获取
     if datacenter_id is None:
@@ -19,7 +19,7 @@ def init_snow_cli(
         if datacenter_id is None:
             local_ip = localip()
             if local_ip:
-                ip_parts = list(map(int, local_ip.split('.')))
+                ip_parts = list(map(int, local_ip.split(".")))
                 ip_int = (ip_parts[0] << 24) + (ip_parts[1] << 16) + (ip_parts[2] << 8) + ip_parts[3]
                 datacenter_id = ip_int % 32
     worker_id = _snow_incr(redis_cli, _CACHE_KEY_SNOW_WORKER_ID_INCR, _CACHE_EXPIRE_SNOW)

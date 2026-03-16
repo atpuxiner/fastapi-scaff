@@ -2,11 +2,10 @@ from logging.config import fileConfig
 from urllib.parse import quote_plus
 
 from alembic import context
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from app.initializer import g
-from app.initializer._db import import_tables, make_db_url  # noqa
+from app.initializer._db import import_tables, make_db_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -21,21 +20,21 @@ if config.config_file_name is not None:
 decl_base = import_tables()
 if not decl_base:
     raise RuntimeError("Failed to import DeclBase. Make sure your models are correctly defined and accessible.")
-target_metadata = decl_base.metadata  # noqa
+target_metadata = decl_base.metadata  # type: ignore
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 db_url = make_db_url(
-    drivername=g.config.db_drivername,
-    database=g.config.db_database,
-    username=g.config.db_username,
-    password=g.config.db_password,
-    host=g.config.db_host,
-    port=g.config.db_port,
+    drivername=g.config.DB_DRIVERNAME,
+    database=g.config.DB_DATABASE,
+    username=g.config.DB_USERNAME,
+    password=g.config.DB_PASSWORD,
+    host=g.config.DB_HOST,
+    port=g.config.DB_PORT,
     query={
-        "charset": g.config.db_charset,
+        "charset": g.config.DB_CHARSET,
     },
 )
 db_password = quote_plus(db_url.password).replace("%", "%%") if db_url.password else ""

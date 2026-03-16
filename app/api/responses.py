@@ -1,5 +1,6 @@
 import json
-from typing import Mapping, Any
+from collections.abc import Mapping
+from typing import Any
 
 from fastapi.encoders import jsonable_encoder
 from starlette.background import BackgroundTask
@@ -13,12 +14,11 @@ _EXPOSE_ERROR = True
 
 
 class Responses:
-
     @staticmethod
     def success(
         data: dict | list | str | None = None,
-        msg: str = None,
-        code: int = None,
+        msg: str | None = None,
+        code: int | None = None,
         status: Status = Status.SUCCESS,
         is_encode_data: bool = False,
         status_code: int = 200,
@@ -42,8 +42,8 @@ class Responses:
 
     @staticmethod
     def failure(
-        msg: str = None,
-        code: int = None,
+        msg: str | None = None,
+        code: int | None = None,
         error: str | Exception | None = None,
         data: dict | list | str | None = None,
         status: Status = Status.FAILURE,
@@ -99,8 +99,8 @@ class Responses:
 
 
 def response_docs(
-    data: dict = None,  # data文档（key=字段名，value=字段类型或示例）
-    docs_extra: dict = None,
+    data: dict | None = None,  # data文档（key=字段名，value=字段类型或示例）
+    docs_extra: dict | None = None,
 ):
     """响应文档"""
 
@@ -131,7 +131,7 @@ def response_docs(
                         "request_id": "string",
                     }
                 }
-            }
+            },
         },
         422: {
             "description": "操作失败【code非0 & http状态码200】",
@@ -145,7 +145,7 @@ def response_docs(
                         "request_id": "string",
                     }
                 }
-            }
+            },
         },
     }
     if docs_extra:

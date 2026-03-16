@@ -3,28 +3,32 @@ import json
 import re
 from pathlib import Path
 
-project_dir = Path(__file__).absolute().parent.parent.parent
+project_dir = Path(__file__).resolve().parent.parent.parent
 pkg_mod_name = "fastapi_scaff"
 
 
 def gen_project_json():
-    exclude_pat = re.compile('|'.join([
-        "^.git(/.*)?$",
-        "^.idea(/.*)?$",
-        "^.vscode(/.*)?$",
-        "^build(/.*)?$",
-        "^dist(/.*)?$",
-        "^fastapi_scaff(/.*)?$",
-        "^fastapi_scaff.egg-info(/.*)?$",
-        "^.history$",
-        "^pyproject.toml$",
-        "^setup.py$",
-        "alembic/versions/.*.py$",
-        # #
-        ".pyc$",
-        ".log$",
-        ".sqlite3?$",
-    ]))
+    exclude_pat = re.compile(
+        "|".join(
+            [
+                "^.git(/.*)?$",
+                "^.idea(/.*)?$",
+                "^.vscode(/.*)?$",
+                "^build(/.*)?$",
+                "^dist(/.*)?$",
+                "^fastapi_scaff(/.*)?$",
+                "^fastapi_scaff.egg-info(/.*)?$",
+                "^.history$",
+                "^pyproject.toml$",
+                "^setup.py$",
+                "alembic/versions/.*.py$",
+                # #
+                ".pyc$",
+                ".log$",
+                ".sqlite3?$",
+            ]
+        )
+    )
     data = {}
     base64_suffixes = (".jpg",)
     for file in project_dir.rglob("*"):
@@ -34,14 +38,11 @@ def gen_project_json():
         if not exclude_pat.search(file_str):
             if file.suffix.endswith(base64_suffixes):
                 with open(file, "rb") as f:
-                    data[file_str] = base64.b64encode(f.read()).decode('utf-8')
+                    data[file_str] = base64.b64encode(f.read()).decode("utf-8")
             else:
                 with open(file, "r", encoding="utf-8") as f:
                     data[file_str] = f.read()
-    for m in [
-        "_tiny",
-        "_single"
-    ]:
+    for m in ["_tiny", "_single"]:
         for file in project_dir.joinpath(f"{pkg_mod_name}/mgr/{m}").glob("*"):
             if not file.is_file():
                 continue
@@ -70,5 +71,5 @@ def run():
     print("Done.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run()

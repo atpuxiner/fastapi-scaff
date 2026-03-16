@@ -15,12 +15,16 @@ router = APIRouter()
 @router.get(
     path="/tpls",
     summary="list",
-    responses=response_docs(data={
-        "items": [{
-            "id": "str",
-        }],
-        "total": "int",
-    }),
+    responses=response_docs(
+        data={
+            "items": [
+                {
+                    "id": "str",
+                }
+            ],
+            "total": "int",
+        }
+    ),
 )
 async def list_tpl(
     req: TplList = Query(...),

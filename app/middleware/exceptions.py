@@ -10,7 +10,6 @@ from app.api.status import Status
 
 
 class ExceptionsHandler:
-
     @staticmethod
     async def custom_exception_handler(
         request: Request,
@@ -37,10 +36,12 @@ class ExceptionsHandler:
         is_traceback: bool = True,
     ) -> JSONResponse:
         if display_all:
-            msg = " & ".join([
-                f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"
-                for error in exc.errors()
-            ])
+            msg = " & ".join(
+                [
+                    f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"
+                    for error in exc.errors()
+                ]
+            )
         else:
             error = exc.errors()[0]
             msg = f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"

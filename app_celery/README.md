@@ -34,21 +34,21 @@
 - yaml配置
 
 ```yaml
-celery_broker_url: redis://:<password>@<host>:<port>/<db>
-celery_backend_url: redis://:<password>@<host>:<port>/<db>
-celery_timezone: Asia/Shanghai
-celery_enable_utc: true
-celery_task_serializer: json
-celery_result_serializer: json
-celery_accept_content: [ json ]
-celery_task_ignore_result: false
-celery_result_expire: 86400
-celery_task_track_started: true
-celery_worker_concurrency: 8
-celery_worker_prefetch_multiplier: 2
-celery_worker_max_tasks_per_child: 100
-celery_broker_connection_retry_on_startup: true
-celery_task_reject_on_worker_lost: true
+CELERY_BROKER_URL: redis://:<password>@<host>:<port>/<db>
+CELERY_BACKEND_URL: redis://:<password>@<host>:<port>/<db>
+CELERY_TIMEZONE: Asia/Shanghai
+CELERY_ENABLE_UTC: true
+CELERY_TASK_SERIALIZER: json
+CELERY_RESULT_SERIALIZER: json
+CELERY_ACCEPT_CONTENT: [json]
+CELERY_TASK_IGNORE_RESULT: false
+CELERY_RESULT_EXPIRE: 86400
+CELERY_TASK_TRACK_STARTED: true
+CELERY_WORKER_CONCURRENCY: 8
+CELERY_WORKER_PREFETCH_MULTIPLIER: 2
+CELERY_WORKER_MAX_TASKS_PER_CHILD: 100
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP: true
+CELERY_TASK_REJECT_ON_WORKER_LOST: true
 ```
 
 - 消费端依赖

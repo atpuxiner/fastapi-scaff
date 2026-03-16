@@ -17,15 +17,19 @@ router = APIRouter()
 @router.get(
     path="/tpls",
     summary="list",
-    responses=response_docs(data={
-        "items": [{
-            "id": "str",
-            "name": "str",
-            "created_at": "int",
-            "updated_at": "int",
-        }],
-        "total": "int",
-    }),
+    responses=response_docs(
+        data={
+            "items": [
+                {
+                    "id": "str",
+                    "name": "str",
+                    "created_at": "int",
+                    "updated_at": "int",
+                }
+            ],
+            "total": "int",
+        }
+    ),
 )
 async def list_tpl(
     req: TplList = Query(...),
@@ -39,9 +43,11 @@ async def list_tpl(
 @router.post(
     path="/tpls",
     summary="create",
-    responses=response_docs(data={
-        "id": "str",
-    }),
+    responses=response_docs(
+        data={
+            "id": "str",
+        }
+    ),
 )
 async def create_tpl(
     req: TplCreate,
@@ -55,12 +61,14 @@ async def create_tpl(
 @router.get(
     path="/tpls/{tpl_id}",
     summary="get",
-    responses=response_docs(data={
-        "id": "str",
-        "name": "str",
-        "created_at": "int",
-        "updated_at": "int",
-    }),
+    responses=response_docs(
+        data={
+            "id": "str",
+            "name": "str",
+            "created_at": "int",
+            "updated_at": "int",
+        }
+    ),
 )
 async def get_tpl(
     tpl_id: str,
@@ -74,9 +82,11 @@ async def get_tpl(
 @router.delete(
     path="/tpls/{tpl_id}",
     summary="delete",
-    responses=response_docs(data={
-        "id": "str",
-    }),
+    responses=response_docs(
+        data={
+            "id": "str",
+        }
+    ),
 )
 async def delete_tpl(
     tpl_id: str,
@@ -90,9 +100,11 @@ async def delete_tpl(
 @router.put(
     path="/tpls/{tpl_id}",
     summary="update",
-    responses=response_docs(data={
-        "id": "str",
-    }),
+    responses=response_docs(
+        data={
+            "id": "str",
+        }
+    ),
 )
 async def update_tpl(
     tpl_id: str,

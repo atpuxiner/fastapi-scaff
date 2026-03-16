@@ -3,7 +3,7 @@ FROM python:3.12-bullseye
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/backend \
     TZ=Asia/Shanghai \
-    app_env=prod
+    APP_ENV=prod
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 

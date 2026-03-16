@@ -11,7 +11,6 @@ _REFRESH_TOKEN_EXP_SECONDS = 30 * 24 * 60 * 60
 
 
 class UserSvc:
-
     @staticmethod
     async def list_user(req):
         where = []
@@ -50,7 +49,7 @@ class UserSvc:
                 values={
                     "phone": req.phone,
                     "password": jwt_util.hash_password(req.password),
-                    "jwt_key": jwt_util.gen_jwt_key(key=g.config.jwt_key),
+                    "jwt_key": jwt_util.gen_jwt_key(key=g.config.JWT_KEY),
                     "role": req.role,
                     "name": req.name,
                     "age": req.age,
@@ -139,7 +138,7 @@ class UserSvc:
         if not jwt_util.verify_password(req.password, stored_password):
             raise CustomException(status=Status.USER_OR_PASSWORD_ERROR)
 
-        new_jwt_key = jwt_util.gen_jwt_key(key=g.config.jwt_key)
+        new_jwt_key = jwt_util.gen_jwt_key(key=g.config.JWT_KEY)
         access_token = jwt_util.gen_jwt(
             payload=result,
             key=new_jwt_key,
@@ -171,7 +170,7 @@ class UserSvc:
 
     @staticmethod
     async def logout_user(user_id: str):
-        new_jwt_key = jwt_util.gen_jwt_key(key=g.config.jwt_key)
+        new_jwt_key = jwt_util.gen_jwt_key(key=g.config.JWT_KEY)
         async with g.db_async_session() as session:
             result = await User.update(
                 session=session,
@@ -205,7 +204,7 @@ class UserSvc:
             if result.get("status", 1) != 1:
                 raise CustomException(status=Status.USER_ABNORMAL_ERROR)
 
-        new_jwt_key = jwt_util.gen_jwt_key(key=g.config.jwt_key)
+        new_jwt_key = jwt_util.gen_jwt_key(key=g.config.JWT_KEY)
         access_token = jwt_util.gen_jwt(
             payload=result,
             key=new_jwt_key,

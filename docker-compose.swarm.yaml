@@ -1,19 +1,18 @@
 services:
-
   backend:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-    image: fastapi-scaff:v1.0.0  # 强烈建议不要用 :latest
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    image: fastapi-scaff:v1.0.0 # 强烈建议不要用 :latest
     environment:
-      app_env: prod
+      APP_ENV: prod
     volumes:
       - ./config:/backend/config
       - ./logs:/backend/logs
     command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 5 --log-level info"
-#    command: "gunicorn app.main:app -c config/gunicorn.conf.py"  # 追加安装 gunicorn
+    # command: "gunicorn app.main:app -c config/gunicorn.conf.py"  # 追加安装 gunicorn
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/ping" ]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/ping"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -24,7 +23,7 @@ services:
       update_config:
         parallelism: 1
         delay: 10s
-        order: start-first  # 先启动新副本，再停止旧的（零停机）
+        order: start-first # 先启动新副本，再停止旧的（零停机）
         failure_action: rollback
         monitor: 60s
       restart_policy:
@@ -35,10 +34,10 @@ services:
       resources:
         limits:
           memory: 2G
-          cpus: '2.0'
+          cpus: "2.0"
         reservations:
           memory: 512M
-          cpus: '0.5'
+          cpus: "0.5"
     networks:
       app-network:
         aliases:
@@ -50,7 +49,7 @@ services:
       - target: 80
         published: 8000
         protocol: tcp
-        mode: ingress  # ingress | host
+        mode: ingress # ingress | host
     volumes:
       - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     deploy:
@@ -70,21 +69,19 @@ services:
       resources:
         limits:
           memory: 1G
-          cpus: '1.0'
+          cpus: "1.0"
         reservations:
           memory: 256M
-          cpus: '0.5'
+          cpus: "0.5"
     networks:
       - app-network
-    depends_on:  # 据说 swarm 模式下无效
+    depends_on: # 据说 swarm 模式下无效
       - backend
 
 networks:
   app-network:
     driver: overlay
     attachable: true
-
-
 # =============================================================================
 # 部署执行步骤（请按顺序操作）
 # =============================================================================

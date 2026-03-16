@@ -10,6 +10,6 @@ class TaskParams(BaseModel):
 AllTasks: dict[str, TaskParams] = {  # label: TaskParams
     "ping": TaskParams(
         name="app_celery.consumer.tasks.ping.ping",
-        queue="ping"
+        queue="ping",
     ),
 }

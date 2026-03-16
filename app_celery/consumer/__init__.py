@@ -1,6 +1,7 @@
 """
 消费者
 """
+
 import re
 from pathlib import Path
 
@@ -26,6 +27,4 @@ def autodiscover_task_modules(
     return task_modules
 
 
-celery_app = make_celery(
-    include=autodiscover_task_modules()
-)
+celery_app = make_celery(include=autodiscover_task_modules())

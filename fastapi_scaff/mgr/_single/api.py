@@ -10,18 +10,16 @@ router = APIRouter()
 _API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
-async def get_current_api_key(
-    api_key: str | None = Security(_API_KEY_HEADER)
-) -> str:
+async def get_current_api_key(api_key: str | None = Security(_API_KEY_HEADER)) -> str:
     if not api_key:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED,
-            detail="API key is required"
+            detail="API key is required",
         )
-    if api_key not in config.api_keys:
+    if api_key not in config.API_KEYS:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED,
-            detail="Invalid API key"
+            detail="Invalid API key",
         )
     return api_key
 

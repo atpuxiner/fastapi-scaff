@@ -7,9 +7,9 @@ class CorsMiddleware(CORSMiddleware):
     def __init__(self, app, **kwargs):
         super().__init__(
             app,
-            allow_credentials=g.config.app_allow_credentials,
-            allow_origins=g.config.app_allow_origins,
-            allow_methods=g.config.app_allow_methods,
-            allow_headers=g.config.app_allow_headers,
-            **kwargs
+            allow_credentials=g.config.APP_ALLOW_CREDENTIALS,
+            allow_origins=g.config.APP_ALLOW_ORIGINS,
+            allow_methods=g.config.APP_ALLOW_METHODS,
+            allow_headers=g.config.APP_ALLOW_HEADERS,
+            **kwargs,
         )

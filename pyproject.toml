@@ -39,5 +39,90 @@ exclude = [
     "logs*",
     "tests*",
     "fastapi_scaff.mgr*",
+    "build*",
     "dist*",
+    "*.egg-info*",
 ]
+
+# ==================== BasedPyright 配置 ====================
+[tool.basedpyright]
+typeCheckingMode = "standard"
+include = [
+  "**/*.py",
+]
+exclude = [
+  "**/build/**",
+  "**/dist/**",
+  "**/.egg-info/**",
+  "**/venv/**",
+  "**/.venv/**",
+  "**/__pycache__/**",
+  "**/.mypy_cache/**",
+  "**/.pytest_cache/**",
+  "**/.tox/**",
+  "**/migrations/**",
+  "**/node_modules/**",
+]
+
+# diagnosticSeverityOverrides
+reportAttributeAccessIssue = "warning"
+reportCallIssue = "warning"
+reportOptionalMemberAccess = "warning"
+reportUnusedImport = "information"
+reportUnusedClass = "information"
+reportUnusedFunction = "information"
+reportArgumentType = "none"
+reportAssignmentType = "none"
+reportUnknownVariableType = "none"
+reportUnknownMemberType = "none"
+reportUnknownParameterType = "none"
+reportMissingTypeStubs = "none"
+
+# ==================== Ruff 配置 ====================
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.format]
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle errors
+  "W",   # pycodestyle warnings
+  "F",   # pyflakes
+  "I",   # isort (导入排序)
+  "UP",  # pyupgrade (提示新语法)
+  "B",   # flake8-bugbear (常见bug)
+  "SIM", # flake8-simplify (代码简化)
+  "C4",  # flake8-comprehensions (推导式优化)
+  "RUF", # Ruff 特有规则
+]
+
+ignore = [
+  "E501",   # 行长度由 formatter 控制，lint 不需要报错
+  "B008",   # 允许在函数默认参数中调用函数 (常用于 FastAPI/Depends)
+  "COM812", # 避免与 formatter 的 trailing comma 冲突
+  "D",      # 忽略所有文档字符串相关规则（如 D100、D205 等）
+  "RUF001", # 允许注释中使用非 ASCII 字符（如中文）
+  "RUF002", # 允许字符串字面量中使用非 ASCII 字符（如中文提示语）
+  "RUF003", # 允许文档字符串（docstring）中使用非 ASCII 字符
+  "I001",
+  "W293",
+  "UP015",
+  "RUF022",
+  "RUF012",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/**" = ["S101", "PLR2004", "ARG", "B018"]
+"test_*.py" = ["S101", "PLR2004", "ARG", "B018"]
+"*_test.py" = ["S101", "PLR2004", "ARG", "B018"]
+"scripts/**" = ["T201", "INP001"]
+"bin/**" = ["T201", "INP001"]
+"conftest.py" = ["F401"]
+"settings.py" = ["F401"]
+"config.py" = ["F401"]
+"*.ipynb" = ["E402", "E703"]
+"**/migrations/**" = ["E501", "N999"]
+"**/alembic/versions/**" = ["E501", "N999"]

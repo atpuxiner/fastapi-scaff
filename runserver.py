@@ -6,6 +6,7 @@
 @description
 @history
 """
+
 import argparse
 import subprocess
 import sys
@@ -27,44 +28,22 @@ def run_by_unicorn(
             "default": {
                 "()": "uvicorn.logging.DefaultFormatter",
                 "fmt": "%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s",
-                "use_colors": None
+                "use_colors": None,
             },
             "access": {
                 "()": "uvicorn.logging.AccessFormatter",
-                "fmt": "%(asctime)s %(levelname)s %(client_addr)s - \"%(request_line)s\" %(status_code)s"
-            }
+                "fmt": '%(asctime)s %(levelname)s %(client_addr)s - "%(request_line)s" %(status_code)s',
+            },
         },
         "handlers": {
-            "default": {
-                "formatter": "default",
-                "class": "logging.StreamHandler",
-                "stream": "ext://sys.stderr"
-            },
-            "access": {
-                "formatter": "access",
-                "class": "logging.StreamHandler",
-                "stream": "ext://sys.stdout"
-            }
+            "default": {"formatter": "default", "class": "logging.StreamHandler", "stream": "ext://sys.stderr"},
+            "access": {"formatter": "access", "class": "logging.StreamHandler", "stream": "ext://sys.stdout"},
         },
         "loggers": {
-            "uvicorn": {
-                "handlers": [
-                    "default"
-                ],
-                "level": "INFO",
-                "propagate": False
-            },
-            "uvicorn.error": {
-                "level": "INFO"
-            },
-            "uvicorn.access": {
-                "handlers": [
-                    "access"
-                ],
-                "level": "INFO",
-                "propagate": False
-            }
-        }
+            "uvicorn": {"handlers": ["default"], "level": "INFO", "propagate": False},
+            "uvicorn.error": {"level": "INFO"},
+            "uvicorn.access": {"handlers": ["access"], "level": "INFO", "propagate": False},
+        },
     }
     uvicorn.run(
         app="app.main:app",
@@ -87,12 +66,18 @@ def run_by_gunicorn(
     cmd = [
         "gunicorn",
         "app.main:app",
-        "--worker-class", "uvicorn.workers.UvicornWorker",
-        "--bind", f"{host}:{port}",
-        "--workers", workers,
-        "--log-level", log_level,
-        "--access-logfile", "-",
-        "--error-logfile", "-",
+        "--worker-class",
+        "uvicorn.workers.UvicornWorker",
+        "--bind",
+        f"{host}:{port}",
+        "--workers",
+        workers,
+        "--log-level",
+        log_level,
+        "--access-logfile",
+        "-",
+        "--error-logfile",
+        "-",
     ]
     if reload:
         cmd.append("--reload")
@@ -131,8 +116,8 @@ def main(
                 subprocess.run(
                     ["pip", "install", "gunicorn"],
                     check=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE)
+                    capture_output=True,
+                )
                 sys.stderr.write("gunicorn安装成功\n")
             except subprocess.CalledProcessError as e:
                 sys.stderr.write(f"gunicorn安装失败: {e.stderr.decode().strip()}\n")
@@ -142,7 +127,7 @@ def main(
         run_by_unicorn(**kwargs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(
         host="0.0.0.0",
         port=8000,

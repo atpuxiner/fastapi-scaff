@@ -6,6 +6,7 @@
 @description
 @history
 """
+
 from pathlib import Path
 
-APP_DIR = Path(__file__).absolute().parent
+APP_DIR = Path(__file__).resolve().parent

@@ -1,11 +1,12 @@
 """
 初始化
 """
+
 import threading
 from functools import cached_property
 
 from loguru import logger
-from loguru._logger import Logger  # noqa
+from loguru._logger import Logger
 from sqlalchemy.orm import sessionmaker
 from toollib.guid import SnowFlake
 from toollib.rediscli import RedisCli
@@ -22,15 +23,15 @@ class G(metaclass=Singleton):
     """
     全局变量
     """
-    _initialized = False
+
     _init_lock = threading.Lock()
-    _init_properties = [
+    _init_properties = (
         "config",
         "logger",
         "redis_cli",
         "snow_cli",
         "db_async_session",
-    ]
+    )
 
     def __init__(self):
         self._initialized = False
@@ -42,39 +43,39 @@ class G(metaclass=Singleton):
     @cached_property
     def logger(self) -> Logger:
         return init_logger(
-            level="DEBUG" if self.config.app_debug else "INFO",
-            serialize=self.config.app_log_serialize,
-            outdir=self.config.app_log_outdir,
+            level="DEBUG" if self.config.APP_DEBUG else "INFO",
+            serialize=self.config.APP_LOG_SERIALIZE,
+            outdir=self.config.APP_LOG_OUTDIR,
         )
 
     @cached_property
     def redis_cli(self) -> RedisCli:
         return init_redis_cli(
-            host=self.config.redis_host,
-            port=self.config.redis_port,
-            db=self.config.redis_db,
-            password=self.config.redis_password,
-            max_connections=self.config.redis_max_connections,
+            host=self.config.REDIS_HOST,
+            port=self.config.REDIS_PORT,
+            db=self.config.REDIS_DB,
+            password=self.config.REDIS_PASSWORD,
+            max_connections=self.config.REDIS_MAX_CONNECTIONS,
         )
 
     @cached_property
     def snow_cli(self) -> SnowFlake:
         return init_snow_cli(
             redis_cli=getattr(self, "redis_cli", None),
-            datacenter_id=self.config.snow_datacenter_id,
+            datacenter_id=self.config.SNOW_DATACENTER_ID,
         )
 
     @cached_property
     def db_async_session(self) -> sessionmaker:
         return init_db_async_session(
-            db_drivername=self.config.db_async_drivername,
-            db_database=self.config.db_database,
-            db_username=self.config.db_username,
-            db_password=self.config.db_password,
-            db_host=self.config.db_host,
-            db_port=self.config.db_port,
-            db_charset=self.config.db_charset,
-            db_echo=self.config.app_debug,
+            db_drivername=self.config.DB_ASYNC_DRIVERNAME,
+            db_database=self.config.DB_DATABASE,
+            db_username=self.config.DB_USERNAME,
+            db_password=self.config.DB_PASSWORD,
+            db_host=self.config.DB_HOST,
+            db_port=self.config.DB_PORT,
+            db_charset=self.config.DB_CHARSET,
+            db_echo=self.config.APP_DEBUG,
             is_create_tables=True,
         )
 

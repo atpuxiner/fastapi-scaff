@@ -2,11 +2,10 @@ from app.api.status import Status
 
 
 class CustomException(Exception):
-
     def __init__(
         self,
-        msg: str = None,
-        code: int = None,
+        msg: str | None = None,
+        code: int | None = None,
         error: str | Exception | None = None,
         data: dict | list | str | None = None,
         status: Status = Status.FAILURE,

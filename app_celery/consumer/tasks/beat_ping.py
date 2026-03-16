@@ -7,11 +7,12 @@ from app_celery.consumer import celery_app
 logger = logging.getLogger(__name__)
 
 celery_app.conf.beat_schedule.setdefault(
-    'beat_ping', {
-        'task': 'app_celery.consumer.tasks.beat_ping.ping',
-        'schedule': crontab(minute='*/2'),  # 每x分钟执行一次
-        'options': {'queue': 'beat_ping'}
-    }
+    "beat_ping",
+    {
+        "task": "app_celery.consumer.tasks.beat_ping.ping",
+        "schedule": crontab(minute="*/2"),  # 每x分钟执行一次
+        "options": {"queue": "beat_ping"},
+    },
 )
 
 

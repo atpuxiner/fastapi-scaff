@@ -9,7 +9,6 @@ from app.models.tpl import Tpl
 
 
 class TplSvc:
-
     @staticmethod
     async def list_tpl(req):
         where = []
@@ -91,8 +90,8 @@ class TplSvc:
                 if not result:
                     raise CustomException(status=Status.RECORD_NOT_EXIST_ERROR)
                 await session.commit()
-            except IntegrityError:
-                raise CustomException(status=Status.RECORD_EXISTS_ERROR)
+            except IntegrityError as e:
+                raise CustomException(status=Status.RECORD_EXISTS_ERROR) from e
             return {"id": tpl_id}
 
 

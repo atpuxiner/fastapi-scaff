@@ -6,6 +6,7 @@
 @description
 @history
 """
+
 import argparse
 import sys
 from pathlib import Path
@@ -28,8 +29,9 @@ def main():
     # generate
     gen_parser = subparsers.add_parser("generate", help="Autogenerate a new migration")
     gen_parser.add_argument("message", help="Migration message (required)")
-    gen_parser.add_argument("--autogenerate", action="store_true", default=True,
-                            help="Enable autogenerate (default: True)")
+    gen_parser.add_argument(
+        "--autogenerate", action="store_true", default=True, help="Enable autogenerate (default: True)"
+    )
 
     # upgrade
     upgrade_parser = subparsers.add_parser("upgrade", help="Apply migrations up to head")

@@ -13,7 +13,9 @@ class Tpl(DeclBase):
     name = mapped_column(String(50), unique=True, index=True, nullable=False, comment="名称")
     # #
     created_at = mapped_column(BigInteger, default=now_timestamp, nullable=False, comment="创建时间")
-    updated_at = mapped_column(BigInteger, default=now_timestamp, onupdate=now_timestamp, nullable=False, comment="更新时间")
+    updated_at = mapped_column(
+        BigInteger, default=now_timestamp, onupdate=now_timestamp, nullable=False, comment="更新时间"
+    )
 
 
 class TplList(BaseModel):

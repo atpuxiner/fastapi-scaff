@@ -10,6 +10,6 @@ def gen_api_key(prefix: str = "", length: int = _API_KEY_LENGTH) -> str:
     return api_key
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     num = 2
     print(",".join([gen_api_key() for _ in range(num)]))

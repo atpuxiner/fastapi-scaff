@@ -9,7 +9,6 @@ class TplList(BaseModel):
 
 
 class TplSvc:
-
     @staticmethod
     async def list_tpl(req):
         # TODO: 业务逻辑

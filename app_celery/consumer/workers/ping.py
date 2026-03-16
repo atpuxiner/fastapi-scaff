@@ -10,5 +10,5 @@ celery_app.conf.update(
     },
     task_routes={
         "app_celery.consumer.tasks.ping.ping": {"queue": "ping"},
-    }
+    },
 )

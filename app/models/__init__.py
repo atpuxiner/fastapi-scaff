@@ -1,6 +1,7 @@
 """
 数据模型
 """
+
 from sqlalchemy.orm import DeclarativeBase
 from toollib.sqlacrud import CRUDMixin
 

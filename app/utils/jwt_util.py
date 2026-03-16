@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 from typing import Literal
 
 import bcrypt
@@ -16,18 +16,20 @@ def gen_jwt(
     algorithm: str = _JWT_ALGORITHM,
 ) -> str:
     final_payload = payload.copy()
-    final_payload.update({
-        "typ": typ,
-        "exp": datetime.now(timezone.utc) + timedelta(seconds=exp_seconds),
-    })
+    final_payload.update(
+        {
+            "typ": typ,
+            "exp": datetime.now(UTC) + timedelta(seconds=exp_seconds),
+        }
+    )
     encoded_jwt = jwt.encode(payload=final_payload, key=key, algorithm=algorithm)
     return encoded_jwt
 
 
 def verify_jwt(
     token: str,
-    key: str = None,
-    typ: str = None,
+    key: str | None = None,
+    typ: str | None = None,
     algorithms: tuple = (_JWT_ALGORITHM,),
 ) -> dict:
     if not key:
@@ -39,7 +41,7 @@ def verify_jwt(
     return payload
 
 
-def gen_jwt_key(nbytes: int = 32, key: str = None):
+def gen_jwt_key(nbytes: int = 32, key: str | None = None):
     if key:
         return key
     return secrets.token_hex(nbytes)
@@ -47,15 +49,15 @@ def gen_jwt_key(nbytes: int = 32, key: str = None):
 
 def hash_password(password: str) -> str:
     salt = bcrypt.gensalt()
-    hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
-    return hashed_password.decode('utf-8')
+    hashed_password = bcrypt.hashpw(password.encode("utf-8"), salt)
+    return hashed_password.decode("utf-8")
 
 
 def verify_password(password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+    return bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # jkey = gen_jwt_key()
     # print(jkey)
     jkey = "da721f64779fd1d92de7abc2060eb62c7f61cf82942c052007486f759e185f6d"
@@ -67,8 +69,8 @@ if __name__ == '__main__':
             "role": "admin",
             "name": "admin",
             "age": 18,
-            "gender": 1
+            "gender": 1,
         },
-        key=jkey
+        key=jkey,
     )
     print(jtoken)

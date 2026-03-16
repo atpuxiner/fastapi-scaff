@@ -3,40 +3,41 @@ from pathlib import Path
 
 from toollib.utils import ConfModel, FrozenVar
 
-_APP_DIR = Path(__file__).absolute().parent
+_APP_DIR = Path(__file__).resolve().parent
 _CONFIG_DIR = _APP_DIR.parent.joinpath("config")
 
-dotenv_path = _CONFIG_DIR.joinpath(".env")
-if os.environ.setdefault("app_env", "dev") == "prod":  # 生产环境不加载.env（请根据自身需求修改）
-    dotenv_path = None
-yaml_path = _CONFIG_DIR.joinpath(f"app_{os.environ.get('app_env', 'dev')}.yaml")
+DOTENV_PATH = _CONFIG_DIR.joinpath(".env")
+if os.environ.setdefault("APP_ENV", "dev") == "prod":  # 生产环境不加载.env（请根据自身需求修改）
+    DOTENV_PATH = None
+YAML_PATH = _CONFIG_DIR.joinpath(f"app_{os.environ.get('APP_ENV', 'dev')}.yaml")
 
 
 class Config(ConfModel):
     """配置"""
-    app_dir: FrozenVar[Path] = _APP_DIR
+
+    APP_DIR: FrozenVar[Path] = _APP_DIR
     # #
-    app_env: str = "dev"
-    yaml_path: Path = yaml_path
+    APP_ENV: str = "dev"
+    YAML_PATH: Path = YAML_PATH
     # #
-    celery_broker_url: str
-    celery_backend_url: str
-    celery_timezone: str = "Asia/Shanghai"
-    celery_enable_utc: bool = True
-    celery_task_serializer: str = "json"
-    celery_result_serializer: str = "json"
-    celery_accept_content: list = ["json"]
-    celery_task_ignore_result: bool = False
-    celery_result_expire: int = 86400
-    celery_task_track_started: bool = True
-    celery_worker_concurrency: int = 8
-    celery_worker_prefetch_multiplier: int = 2
-    celery_worker_max_tasks_per_child: int = 100
-    celery_broker_connection_retry_on_startup: bool = True
-    celery_task_reject_on_worker_lost: bool = True
+    CELERY_BROKER_URL: str
+    CELERY_BACKEND_URL: str
+    CELERY_TIMEZONE: str = "Asia/Shanghai"
+    CELERY_ENABLE_UTC: bool = True
+    CELERY_TASK_SERIALIZER: str = "json"
+    CELERY_RESULT_SERIALIZER: str = "json"
+    CELERY_ACCEPT_CONTENT: list = ["json"]
+    CELERY_TASK_IGNORE_RESULT: bool = False
+    CELERY_RESULT_EXPIRE: int = 86400
+    CELERY_TASK_TRACK_STARTED: bool = True
+    CELERY_WORKER_CONCURRENCY: int = 8
+    CELERY_WORKER_PREFETCH_MULTIPLIER: int = 2
+    CELERY_WORKER_MAX_TASKS_PER_CHILD: int = 100
+    CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP: bool = True
+    CELERY_TASK_REJECT_ON_WORKER_LOST: bool = True
 
 
 config = Config(
-    dotenv_path=dotenv_path,
-    yaml_path=yaml_path,
+    dotenv_path=DOTENV_PATH,
+    yaml_path=YAML_PATH,
 )

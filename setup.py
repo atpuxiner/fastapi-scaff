@@ -6,6 +6,8 @@
 @description
 @history
 """
+
+from contextlib import suppress
 import os
 import re
 from pathlib import Path
@@ -13,7 +15,7 @@ from shutil import rmtree
 
 from setuptools import setup, Command
 
-here = Path(__file__).absolute().parent
+here = Path(__file__).resolve().parent
 pkg_name = "fastapi_scaff"
 
 
@@ -35,10 +37,8 @@ class BuildCommand(Command):
     @staticmethod
     def _clean_dist_dirs():
         for path in ["dist", "build", f"{pkg_name}.egg-info"]:
-            try:
+            with suppress(FileNotFoundError):
                 rmtree(here / path)
-            except FileNotFoundError:
-                pass
 
     @staticmethod
     def _update_version():

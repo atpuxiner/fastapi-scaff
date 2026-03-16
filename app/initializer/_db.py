@@ -3,7 +3,7 @@ import importlib
 import re
 
 from sqlalchemy import URL
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.decl_api import DeclarativeAttributeIntercept
 
@@ -53,14 +53,14 @@ def init_db_async_session(
         pool_pre_ping=True,
         **kwargs,
     )
-    db_async_session = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)  # noqa
+    db_async_session = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)  # type: ignore
 
     async def create_tables():
         decl_base = import_tables()
         if decl_base:
             async with async_engine.begin() as conn:
                 try:
-                    await conn.run_sync(decl_base.metadata.create_all)  # noqa
+                    await conn.run_sync(decl_base.metadata.create_all)  # type: ignore
                 except Exception as e:
                     if "already exists" not in str(e):
                         raise
@@ -81,11 +81,11 @@ def init_db_async_session(
 def make_db_url(
     drivername: str,
     database: str,
-    username: str = None,
-    password: str = None,
-    host: str = None,
-    port: int = None,
-    query: dict = None,
+    username: str | None = None,
+    password: str | None = None,
+    host: str | None = None,
+    port: int | None = None,
+    query: dict | None = None,
 ) -> URL:
     query = {k: v for k, v in query.items() if v} if query else {}
     return URL.create(

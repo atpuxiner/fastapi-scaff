@@ -1,6 +1,7 @@
 """
 初始化
 """
+
 import os
 import threading
 from contextvars import ContextVar
@@ -8,9 +9,9 @@ from functools import cached_property
 from pathlib import Path
 
 from loguru import logger
-from loguru._logger import Logger  # noqa
+from loguru._logger import Logger
 from sqlalchemy import URL
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from toollib import logu
 from toollib.guid import SnowFlake
@@ -26,57 +27,58 @@ __all__ = [
 
 _CONFIG_DIR = APP_DIR.parent.joinpath("config")
 
-dotenv_path = _CONFIG_DIR.joinpath(".env")
-if os.environ.setdefault("app_env", "dev") == "prod":  # 生产环境不加载.env（请根据自身需求修改）
-    dotenv_path = None
-yaml_path = _CONFIG_DIR.joinpath(f"app_{os.environ.get('app_env', 'dev')}.yaml")
+DOTENV_PATH = _CONFIG_DIR.joinpath(".env")
+if os.environ.setdefault("APP_ENV", "dev") == "prod":  # 生产环境不加载.env（请根据自身需求修改）
+    DOTENV_PATH = None
+YAML_PATH = _CONFIG_DIR.joinpath(f"app_{os.environ.get('APP_ENV', 'dev')}.yaml")
 
 
 class Config(ConfModel):
     """配置"""
-    app_dir: FrozenVar[Path] = APP_DIR
+
+    APP_DIR: FrozenVar[Path] = APP_DIR
     # #
-    app_env: str = "dev"
-    yaml_path: Path = yaml_path
-    api_keys: list = []
-    jwt_key: str = ""
-    snow_datacenter_id: int = None
+    APP_ENV: str = "dev"
+    YAML_PATH: Path = YAML_PATH
+    API_KEYS: list = []
+    JWT_KEY: str = ""
+    SNOW_DATACENTER_ID: int = None
     # #
-    app_title: str = "xApp"
-    app_summary: str = "xxApp"
-    app_description: str = "xxxApp"
-    app_version: str = "1.0.0"
-    app_debug: bool = True
-    app_log_serialize: bool = False
-    app_log_outdir: str = "./logs"
-    app_disable_docs: bool = False
-    app_allow_credentials: bool = True
-    app_allow_origins: list = ["*"]
-    app_allow_methods: list = ["*"]
-    app_allow_headers: list = ["*"]
+    APP_TITLE: str = "xApp"
+    APP_SUMMARY: str = "xxApp"
+    APP_DESCRIPTION: str = "xxxApp"
+    APP_VERSION: str = "1.0.0"
+    APP_DEBUG: bool = True
+    APP_LOG_SERIALIZE: bool = False
+    APP_LOG_OUTDIR: str = "./logs"
+    APP_DISABLE_DOCS: bool = False
+    APP_ALLOW_CREDENTIALS: bool = True
+    APP_ALLOW_ORIGINS: list = ["*"]
+    APP_ALLOW_METHODS: list = ["*"]
+    APP_ALLOW_HEADERS: list = ["*"]
     # #
-    db_drivername: str
-    db_async_drivername: str
-    db_database: str
-    db_username: str = None
-    db_password: str = None
-    db_host: str = None
-    db_port: int = None
-    db_charset: str = None
-    redis_host: str = None
-    redis_port: int = None
-    redis_db: int = None
-    redis_password: str = None
-    redis_max_connections: int = None
+    DB_DRIVERNAME: str
+    DB_ASYNC_DRIVERNAME: str
+    DB_DATABASE: str
+    DB_USERNAME: str = None
+    DB_PASSWORD: str = None
+    DB_HOST: str = None
+    DB_PORT: int = None
+    DB_CHARSET: str = None
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_DB: int
+    REDIS_PASSWORD: str = None
+    REDIS_MAX_CONNECTIONS: int = None
 
 
 def init_logger(
     level: str,
     serialize: bool = False,
-    outdir: str = None,
+    outdir: str | None = None,
 ) -> Logger:
     enable_console, enable_file = True, True
-    if os.getenv("app_env") == "prod":
+    if os.getenv("APP_ENV") == "prod":
         enable_console, enable_file = False, True  # 按需调整
     _logger = logu.init_logger(
         level=level,
@@ -94,8 +96,8 @@ def init_redis_cli(
     host: str,
     port: int,
     db: int,
-    password: str = None,
-    max_connections: int = None,
+    password: str | None = None,
+    max_connections: int | None = None,
     **kwargs,
 ) -> RedisCli:
     return RedisCli(
@@ -115,7 +117,7 @@ _CACHE_EXPIRE_SNOW = 120
 
 def init_snow_cli(
     redis_cli=None,  # `from toollib.rediscli import RedisCli` 实例
-    datacenter_id: int = None,
+    datacenter_id: int | None = None,
 ) -> SnowFlake:
     # 建议：采用服务的方式调用api获取
     if datacenter_id is None:
@@ -123,7 +125,7 @@ def init_snow_cli(
         if datacenter_id is None:
             local_ip = localip()
             if local_ip:
-                ip_parts = list(map(int, local_ip.split('.')))
+                ip_parts = list(map(int, local_ip.split(".")))
                 ip_int = (ip_parts[0] << 24) + (ip_parts[1] << 16) + (ip_parts[2] << 8) + ip_parts[3]
                 datacenter_id = ip_int % 32
     worker_id = _snow_incr(redis_cli, _CACHE_KEY_SNOW_WORKER_ID_INCR, _CACHE_EXPIRE_SNOW)
@@ -194,18 +196,18 @@ def init_db_async_session(
         pool_pre_ping=True,
         **kwargs,
     )
-    db_async_session = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)  # noqa
+    db_async_session = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)  # type: ignore
     return db_async_session
 
 
 def make_db_url(
     drivername: str,
     database: str,
-    username: str = None,
-    password: str = None,
-    host: str = None,
-    port: int = None,
-    query: dict = None,
+    username: str | None = None,
+    password: str | None = None,
+    host: str | None = None,
+    port: int | None = None,
+    query: dict | None = None,
 ) -> URL:
     query = {k: v for k, v in query.items() if v} if query else {}
     return URL.create(
@@ -223,7 +225,7 @@ class G(metaclass=Singleton):
     """
     全局变量
     """
-    _initialized = False
+
     _init_lock = threading.Lock()
     _init_properties = [
         "config",
@@ -239,46 +241,46 @@ class G(metaclass=Singleton):
     @cached_property
     def config(self) -> Config:
         return Config(
-            dotenv_path=dotenv_path,
-            yaml_path=yaml_path,
+            dotenv_path=DOTENV_PATH,
+            yaml_path=YAML_PATH,
         )
 
     @cached_property
     def logger(self) -> Logger:
         return init_logger(
-            level="DEBUG" if self.config.app_debug else "INFO",
-            serialize=self.config.app_log_serialize,
-            outdir=self.config.app_log_outdir,
+            level="DEBUG" if self.config.APP_DEBUG else "INFO",
+            serialize=self.config.APP_LOG_SERIALIZE,
+            outdir=self.config.APP_LOG_OUTDIR,
         )
 
     @cached_property
     def redis_cli(self) -> RedisCli:
         return init_redis_cli(
-            host=self.config.redis_host,
-            port=self.config.redis_port,
-            db=self.config.redis_db,
-            password=self.config.redis_password,
-            max_connections=self.config.redis_max_connections,
+            host=self.config.REDIS_HOST,
+            port=self.config.REDIS_PORT,
+            db=self.config.REDIS_DB,
+            password=self.config.REDIS_PASSWORD,
+            max_connections=self.config.REDIS_MAX_CONNECTIONS,
         )
 
     @cached_property
     def snow_cli(self) -> SnowFlake:
         return init_snow_cli(
             redis_cli=getattr(self, "redis_cli", None),
-            datacenter_id=self.config.snow_datacenter_id,
+            datacenter_id=self.config.SNOW_DATACENTER_ID,
         )
 
     @cached_property
     def db_async_session(self) -> sessionmaker:
         return init_db_async_session(
-            db_drivername=self.config.db_async_drivername,
-            db_database=self.config.db_database,
-            db_username=self.config.db_username,
-            db_password=self.config.db_password,
-            db_host=self.config.db_host,
-            db_port=self.config.db_port,
-            db_charset=self.config.db_charset,
-            db_echo=self.config.app_debug,
+            db_drivername=self.config.DB_ASYNC_DRIVERNAME,
+            db_database=self.config.DB_DATABASE,
+            db_username=self.config.DB_USERNAME,
+            db_password=self.config.DB_PASSWORD,
+            db_host=self.config.DB_HOST,
+            db_port=self.config.DB_PORT,
+            db_charset=self.config.DB_CHARSET,
+            db_echo=self.config.APP_DEBUG,
         )
 
     def setup(self):

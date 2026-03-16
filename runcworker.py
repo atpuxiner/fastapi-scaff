@@ -6,6 +6,7 @@
 @description
 @history
 """
+
 import argparse
 import platform
 import subprocess
@@ -15,8 +16,8 @@ from os import cpu_count
 def main(
     name: str,  # `<celery_module>/consumer/workers`下的模块名
     loglevel: str = "info",
-    concurrency: int = None,
-    pool: str = None,
+    concurrency: int | None = None,
+    pool: str | None = None,
     celery_module: str = "app_celery",
 ):
     parser = argparse.ArgumentParser(description="CeleryWorker启动器")
@@ -33,11 +34,11 @@ def main(
     celery_module = args.celery_module or celery_module
     if pool is None:
         if platform.system().lower().startswith("win"):
-            pool = 'gevent'
+            pool = "gevent"
             if not concurrency:
                 concurrency = 100
         else:
-            pool = 'prefork'
+            pool = "prefork"
             if not concurrency:
                 concurrency = cpu_count()
     command = [
@@ -55,7 +56,7 @@ def main(
     )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(
         name="ping",
     )

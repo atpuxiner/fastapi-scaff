@@ -11,7 +11,6 @@ from app.api.status import Status
 from app.initializer import g
 from app.utils.jwt_util import verify_jwt
 
-
 # -------------------- jwt --------------------
 
 _REFRESH_TOKEN_COOKIE_NAME = "x_refresh_token"
@@ -29,11 +28,11 @@ class JWTUser(BaseModel):
 
     @staticmethod
     async def get_user_jwt_key(user_id: str) -> str | None:
-        if g.config.jwt_key:  # 直接从环境中获取（适用于不存数据库的场景）
-            return g.config.jwt_key
+        if g.config.JWT_KEY:  # 直接从环境中获取（适用于不存数据库的场景）
+            return g.config.JWT_KEY
         # 建议：jwt_key进行redis缓存
         table = quoted_name("users", quote=True)
-        sql = f"SELECT jwt_key FROM {table} WHERE id = :id"  # noqa
+        sql = f"SELECT jwt_key FROM {table} WHERE id = :id"
         async with g.db_async_session() as session:
             result = await session.execute(text(sql), params={"id": int(user_id)})
             row = result.fetchone()
@@ -56,7 +55,7 @@ async def verify_jwt_token(token: str, typ: str) -> JWTUser:
         # 验证
         verify_jwt(token=token, key=user_jwt_key, typ=typ)
     except Exception as e:
-        raise CustomException(status=Status.UNAUTHORIZED_ERROR, error=e)
+        raise CustomException(status=Status.UNAUTHORIZED_ERROR, error=e) from e
     return JWTUser(**payload)
 
 
@@ -104,7 +103,7 @@ class JWTCookie:
 
 
 async def get_current_user(
-    credentials: JWTAuthorizationCredentials | None = Depends(JWTBearer(auto_error=True))
+    credentials: JWTAuthorizationCredentials | None = Depends(JWTBearer(auto_error=True)),
 ) -> JWTUser:
     """获取当前用户，用于认证 access token（从 Authorization header）"""
     if not credentials:
@@ -113,7 +112,7 @@ async def get_current_user(
 
 
 async def get_current_user_from_refresh_token(
-    jwt_user: JWTUser | None = Depends(JWTCookie(auto_error=True))
+    jwt_user: JWTUser | None = Depends(JWTCookie(auto_error=True)),
 ) -> JWTUser:
     """获取当前用户，用于认证 refresh token（从 Cookie）"""
     if not jwt_user:
@@ -126,12 +125,10 @@ async def get_current_user_from_refresh_token(
 _API_KEY_HEADER = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
-async def get_current_api_key(
-    api_key: str | None = Security(_API_KEY_HEADER)
-) -> str:
+async def get_current_api_key(api_key: str | None = Security(_API_KEY_HEADER)) -> str:
     """获取当前 api key, 用于认证 api key"""
     if not api_key:
         raise CustomException(status=Status.UNAUTHORIZED_ERROR, error="API key is missing or empty")
-    if api_key not in g.config.api_keys:
+    if api_key not in g.config.API_KEYS:
         raise CustomException(status=Status.UNAUTHORIZED_ERROR, error="Invalid API key")
     return api_key

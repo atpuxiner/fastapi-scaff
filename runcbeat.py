@@ -6,14 +6,15 @@
 @description
 @history
 """
+
 import argparse
 import subprocess
 
 
 def main(
     loglevel: str = "info",
-    scheduler: str = None,
-    pidfile: str = None,
+    scheduler: str | None = None,
+    pidfile: str | None = None,
     max_interval: int = 5,
     celery_module: str = "app_celery",
 ):
@@ -44,5 +45,5 @@ def main(
     subprocess.run(command, check=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

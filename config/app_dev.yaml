@@ -1,46 +1,46 @@
 # 请根据自身需求修改
-app_title: xApp-dev
-app_summary: xxApp-dev
-app_description: xxxApp-dev
-app_version: 1.0.0
-app_debug: true
-app_log_serialize: false
-app_log_outdir: ./logs
-app_disable_docs: false
-app_allow_credentials: true
-app_allow_origins:
-  - '*'
-app_allow_methods:
-  - '*'
-app_allow_headers:
-  - '*'
+APP_TITLE: xApp-dev
+APP_SUMMARY: xxApp-dev
+APP_DESCRIPTION: xxxApp-dev
+APP_VERSION: 1.0.0
+APP_DEBUG: true
+APP_LOG_SERIALIZE: false
+APP_LOG_OUTDIR: ./logs
+APP_DISABLE_DOCS: false
+APP_ALLOW_CREDENTIALS: true
+APP_ALLOW_ORIGINS:
+  - "*"
+APP_ALLOW_METHODS:
+  - "*"
+APP_ALLOW_HEADERS:
+  - "*"
 # #
-db_drivername: sqlite
-db_async_drivername: sqlite+aiosqlite
-db_database: app_dev.sqlite
-db_username:
-db_password:
-db_host:
-db_port:
-db_charset:
-redis_host: 127.0.0.1
-redis_port: 6379
-redis_db: 0
-redis_password:
-redis_max_connections:
+DB_DRIVERNAME: sqlite
+DB_ASYNC_DRIVERNAME: sqlite+aiosqlite
+DB_DATABASE: app_dev.sqlite
+DB_USERNAME:
+DB_PASSWORD:
+DB_HOST:
+DB_PORT:
+DB_CHARSET:
+REDIS_HOST: 127.0.0.1
+REDIS_PORT: 6379
+REDIS_DB: 0
+REDIS_PASSWORD:
+REDIS_MAX_CONNECTIONS:
 # #
-celery_broker_url: redis://:<password>@<host>:<port>/<db>
-celery_backend_url: redis://:<password>@<host>:<port>/<db>
-celery_timezone: Asia/Shanghai
-celery_enable_utc: true
-celery_task_serializer: json
-celery_result_serializer: json
-celery_accept_content: [ json ]
-celery_task_ignore_result: false
-celery_result_expire: 86400
-celery_task_track_started: true
-celery_worker_concurrency: 8
-celery_worker_prefetch_multiplier: 2
-celery_worker_max_tasks_per_child: 100
-celery_broker_connection_retry_on_startup: true
-celery_task_reject_on_worker_lost: true
+CELERY_BROKER_URL: redis://:<password>@<host>:<port>/<db>
+CELERY_BACKEND_URL: redis://:<password>@<host>:<port>/<db>
+CELERY_TIMEZONE: Asia/Shanghai
+CELERY_ENABLE_UTC: true
+CELERY_TASK_SERIALIZER: json
+CELERY_RESULT_SERIALIZER: json
+CELERY_ACCEPT_CONTENT: [json]
+CELERY_TASK_IGNORE_RESULT: false
+CELERY_RESULT_EXPIRE: 86400
+CELERY_TASK_TRACK_STARTED: true
+CELERY_WORKER_CONCURRENCY: 8
+CELERY_WORKER_PREFETCH_MULTIPLIER: 2
+CELERY_WORKER_MAX_TASKS_PER_CHILD: 100
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP: true
+CELERY_TASK_REJECT_ON_WORKER_LOST: true
