@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, Query
 from app.api.dependencies import JWTUser, get_current_user
 from app.api.responses import Responses, response_docs
 from app.models.tpl import (
-    TplList,
     TplCreate,
+    TplList,
     TplUpdate,
 )
 from app.services.tpl import TplSvc, get_tpl_svc

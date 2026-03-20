@@ -6,7 +6,7 @@ import importlib
 import sys
 from pathlib import Path
 
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, FastAPI
 from loguru import logger
 
 from app import APP_DIR

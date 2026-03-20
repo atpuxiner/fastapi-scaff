@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, Query
 
 from app.api.responses import Responses, response_docs
 from app.services.tpl import (
-    TplSvc,
     TplList,
+    TplSvc,
     get_tpl_svc,
 )
 

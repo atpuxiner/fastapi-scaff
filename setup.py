@@ -7,13 +7,13 @@
 @history
 """
 
-from contextlib import suppress
 import os
 import re
+from contextlib import suppress
 from pathlib import Path
 from shutil import rmtree
 
-from setuptools import setup, Command
+from setuptools import Command, setup
 
 here = Path(__file__).resolve().parent
 pkg_name = "fastapi_scaff"

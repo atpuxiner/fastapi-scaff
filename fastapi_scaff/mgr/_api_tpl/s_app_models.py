@@ -1,4 +1,4 @@
-from pydantic import Field, BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import BigInteger, String
 from sqlalchemy.orm import mapped_column
 

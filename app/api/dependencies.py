@@ -1,5 +1,5 @@
 from fastapi import Depends, Security
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.security.utils import get_authorization_scheme_param
 from pydantic import BaseModel
 from sqlalchemy import text
