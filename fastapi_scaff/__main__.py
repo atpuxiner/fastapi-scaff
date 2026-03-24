@@ -33,10 +33,15 @@ def main():
 examples:
   New project:                      fastapi-scaff new myproj
   New project with DB & Redis:      fastapi-scaff new myproj -d postgresql --redis
+  New project with . & force:       fastapi-scaff new . --force
   Add an API endpoint:              fastapi-scaff add myapi[myapis]
   Add multiple APIs:                fastapi-scaff add myapi1[myapi1s],myapi2[myapi2s] -s myapi
   
-  💡 Tip: API Naming Convention
+  💡 Tip:
+    1. Project Naming Convention
+    - Use '.' to represent the current directory name, can be combined with --force flag.
+
+    2. API Naming Convention
     The plural form in square brackets [myapis] is used for:
     - RESTful URL paths (e.g., /api/v1/myapis)
     - Database table names (e.g., myapis table)
@@ -98,6 +103,10 @@ class CMD:
             sys.stderr.write(f"{prog}: name cannot be empty\n")
             sys.exit(1)
         if args.command == "new":
+            args.is_dot = args.name == "."
+            if args.is_dot:
+                args.name = Path.cwd().name
+                os.chdir("..")
             pattern = r"^[A-Za-z][A-Za-z0-9_-]{0,64}$"
             if not re.search(pattern, args.name):
                 sys.stderr.write(f"{prog}: '{args.name}' only support regex: {pattern}\n")
@@ -127,11 +136,12 @@ class CMD:
     def new(self):
         sys.stdout.write("Starting new project...\n")
         name = Path(self.args.name)
+        _show_name = f'..{os.sep}{name}' if self.args.is_dot else name
         if name.is_dir() and any(name.iterdir()):
             if self.args.force:
-                sys.stderr.write(f"{prog}: '{name}' already exists, will overwrite existing files\n")
+                sys.stderr.write(f"{prog}: '{_show_name}' already exists, will overwrite existing files\n")
             else:
-                sys.stderr.write(f"{prog}: '{name}' exists\n")
+                sys.stderr.write(f"{prog}: '{_show_name}' already exists\n")
                 sys.exit(1)
         name.mkdir(parents=True, exist_ok=True)
         with open(here.joinpath("_project_tpl.json"), "r") as f:
@@ -152,7 +162,7 @@ class CMD:
                         f.write(v)
         sys.stdout.write(
             "Done. Now run:\n"
-            f"> 1. cd {name}\n"
+            f"> 1. cd {_show_name}\n"
             f"> 2. modify config{'' if (self.args.template == 'single' or self.args.db == 'no') else ', eg: db'}\n"
             f"> 3. pip install -r requirements.txt\n"
             f"> 4. python runserver.py\n"
@@ -596,7 +606,7 @@ class CMD:
                     if mod == "app/api":
                         mod = f"{mod}/{vn}"
                     if subdir:
-                        mod = mod + os.sep + subdir
+                        mod = f"{mod}/{subdir}"
                     curr_mod_file = work_dir.joinpath(mod, name + ".py")
                     if curr_mod_file.is_file():
                         existed_file = curr_mod_file
@@ -636,7 +646,9 @@ class CMD:
                 curr_mod_file = curr_mod_dir.joinpath(name + ".py")
                 _is_existed = curr_mod_file.is_file()
                 with open(curr_mod_file, "w", encoding="utf-8") as f:
-                    sys.stdout.write(f"[{name}] {'Overwriting' if _is_existed else 'Writing'} {curr_mod_file.relative_to(work_dir)}\n")
+                    sys.stdout.write(
+                        f"[{name}] {'Overwriting' if _is_existed else 'Writing'} {curr_mod_file.relative_to(work_dir)}\n"
+                    )
                     k = f"{target}_{mod.replace('/', '_')}.py"
                     if target == "s" and nodeclorm:
                         k = f"{k[:-3]}_nodeclorm.py"
