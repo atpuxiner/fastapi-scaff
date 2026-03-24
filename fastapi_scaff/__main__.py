@@ -79,6 +79,7 @@ examples:
         help="(add) Specify subdirectory for the API (default: none)",
     )
     parser.add_argument("--celery", action="store_true", help="(new|add) Specify Celery (default: no)")
+    parser.add_argument("--force", action="store_true", help="(new|add) Force overwrite")
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit()
@@ -127,8 +128,11 @@ class CMD:
         sys.stdout.write("Starting new project...\n")
         name = Path(self.args.name)
         if name.is_dir() and any(name.iterdir()):
-            sys.stderr.write(f"{prog}: '{name}' exists\n")
-            sys.exit(1)
+            if self.args.force:
+                sys.stderr.write(f"{prog}: '{name}' already exists, will overwrite existing files\n")
+            else:
+                sys.stderr.write(f"{prog}: '{name}' exists\n")
+                sys.exit(1)
         name.mkdir(parents=True, exist_ok=True)
         with open(here.joinpath("_project_tpl.json"), "r") as f:
             project_tpl = json.loads(f.read())
@@ -586,21 +590,22 @@ class CMD:
             else:
                 names = name
             sys.stdout.write("Adding api:\n")
-            existed_file = None
-            for mod in tpl_mods:
-                if mod == "app/api":
-                    mod = f"{mod}/{vn}"
-                if subdir:
-                    mod = mod + os.sep + subdir
-                curr_mod_file = work_dir.joinpath(mod, name + ".py")
-                if curr_mod_file.is_file():
-                    existed_file = curr_mod_file
-                    break
-            if existed_file:
-                sys.stderr.write(
-                    f"[{name}] Existed {existed_file.relative_to(work_dir)}. Operation cancelled, please handle manually.\n"
-                )
-                continue
+            if not self.args.force:
+                existed_file = None
+                for mod in tpl_mods:
+                    if mod == "app/api":
+                        mod = f"{mod}/{vn}"
+                    if subdir:
+                        mod = mod + os.sep + subdir
+                    curr_mod_file = work_dir.joinpath(mod, name + ".py")
+                    if curr_mod_file.is_file():
+                        existed_file = curr_mod_file
+                        break
+                if existed_file:
+                    sys.stderr.write(
+                        f"[{name}] Existed {existed_file.relative_to(work_dir)}. Operation cancelled, please handle manually.\n"
+                    )
+                    continue
             for mod in tpl_mods:
                 # dir
                 curr_mod_dir = work_dir.joinpath(mod)
@@ -629,8 +634,9 @@ class CMD:
                             f.write(f"""\"\"\"\n{subdir}\n\"\"\"\n\n_prefix = "/{subdir}"\n""")
                 # file
                 curr_mod_file = curr_mod_dir.joinpath(name + ".py")
+                _is_existed = curr_mod_file.is_file()
                 with open(curr_mod_file, "w", encoding="utf-8") as f:
-                    sys.stdout.write(f"[{name}] Writing {curr_mod_file.relative_to(work_dir)}\n")
+                    sys.stdout.write(f"[{name}] {'Overwriting' if _is_existed else 'Writing'} {curr_mod_file.relative_to(work_dir)}\n")
                     k = f"{target}_{mod.replace('/', '_')}.py"
                     if target == "s" and nodeclorm:
                         k = f"{k[:-3]}_nodeclorm.py"
