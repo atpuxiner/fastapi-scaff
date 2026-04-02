@@ -96,15 +96,19 @@ class HttpMiddleware(BaseHTTPMiddleware):
     async def handle_exception(
         request: Request,
         exc: Exception,
-        is_traceback: bool = True,
+        log_traceback: bool = True,
+        log_request: bool = False,
     ) -> JSONResponse:
-        msg = "内部服务器错误"
+        msg = "服务开小差了，请稍后再试"
         code = 500
         lmsg = f'- "{request.method} {request.url.path}" {code} {type(exc).__name__}: {exc}'
-        if is_traceback:
+        if log_traceback:
             logger.exception(lmsg)
         else:
             logger.error(lmsg)
+        if log_request:
+            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
+            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         content = {
             "msg": msg,
             "code": code,
@@ -123,7 +127,8 @@ class ExceptionsHandler:
         request: Request,
         exc: RequestValidationError,
         display_all: bool = False,
-        is_traceback: bool = True,
+        log_traceback: bool = True,
+        log_request: bool = False,
     ) -> JSONResponse:
         if display_all:
             msg = " & ".join(
@@ -137,10 +142,13 @@ class ExceptionsHandler:
             msg = f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"
         code = 400
         lmsg = f'- "{request.method} {request.url.path}" {code} {msg}'
-        if is_traceback:
+        if log_traceback:
             logger.exception(lmsg)
         else:
             logger.error(lmsg)
+        if log_request:
+            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
+            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         content = {
             "msg": msg,
             "code": code,
@@ -156,13 +164,17 @@ class ExceptionsHandler:
     async def http_exception_handler(
         request: Request,
         exc: HTTPException,
-        is_traceback: bool = True,
+        log_traceback: bool = True,
+        log_request: bool = False,
     ) -> JSONResponse:
         lmsg = f'- "{request.method} {request.url.path}" {exc.status_code} {exc.detail}'
-        if is_traceback:
+        if log_traceback:
             logger.exception(lmsg)
         else:
             logger.error(lmsg)
+        if log_request:
+            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
+            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         content = {
             "msg": exc.detail,
             "code": exc.status_code,

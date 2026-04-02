@@ -46,15 +46,19 @@ class HttpMiddleware(BaseHTTPMiddleware):
     async def handle_exception(
         request: Request,
         exc: Exception,
-        is_traceback: bool = True,
+        log_traceback: bool = True,
+        log_request: bool = False,
     ) -> JSONResponse:
         lmsg = (
             f'- "{request.method} {request.url.path}" {Status.INTERNAL_SERVER_ERROR.code} {type(exc).__name__}: {exc}'
         )
-        if is_traceback:
+        if log_traceback:
             logger.exception(lmsg)
         else:
             logger.error(lmsg)
+        if log_request:
+            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
+            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         return Responses.failure(
             error=exc,
             status=Status.INTERNAL_SERVER_ERROR,

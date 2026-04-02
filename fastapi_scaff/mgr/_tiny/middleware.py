@@ -81,15 +81,19 @@ class HttpMiddleware(BaseHTTPMiddleware):
     async def handle_exception(
         request: Request,
         exc: Exception,
-        is_traceback: bool = True,
+        log_traceback: bool = True,
+        log_request: bool = False,
     ) -> JSONResponse:
         lmsg = (
             f'- "{request.method} {request.url.path}" {Status.INTERNAL_SERVER_ERROR.code} {type(exc).__name__}: {exc}'
         )
-        if is_traceback:
+        if log_traceback:
             logger.exception(lmsg)
         else:
             logger.error(lmsg)
+        if log_request:
+            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
+            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         return Responses.failure(
             error=exc,
             status=Status.INTERNAL_SERVER_ERROR,
@@ -101,13 +105,17 @@ class ExceptionsHandler:
     async def custom_exception_handler(
         request: Request,
         exc: CustomException,
-        is_traceback: bool = True,
+        log_traceback: bool = True,
+        log_request: bool = False,
     ) -> JSONResponse:
         lmsg = f'- "{request.method} {request.url.path}" {exc.code} {exc.msg}'
-        if is_traceback:
+        if log_traceback:
             logger.exception(lmsg)
         else:
             logger.error(lmsg)
+        if log_request:
+            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
+            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         return Responses.failure(
             msg=exc.msg,
             code=exc.code,
@@ -120,7 +128,8 @@ class ExceptionsHandler:
         request: Request,
         exc: RequestValidationError,
         display_all: bool = False,
-        is_traceback: bool = True,
+        log_traceback: bool = True,
+        log_request: bool = False,
     ) -> JSONResponse:
         if display_all:
             msg = " & ".join(
@@ -133,10 +142,13 @@ class ExceptionsHandler:
             error = exc.errors()[0]
             msg = f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"
         lmsg = f'- "{request.method} {request.url.path}" {Status.PARAMS_ERROR.code} {msg}'
-        if is_traceback:
+        if log_traceback:
             logger.exception(lmsg)
         else:
             logger.error(lmsg)
+        if log_request:
+            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
+            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         return Responses.failure(
             msg=msg,
             error=exc,
@@ -147,13 +159,17 @@ class ExceptionsHandler:
     async def http_exception_handler(
         request: Request,
         exc: HTTPException,
-        is_traceback: bool = True,
+        log_traceback: bool = True,
+        log_request: bool = False,
     ) -> JSONResponse:
         lmsg = f'- "{request.method} {request.url.path}" {exc.status_code} {exc.detail}'
-        if is_traceback:
+        if log_traceback:
             logger.exception(lmsg)
         else:
             logger.error(lmsg)
+        if log_request:
+            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
+            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         return Responses.failure(
             msg=exc.detail,
             code=exc.status_code,
