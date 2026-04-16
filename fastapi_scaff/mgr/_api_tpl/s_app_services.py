@@ -1,11 +1,11 @@
 from functools import lru_cache
 
+from app.models.tpl import Tpl
 from sqlalchemy.exc import IntegrityError
 
 from app.api.exceptions import CustomException
 from app.api.status import Status
 from app.initializer import g
-from app.models.tpl import Tpl
 
 
 class TplSvc:
@@ -95,6 +95,6 @@ class TplSvc:
             return {"id": tpl_id}
 
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=1)
 def get_tpl_svc() -> TplSvc:
     return TplSvc()

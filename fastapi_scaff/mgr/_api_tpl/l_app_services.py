@@ -17,6 +17,6 @@ class TplSvc:
         return {"items": result, "total": total}
 
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=1)
 def get_tpl_svc() -> TplSvc:
     return TplSvc()

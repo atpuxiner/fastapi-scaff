@@ -234,6 +234,6 @@ class UserSvc:
         }
 
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=1)
 def get_user_svc() -> UserSvc:
     return UserSvc()
