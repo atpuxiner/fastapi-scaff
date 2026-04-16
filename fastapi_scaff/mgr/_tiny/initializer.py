@@ -3,7 +3,6 @@
 """
 
 import os
-import threading
 from contextvars import ContextVar
 from functools import cached_property
 from pathlib import Path
@@ -226,7 +225,6 @@ class G(metaclass=Singleton):
     全局变量
     """
 
-    _init_lock = threading.Lock()
     _init_properties = [
         "config",
         "logger",
@@ -283,15 +281,17 @@ class G(metaclass=Singleton):
             db_echo=self.config.APP_DEBUG,
         )
 
-    def setup(self):
-        with self._init_lock:
-            if not self._initialized:
-                for prop_name in self._init_properties:
-                    if hasattr(self, prop_name):
-                        getattr(self, prop_name)
-                    else:
-                        logger.warning(f"{prop_name} not found")
-                self._initialized = True
+    def setup(self, force: bool = False):
+        if force or not self._initialized:
+            if force:
+                for prop in self._init_properties:
+                    self.__dict__.pop(prop, None)  # type: ignore
+            for prop_name in self._init_properties:
+                if hasattr(self, prop_name):
+                    getattr(self, prop_name)
+                else:
+                    logger.warning(f"{prop_name} not found")
+            self._initialized = True
 
 
 g = G()

@@ -1,11 +1,11 @@
 from functools import lru_cache
 
-from app.models.tpl import Tpl
 from sqlalchemy.exc import IntegrityError
 
 from app.api.exceptions import CustomException
 from app.api.status import Status
 from app.initializer import g
+from app.models.tpl import Tpl
 
 
 class TplSvc:

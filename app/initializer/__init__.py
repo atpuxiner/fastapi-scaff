@@ -2,7 +2,6 @@
 初始化
 """
 
-import threading
 from functools import cached_property
 
 from loguru import logger
@@ -24,7 +23,6 @@ class G(metaclass=Singleton):
     全局变量
     """
 
-    _init_lock = threading.Lock()
     _init_properties = (
         "config",
         "logger",
@@ -79,15 +77,17 @@ class G(metaclass=Singleton):
             is_create_tables=True,
         )
 
-    def setup(self):
-        with self._init_lock:
-            if not self._initialized:
-                for prop_name in self._init_properties:
-                    if hasattr(self, prop_name):
-                        getattr(self, prop_name)
-                    else:
-                        logger.warning(f"{prop_name} not found")
-                self._initialized = True
+    def setup(self, force: bool = False):
+        if force or not self._initialized:
+            if force:
+                for prop in self._init_properties:
+                    self.__dict__.pop(prop, None)  # type: ignore
+            for prop_name in self._init_properties:
+                if hasattr(self, prop_name):
+                    getattr(self, prop_name)
+                else:
+                    logger.warning(f"{prop_name} not found")
+            self._initialized = True
 
 
 g = G()
