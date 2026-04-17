@@ -1,5 +1,6 @@
+import logging
+
 from fastapi.exceptions import RequestValidationError
-from loguru import logger
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -7,6 +8,8 @@ from starlette.responses import JSONResponse
 from app.api.exceptions import CustomException
 from app.api.responses import Responses
 from app.api.status import Status
+
+logger = logging.getLogger(__name__)
 
 
 class ExceptionsHandler:

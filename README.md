@@ -66,7 +66,7 @@
     - tiny：Please create and view (with `-t tiny`)
     - single：Please create and view (with `-t single`)
 
-- 【Tips】Database, Redis, Snowflake and Celery can all be controlled through parameters to integrate or not, allowing you to flexibly customize the functional modules needed for your project.
+- 【Tips】Database, Loguru, Redis, Snowflake and Celery can all be controlled through parameters to integrate or not, allowing you to flexibly customize the functional modules needed for your project.
 
 ## Installation
 

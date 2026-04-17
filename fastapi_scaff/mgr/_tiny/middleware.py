@@ -2,11 +2,11 @@
 中间件
 """
 
+import logging
 import uuid
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
-from loguru import logger
 from starlette.exceptions import HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.middleware.cors import CORSMiddleware
@@ -21,6 +21,8 @@ from app.initializer import g, request_id_var
 __all__ = [
     "register_middlewares",
 ]
+
+logger = logging.getLogger(__name__)
 
 
 def register_middlewares(app: FastAPI):

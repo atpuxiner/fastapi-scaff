@@ -1,12 +1,14 @@
+import logging
 import os
 
-from loguru import logger
 from toollib.guid import SnowFlake
 from toollib.utils import localip
 
 _CACHE_KEY_SNOW_WORKER_ID_INCR = "config:snow_worker_id_incr"
 _CACHE_KEY_SNOW_DATACENTER_ID_INCR = "config:snow_datacenter_id_incr"
 _CACHE_EXPIRE_SNOW = 120
+
+logger = logging.getLogger(__name__)
 
 
 def init_snow_cli(

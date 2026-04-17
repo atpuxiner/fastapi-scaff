@@ -3,16 +3,18 @@
 """
 
 import importlib
+import logging
 import sys
 from pathlib import Path
 
 from fastapi import APIRouter, FastAPI
-from loguru import logger
 
 from app import APP_DIR
 
 _API_MOD_DIR = APP_DIR.joinpath("api")
 _API_MOD_BASE = "app.api"
+
+logger = logging.getLogger(__name__)
 
 
 def register_routers(

@@ -2,18 +2,17 @@
 初始化
 """
 
+import logging
 import os
 from contextvars import ContextVar
 from functools import cached_property
 from pathlib import Path
 
-from loguru import logger
-from loguru._logger import Logger
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from toollib import logu
 from toollib.guid import SnowFlake
+from toollib.logu import init_logger as _init_logger
 from toollib.rediscli import RedisCli
 from toollib.utils import ConfModel, FrozenVar, Singleton, localip
 
@@ -23,6 +22,8 @@ __all__ = [
     "g",
     "request_id_var",
 ]
+
+logger = logging.getLogger(__name__)
 
 _CONFIG_DIR = APP_DIR.parent.joinpath("config")
 
@@ -75,11 +76,11 @@ def init_logger(
     level: str,
     serialize: bool = False,
     outdir: str | None = None,
-) -> Logger:
+):
     enable_console, enable_file = True, True
     if os.getenv("APP_ENV") == "prod":
         enable_console, enable_file = False, True  # 按需调整
-    _logger = logu.init_logger(
+    logger = _init_logger(
         level=level,
         request_id_var=request_id_var,
         serialize=serialize,
@@ -87,8 +88,7 @@ def init_logger(
         enable_file=enable_file,
         outdir=outdir,
     )
-    # _logger.add 可添加其他 handler
-    return _logger
+    return logger
 
 
 def init_redis_cli(
@@ -244,7 +244,7 @@ class G(metaclass=Singleton):
         )
 
     @cached_property
-    def logger(self) -> Logger:
+    def logger(self):
         return init_logger(
             level="DEBUG" if self.config.APP_DEBUG else "INFO",
             serialize=self.config.APP_LOG_SERIALIZE,

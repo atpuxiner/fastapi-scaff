@@ -2,10 +2,9 @@
 初始化
 """
 
+import logging
 from functools import cached_property
 
-from loguru import logger
-from loguru._logger import Logger
 from sqlalchemy.orm import sessionmaker
 from toollib.guid import SnowFlake
 from toollib.rediscli import RedisCli
@@ -16,6 +15,8 @@ from app.initializer._db import init_db_async_session
 from app.initializer._log import init_logger
 from app.initializer._redis import init_redis_cli
 from app.initializer._snow import init_snow_cli
+
+logger = logging.getLogger(__name__)
 
 
 class G(metaclass=Singleton):
@@ -39,7 +40,7 @@ class G(metaclass=Singleton):
         return init_config()
 
     @cached_property
-    def logger(self) -> Logger:
+    def logger(self):
         return init_logger(
             level="DEBUG" if self.config.APP_DEBUG else "INFO",
             serialize=self.config.APP_LOG_SERIALIZE,

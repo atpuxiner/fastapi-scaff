@@ -11,7 +11,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-from loguru import logger
 
 from app import (
     api,
@@ -30,14 +29,14 @@ if g.config.APP_DISABLE_DOCS is True:
 
 @asynccontextmanager
 async def lifespan(xapp: FastAPI):
-    logger.info(f"Application env '{g.config.APP_ENV}'")
-    logger.info(f"Application yaml '{g.config.YAML_PATH.name}'")
-    logger.info(f"Application title '{g.config.APP_TITLE}'")
-    logger.info(f"Application version '{g.config.APP_VERSION}'")
+    g.logger.info(f"Application env '{g.config.APP_ENV}'")
+    g.logger.info(f"Application yaml '{g.config.YAML_PATH.name}'")
+    g.logger.info(f"Application title '{g.config.APP_TITLE}'")
+    g.logger.info(f"Application version '{g.config.APP_VERSION}'")
     # #
-    logger.info("Application server running")
+    g.logger.info("Application server running")
     yield
-    logger.info("Application server shutdown")
+    g.logger.info("Application server shutdown")
 
 
 app = FastAPI(
