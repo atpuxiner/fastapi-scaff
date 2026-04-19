@@ -48,18 +48,6 @@ async def lifespan(xapp: FastAPI):
     logger.info("Application server shutdown")
 
 
-class CorsMiddleware(CORSMiddleware):
-    def __init__(self, xapp, **kwargs):
-        super().__init__(
-            xapp,
-            allow_credentials=config.APP_ALLOW_CREDENTIALS,
-            allow_origins=config.APP_ALLOW_ORIGINS,
-            allow_methods=config.APP_ALLOW_METHODS,
-            allow_headers=config.APP_ALLOW_HEADERS,
-            **kwargs,
-        )
-
-
 class HttpMiddleware(BaseHTTPMiddleware):
     _HEADERS = {
         # 可添加相关头
@@ -70,7 +58,7 @@ class HttpMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: RequestResponseEndpoint,
     ) -> Response:
-        request_id = self._get_or_create_request_id(request)
+        request_id = await self._get_or_create_request_id(request)
         request.state.request_id = request_id
         token = request_id_var.set(request_id)
         try:
@@ -86,7 +74,7 @@ class HttpMiddleware(BaseHTTPMiddleware):
             request_id_var.reset(token)
 
     @staticmethod
-    def _get_or_create_request_id(request: Request, prefix: str = "req-") -> str:
+    async def _get_or_create_request_id(request: Request, prefix: str = "req-") -> str:
         request_id = request.headers.get("X-Request-ID")
         if not request_id:
             request_id = f"{prefix}{uuid.uuid4().hex}"
@@ -118,6 +106,18 @@ class HttpMiddleware(BaseHTTPMiddleware):
             content["error"] = str(exc)
         return JSONResponse(
             content=content,
+        )
+
+
+class CorsMiddleware(CORSMiddleware):
+    def __init__(self, xapp, **kwargs):
+        super().__init__(
+            xapp,
+            allow_credentials=config.APP_ALLOW_CREDENTIALS,
+            allow_origins=config.APP_ALLOW_ORIGINS,
+            allow_methods=config.APP_ALLOW_METHODS,
+            allow_headers=config.APP_ALLOW_HEADERS,
+            **kwargs,
         )
 
 
@@ -200,8 +200,8 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
 )
 # #
-app.add_middleware(CorsMiddleware)
 app.add_middleware(HttpMiddleware)
+app.add_middleware(CorsMiddleware)
 app.add_exception_handler(RequestValidationError, ExceptionsHandler.request_validation_handler)
 app.add_exception_handler(HTTPException, ExceptionsHandler.http_exception_handler)
 app.include_router(router)

@@ -22,7 +22,7 @@ class HttpMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: RequestResponseEndpoint,
     ) -> Response:
-        request_id = self._get_or_create_request_id(request)
+        request_id = await self._get_or_create_request_id(request)
         request.state.request_id = request_id
         token = request_id_var.set(request_id)
         try:
@@ -38,7 +38,7 @@ class HttpMiddleware(BaseHTTPMiddleware):
             request_id_var.reset(token)
 
     @staticmethod
-    def _get_or_create_request_id(request: Request, prefix: str = "req-") -> str:
+    async def _get_or_create_request_id(request: Request, prefix: str = "req-") -> str:
         request_id = request.headers.get("X-Request-ID")
         if not request_id:
             request_id = f"{prefix}{uuid.uuid4().hex}"

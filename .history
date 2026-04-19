@@ -5,6 +5,7 @@
 - chg@调整lru缓存
 - chg@调整配置初始化
 - add@loguru可集成
+- chg@调整中间件处理
 
 ## v0.9.9
 - add@增加force参数

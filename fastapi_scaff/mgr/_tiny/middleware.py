@@ -27,24 +27,12 @@ logger = logging.getLogger(__name__)
 
 def register_middlewares(app: FastAPI):
     """注册中间件"""
-    app.add_middleware(CorsMiddleware)
     app.add_middleware(HttpMiddleware)
+    app.add_middleware(CorsMiddleware)
     # #
     app.add_exception_handler(CustomException, ExceptionsHandler.custom_exception_handler)
     app.add_exception_handler(RequestValidationError, ExceptionsHandler.request_validation_handler)
     app.add_exception_handler(HTTPException, ExceptionsHandler.http_exception_handler)
-
-
-class CorsMiddleware(CORSMiddleware):
-    def __init__(self, app, **kwargs):
-        super().__init__(
-            app,
-            allow_credentials=g.config.APP_ALLOW_CREDENTIALS,
-            allow_origins=g.config.APP_ALLOW_ORIGINS,
-            allow_methods=g.config.APP_ALLOW_METHODS,
-            allow_headers=g.config.APP_ALLOW_HEADERS,
-            **kwargs,
-        )
 
 
 class HttpMiddleware(BaseHTTPMiddleware):
@@ -57,7 +45,7 @@ class HttpMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: RequestResponseEndpoint,
     ) -> Response:
-        request_id = self._get_or_create_request_id(request)
+        request_id = await self._get_or_create_request_id(request)
         request.state.request_id = request_id
         token = request_id_var.set(request_id)
         try:
@@ -73,7 +61,7 @@ class HttpMiddleware(BaseHTTPMiddleware):
             request_id_var.reset(token)
 
     @staticmethod
-    def _get_or_create_request_id(request: Request, prefix: str = "req-") -> str:
+    async def _get_or_create_request_id(request: Request, prefix: str = "req-") -> str:
         request_id = request.headers.get("X-Request-ID")
         if not request_id:
             request_id = f"{prefix}{uuid.uuid4().hex}"
@@ -99,6 +87,18 @@ class HttpMiddleware(BaseHTTPMiddleware):
         return Responses.failure(
             error=exc,
             status=Status.INTERNAL_SERVER_ERROR,
+        )
+
+
+class CorsMiddleware(CORSMiddleware):
+    def __init__(self, app, **kwargs):
+        super().__init__(
+            app,
+            allow_credentials=g.config.APP_ALLOW_CREDENTIALS,
+            allow_origins=g.config.APP_ALLOW_ORIGINS,
+            allow_methods=g.config.APP_ALLOW_METHODS,
+            allow_headers=g.config.APP_ALLOW_HEADERS,
+            **kwargs,
         )
 
 
