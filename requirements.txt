@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
 # Python>=3.11
 fastapi-scaff==0.9.10
-fastapi==0.129.0
-uvicorn[standard]==0.40.0
+fastapi==0.136.1
+uvicorn[standard]==0.46.0
 toollib==2.1.9
-tzdata==2025.3
-python-dotenv==1.2.1
+tzdata==2026.1
+python-dotenv==1.2.2
 PyYAML==6.0.3
-orjson==3.11.7
 loguru==0.7.3
-PyJWT==2.11.0
+PyJWT==2.12.1
 bcrypt==5.0.0
-SQLAlchemy==2.0.46
+SQLAlchemy==2.0.49
 alembic==1.18.4
 aiosqlite==0.22.1
-redis==7.1.1
-celery==5.6.2
+redis==7.4.0
+celery==5.6.3
 #gunicorn

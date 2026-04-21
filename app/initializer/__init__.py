@@ -24,7 +24,7 @@ class G(metaclass=Singleton):
     全局变量
     """
 
-    _init_properties = (
+    _required_properties = (
         "config",
         "logger",
         "redis_cli",
@@ -78,12 +78,13 @@ class G(metaclass=Singleton):
             is_create_tables=True,
         )
 
-    def setup(self, force: bool = False):
+    def setup(self, force: bool = False, required_properties: tuple | None = None):
         if force or not self._initialized:
+            props = required_properties or self._required_properties or ()
             if force:
-                for prop in self._init_properties:
+                for prop in props:
                     self.__dict__.pop(prop, None)  # type: ignore
-            for prop_name in self._init_properties:
+            for prop_name in props:
                 if hasattr(self, prop_name):
                     getattr(self, prop_name)
                 else:

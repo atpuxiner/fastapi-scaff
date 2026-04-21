@@ -376,7 +376,7 @@ class CMD:
                 v = re.sub(r"^aiosqlite==.*$\n?", "\n".join(mysql) + "\n", v, flags=re.MULTILINE)
             elif self.args.db == "postgresql":
                 postgresql = [
-                    "psycopg2-binary==2.9.11",
+                    "psycopg2-binary==2.9.12",
                     "asyncpg==0.31.0",
                 ]
                 v = re.sub(r"^aiosqlite==.*$\n?", "\n".join(postgresql) + "\n", v, flags=re.MULTILINE)
