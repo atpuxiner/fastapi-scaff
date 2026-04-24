@@ -56,7 +56,6 @@ docker-compose.yaml
 docker-compose.swarm.yml
 docker-compose.swarm.yaml
 build.sh
-config/.env
 *.sqlite3
 *.sqlite
 *.db

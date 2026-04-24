@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Query
 
-from app.api.dependencies import JWTUser, get_current_user, get_current_user_from_refresh_token
-from app.api.responses import Responses, response_docs
-from app.api.status import Status
-from app.initializer import g
+from app.api.deps import JWTUser, get_current_user, get_current_user_from_refresh_token
+from app.core import g
+from app.core.responses import Responses, response_docs
+from app.core.status import Status
 from app.models.user import (
     UserCreate,
     UserList,

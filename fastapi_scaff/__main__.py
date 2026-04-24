@@ -73,6 +73,7 @@ examples:
     parser.add_argument("--loguru", action="store_true", help="(new) Specify loguru (default: logging)")
     parser.add_argument("--redis", action="store_true", help="(new) Specify Redis (default: no)")
     parser.add_argument("--snow", action="store_true", help="(new) Specify Snowflake (default: no)")
+    parser.add_argument("--migration", action="store_true", help="(new) Specify migration (default: no)")
     parser.add_argument(
         "-v", "--vn", default="v1", type=str, metavar="", help="(add) Specify API version for the API (default: v1)"
     )
@@ -173,11 +174,12 @@ class CMD:
     def _tpl_handler(self, k: str, v: str):
         for c, h in [
             (self.args.celery is False, self._tpl_celery_handler),
-            (True, self._tpl_template_handler),
-            (True, self._tpl_db_handler),
+            (1, self._tpl_template_handler),
+            (1, self._tpl_db_handler),
             (self.args.loguru is False, self._tpl_loguru_handler),
             (self.args.redis is False, self._tpl_redis_handler),
             (self.args.snow is False, self._tpl_snow_handler),
+            (self.args.migration is False, self._tpl_migration_handler),
         ]:
             if c:
                 k, v = h(k, v)
@@ -215,12 +217,7 @@ class CMD:
 
     def _tpl_template_handler(self, k, v):
         if self.args.template == "standard":
-            if k.startswith(
-                (
-                    "tiny/",
-                    "single/",
-                )
-            ):
+            if k.startswith(("single/",)):
                 return None, None
             return k, v
         elif self.args.template == "light":
@@ -230,12 +227,10 @@ class CMD:
                         filter_k="|".join(
                             [
                                 "app/api/v1/user.py",
-                                "app/migrations/",
                                 "app/models/",
                                 "app/services/user.py",
                                 "docs/",
                                 "tests/",
-                                "tiny/",
                                 "single/",
                             ]
                         )
@@ -245,13 +240,13 @@ class CMD:
                 is not None
             ):
                 return None, None
-            elif k == "app/initializer/_db.py":
+            elif k == "app/core/_db.py":
                 v = (
                     v.replace('_MODELS_MOD_DIR = APP_DIR.joinpath("models")', "_MODELS_MOD_DIR = None")
                     .replace('_MODELS_MOD_BASE = "app.models"', "_MODELS_MOD_BASE = None")
                     .replace('_DECL_BASE_NAME = "DeclBase"', "_DECL_BASE_NAME = None")
                 )
-            elif k == "app/api/status.py":
+            elif k == "app/core/status.py":
                 v = re.sub(r"^\s*USER_.*$\n?", "", v, flags=re.MULTILINE)
             elif k == "requirements.txt":
                 v = re.sub(r"^alembic==.*$\n?", "", v, flags=re.MULTILINE)
@@ -263,15 +258,11 @@ class CMD:
                         filter_k="|".join(
                             [
                                 "app/api/v1/user.py",
-                                "app/initializer/",
-                                "app/middleware/",
-                                "app/migrations/",
                                 "app/models/",
                                 "app/services/",
                                 "docs/",
                                 "tests/",
                                 "single/",
-                                "runmigration.py",
                             ]
                         )
                     ),
@@ -280,14 +271,13 @@ class CMD:
                 is not None
             ):
                 return None, None
-            elif k.startswith("tiny/"):
-                k = k.replace("tiny/", "")
-            elif k == "app/api/responses.py":
-                v = v.replace(
-                    """from app.initializer.context import request_id_var""",
-                    """from app.initializer import request_id_var""",
+            elif k == "app/core/_db.py":
+                v = (
+                    v.replace('_MODELS_MOD_DIR = APP_DIR.joinpath("models")', "_MODELS_MOD_DIR = None")
+                    .replace('_MODELS_MOD_BASE = "app.models"', "_MODELS_MOD_BASE = None")
+                    .replace('_DECL_BASE_NAME = "DeclBase"', "_DECL_BASE_NAME = None")
                 )
-            elif k == "app/api/status.py":
+            elif k == "app/core/status.py":
                 v = re.sub(r"^\s*USER_.*$\n?", "", v, flags=re.MULTILINE)
             elif k == "requirements.txt":
                 v = re.sub(r"^alembic==.*$\n?", "", v, flags=re.MULTILINE)
@@ -301,7 +291,6 @@ class CMD:
                                 "app/",
                                 "docs/",
                                 "tests/",
-                                "tiny/",
                                 "runmigration.py",
                             ]
                         )
@@ -326,24 +315,24 @@ class CMD:
             if (
                 k
                 in {
-                    "app/initializer/_db.py",
+                    "app/core/_db.py",
                     "runmigration.py",
                 }
                 or k.startswith("app/migrations/")
                 or k.endswith("user.py")
             ):
                 return None, None
-            elif k == "app/api/dependencies.py":
+            elif k == "app/api/deps.py":
                 v = re.sub(r"^from.*sqlalchemy.*$\n?", "", v, flags=re.MULTILINE)
                 v = re.sub(r"\n\s*# 建议：jwt_key进行redis缓存.*?(?=\n\s*\n|$)", "", v, flags=re.DOTALL)
-            elif k == "app/initializer/__init__.py":
+            elif k == "app/core/__init__.py":
                 v = re.sub(r"^from.*(sqlalchemy|_db).*$\n?", "", v, flags=re.MULTILINE)
                 v = re.sub(r'^\s*(?:#\s*)?"db_async_session",?\s*\n', "", v, flags=re.MULTILINE)
                 v = self._repl_funcs(func_names="db_async_session", v=v)
-            elif k == "app/initializer/_conf.py":
+            elif k == "app/core/_conf.py":
                 v = re.sub(r"^\s*DB_.*$\n?", "", v, flags=re.MULTILINE)
                 v = re.sub(r"^\s*# #[ \t]*\n(?=\s*\n)", "", v, flags=re.MULTILINE)
-            elif k == "app/initializer.py":
+            elif k == "app/core.py":
                 v = re.sub(r"^from.*sqlalchemy.*$\n?", "", v, flags=re.MULTILINE)
                 v = re.sub(r"^\s*DB_.*$\n?", "", v, flags=re.MULTILINE)
                 v = self._repl_funcs(func_names="(init_db_async_session|make_db_url|db_async_session)", v=v)
@@ -384,8 +373,8 @@ class CMD:
 
     def _tpl_loguru_handler(self, k, v):
         if k in (
-            "app/initializer/_log.py",
-            "initializer.py",
+            "app/core/_log.py",
+            "core.py",
             "main.py",
         ):
             v = v.replace("from toollib.logu", "from toollib.log")
@@ -394,15 +383,15 @@ class CMD:
         return k, v
 
     def _tpl_redis_handler(self, k, v):
-        if k == "app/initializer/_redis.py":
+        if k == "app/core/_redis.py":
             k, v = None, None
-        elif k == "app/initializer/__init__.py":
+        elif k == "app/core/__init__.py":
             v = re.sub(r"^\s*from\s+.*?(Redis|_redis).*?$\n?", "", v, flags=re.MULTILINE)
             v = re.sub(r'^\s*(?:#\s*)?"redis_cli",?\s*\n', "", v, flags=re.MULTILINE)
             v = self._repl_funcs(func_names="redis_cli", v=v)
-        elif k == "app/initializer/_conf.py" or re.search(r"config/app_(.*).yaml$", k):
+        elif k == "app/core/_conf.py" or re.search(r"config/app_(.*).yaml$", k):
             v = re.sub(r"^\s*REDIS_.*$\n?", "", v, flags=re.MULTILINE)
-        elif k == "app/initializer.py":
+        elif k == "app/core.py":
             v = re.sub(r"^\s*from\s+.*?(Redis|_redis).*?$\n?", "", v, flags=re.MULTILINE)
             v = re.sub(r'^\s*(?:#\s*)?"redis_cli",?\s*\n', "", v, flags=re.MULTILINE)
             v = self._repl_funcs(func_names="(init_redis_cli|redis_cli)", v=v)
@@ -412,18 +401,18 @@ class CMD:
         return k, v
 
     def _tpl_snow_handler(self, k, v):
-        if k == "app/api/dependencies.py":
+        if k == "app/api/deps.py":
             v = v.replace('params={"id": int(user_id)}', 'params={"id": user_id}')
-        elif k == "app/initializer/_snow.py":
+        elif k == "app/core/_snow.py":
             return None, None
-        elif k == "app/initializer/__init__.py":
+        elif k == "app/core/__init__.py":
             v = re.sub(r"^\s*from\s+.*?(Snow|_snow).*?$\n?", "", v, flags=re.MULTILINE)
             v = re.sub(r'^\s*(?:#\s*)?"snow_cli",?\s*\n', "", v, flags=re.MULTILINE)
             v = self._repl_funcs(func_names="snow_cli", v=v)
-        elif k == "app/initializer/_conf.py":
+        elif k == "app/core/_conf.py":
             v = re.sub(r"^\s*SNOW_.*$\n?", "", v, flags=re.MULTILINE)
         elif k == "app/models/user.py":
-            v = re.sub(r"^\s*from\s+.*?initializer.*?$\n?", "", v, flags=re.MULTILINE)
+            v = re.sub(r"^\s*from\s+.*?core.*?$\n?", "", v, flags=re.MULTILINE)
             v = v.replace("import gen_snow_id", "import gen_uuid_hex").replace(
                 "id = mapped_column(BigInteger, primary_key=True, default=gen_snow_id",
                 "id = mapped_column(String(32), primary_key=True, default=gen_uuid_hex",
@@ -434,9 +423,9 @@ class CMD:
                 'where={"id": int(user_id)},', 'where={"id": user_id},'
             )
         elif k == "app/utils/ext_util.py":
-            v = re.sub(r"^\s*from\s+.*?initializer.*?$\n?", "", v, flags=re.MULTILINE)
+            v = re.sub(r"^\s*from\s+.*?core.*?$\n?", "", v, flags=re.MULTILINE)
             v = self._repl_funcs(func_names="gen_snow_id", v=v)
-        elif k == "app/initializer.py":
+        elif k == "app/core.py":
             v = re.sub(r"^\s*from\s+.*?(Snow|_snow).*?$\n?", "", v, flags=re.MULTILINE)
             v = re.sub(r'^\s*(?:#\s*)?"snow_cli",?\s*\n', "", v, flags=re.MULTILINE)
             v = self._repl_funcs(func_names="(init_snow_cli|_snow_incr|snow_cli)", v=v)
@@ -445,6 +434,11 @@ class CMD:
             v = v.replace("Singleton, localip", "Singleton")
         elif k == "config/.env":
             v = re.sub(r"(?:^[ \t]*#[^\n]*\n)*^[ \t]*SNOW_[^\n]*\n?", "", v, flags=re.MULTILINE)
+        return k, v
+
+    def _tpl_migration_handler(self, k, v):
+        if k.startswith(("app/migrations/", "runmigration.py")):
+            return None, None
         return k, v
 
     @staticmethod

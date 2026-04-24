@@ -13,20 +13,21 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from app.api.exceptions import CustomException
-from app.api.responses import Responses
-from app.api.status import Status
-from app.initializer import g, request_id_var
+from app.core import g
+from app.core.context import request_id_var
+from app.core.exceptions import CustomException
+from app.core.responses import Responses
+from app.core.status import Status
 
 __all__ = [
-    "register_middlewares",
+    "register_middleware_and_exceptions",
 ]
 
 logger = logging.getLogger(__name__)
 
 
-def register_middlewares(app: FastAPI):
-    """注册中间件"""
+def register_middleware_and_exceptions(app: FastAPI):
+    """注册中间件&异常处理"""
     app.add_middleware(HttpMiddleware)
     app.add_middleware(CorsMiddleware)
     # #

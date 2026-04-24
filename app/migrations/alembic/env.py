@@ -4,8 +4,8 @@ from urllib.parse import quote_plus
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from app.initializer import g
-from app.initializer._db import import_tables, make_db_url
+from app.core import g
+from app.core._db import import_tables, make_db_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

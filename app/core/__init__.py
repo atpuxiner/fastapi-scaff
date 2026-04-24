@@ -10,11 +10,11 @@ from toollib.guid import SnowFlake
 from toollib.rediscli import RedisCli
 from toollib.utils import Singleton
 
-from app.initializer._conf import Config, init_config
-from app.initializer._db import init_db_async_session
-from app.initializer._log import init_logger
-from app.initializer._redis import init_redis_cli
-from app.initializer._snow import init_snow_cli
+from app.core._conf import Config, init_config
+from app.core._db import init_db_async_session
+from app.core._log import init_logger
+from app.core._redis import init_redis_cli
+from app.core._snow import init_snow_cli
 
 logger = logging.getLogger(__name__)
 

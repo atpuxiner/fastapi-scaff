@@ -2,7 +2,7 @@ import uuid
 
 from toollib.utils import now2timestamp
 
-from app.initializer import g
+from app.core import g
 
 
 def gen_uuid_hex() -> str:
@@ -14,4 +14,4 @@ def gen_snow_id(to_str: bool = False):
 
 
 def now_timestamp() -> int:
-    return now2timestamp()
+    return now2timestamp()  # type: ignore

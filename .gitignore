@@ -138,8 +138,9 @@ dmypy.json
 cython_debug/
 
 # Append
-.idea
-.vscode
+.idea/
+.vscode/
+logs/
 *.sqlite3
 *.sqlite
 *.db

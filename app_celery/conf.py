@@ -1,14 +1,14 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
 from toollib.utils import ConfModel, FrozenVar
 
 _APP_DIR = Path(__file__).resolve().parent
 _CONFIG_DIR = _APP_DIR.parent.joinpath("config")
-
-DOTENV_PATH = _CONFIG_DIR.joinpath(".env")
-if os.environ.setdefault("APP_ENV", "dev") == "prod":  # 生产环境不加载.env（请根据自身需求修改）
-    DOTENV_PATH = None
+if os.environ.get("APP_ENV") != "prod":  # 是否加载.env（请根据自身需求修改）
+    DOTENV_PATH = _CONFIG_DIR.joinpath(".env")
+    load_dotenv(DOTENV_PATH)
 YAML_PATH = _CONFIG_DIR.joinpath(f"app_{os.environ.get('APP_ENV', 'dev')}.yaml")
 
 
@@ -38,6 +38,7 @@ class Config(ConfModel):
 
 
 config = Config(
-    dotenv_path=DOTENV_PATH,
     yaml_path=YAML_PATH,
+    prefer_env_path=True,
+    prefer_env_attr=True,
 )

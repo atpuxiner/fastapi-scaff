@@ -11,11 +11,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app import (
-    api,
-    middleware,
-)
-from app.initializer import g
+from app import api
+from app.core import g, middleware
 
 g.setup()
 # #
@@ -50,5 +47,5 @@ app = FastAPI(
     lifespan=lifespan,
 )
 # #
-middleware.register_middlewares(app)
+middleware.register_middleware_and_exceptions(app)
 api.register_routers(app)

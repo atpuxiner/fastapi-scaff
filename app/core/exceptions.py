@@ -1,4 +1,4 @@
-from app.api.status import Status
+from app.core.status import Status
 
 
 class CustomException(Exception):

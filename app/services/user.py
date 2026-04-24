@@ -1,8 +1,8 @@
 from functools import lru_cache
 
-from app.api.exceptions import CustomException
-from app.api.status import Status
-from app.initializer import g
+from app.core import g
+from app.core.exceptions import CustomException
+from app.core.status import Status
 from app.models.user import User
 from app.utils import jwt_util
 

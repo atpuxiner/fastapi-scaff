@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
-from app.api.responses import Responses, response_docs
+from app.core.responses import Responses, response_docs
 
 # -------------------- 请根据自身需求修改 --------------------
 

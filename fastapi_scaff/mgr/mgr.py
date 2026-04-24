@@ -18,6 +18,7 @@ def gen_project_json():
                 "^dist(/.*)?$",
                 "^fastapi_scaff(/.*)?$",
                 "^fastapi_scaff.egg-info(/.*)?$",
+                "^logs(/.*)?$",
                 "^.history$",
                 "^pyproject.toml$",
                 "^setup.py$",
@@ -42,7 +43,7 @@ def gen_project_json():
             else:
                 with open(file, "r", encoding="utf-8") as f:
                     data[file_str] = f.read()
-    for m in ["_tiny", "_single"]:
+    for m in ["_single"]:
         for file in project_dir.joinpath(f"{pkg_mod_name}/mgr/{m}").glob("*"):
             if not file.is_file():
                 continue

@@ -6,9 +6,9 @@ from sqlalchemy import text
 from sqlalchemy.sql.elements import quoted_name
 from starlette.requests import Request
 
-from app.api.exceptions import CustomException
-from app.api.status import Status
-from app.initializer import g
+from app.core import g
+from app.core.exceptions import CustomException
+from app.core.status import Status
 from app.utils.jwt_util import verify_jwt
 
 # -------------------- jwt --------------------

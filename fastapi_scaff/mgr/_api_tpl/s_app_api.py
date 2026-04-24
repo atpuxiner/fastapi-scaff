@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 
-from app.api.dependencies import JWTUser, get_current_user
-from app.api.responses import Responses, response_docs
+from app.api.deps import JWTUser, get_current_user
+from app.core.responses import Responses, response_docs
 from app.models.tpl import (
     TplCreate,
     TplList,

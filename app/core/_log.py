@@ -2,7 +2,7 @@ import os
 
 from toollib.logu import init_logger as _init_logger
 
-from app.initializer.context import request_id_var
+from app.core.context import request_id_var
 
 
 def init_logger(
