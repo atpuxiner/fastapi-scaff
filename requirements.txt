@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Python>=3.11
-fastapi-scaff==0.10.0
+fastapi-scaff==0.10.1
 fastapi==0.136.1
 uvicorn[standard]==0.46.0
 toollib==2.1.9

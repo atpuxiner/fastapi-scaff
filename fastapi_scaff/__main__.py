@@ -198,6 +198,8 @@ class CMD:
             )
         ):
             v = v.replace("fastapi-scaff", self.args.name.replace("_", "-"))
+        elif k == "pyproject.toml":
+            v = "".join(v.partition("# ===")[1:])
         elif k == "README.md":
             v = v.replace(f"# {prog}", f"# {prog} ( => yourProj)")
         return k, v

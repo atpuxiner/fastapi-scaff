@@ -20,7 +20,6 @@ def gen_project_json():
                 "^fastapi_scaff.egg-info(/.*)?$",
                 "^logs(/.*)?$",
                 "^.history$",
-                "^pyproject.toml$",
                 "^setup.py$",
                 "alembic/versions/.*.py$",
                 # #
