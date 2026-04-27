@@ -3,8 +3,7 @@ import importlib
 import re
 
 from sqlalchemy import URL
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm.decl_api import DeclarativeAttributeIntercept
 
 from app import APP_DIR
@@ -27,7 +26,7 @@ def init_db_async_session(
     db_max_overflow: int = 5,
     db_pool_recycle: int = 3600,
     is_create_tables: bool = False,
-) -> sessionmaker:
+) -> async_sessionmaker[AsyncSession]:
     db_url = make_db_url(
         drivername=db_drivername,
         database=db_database,
@@ -53,7 +52,7 @@ def init_db_async_session(
         pool_pre_ping=True,
         **kwargs,
     )
-    db_async_session = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)  # type: ignore
+    db_async_session = async_sessionmaker[AsyncSession](async_engine, expire_on_commit=False)
 
     async def create_tables():
         decl_base = import_tables()

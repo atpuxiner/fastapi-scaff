@@ -5,7 +5,7 @@
 import logging
 from functools import cached_property
 
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from toollib.guid import SnowFlake
 from toollib.rediscli import RedisCli
 from toollib.utils import Singleton
@@ -65,7 +65,7 @@ class G(metaclass=Singleton):
         )
 
     @cached_property
-    def db_async_session(self) -> sessionmaker:
+    def db_async_session(self) -> async_sessionmaker[AsyncSession]:
         return init_db_async_session(
             db_drivername=self.config.DB_ASYNC_DRIVERNAME,
             db_database=self.config.DB_DATABASE,
