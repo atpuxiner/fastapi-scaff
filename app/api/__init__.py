@@ -55,9 +55,8 @@ def register_routers(
                 _prefix = getattr(mod, "_prefix", None)
                 if _prefix:
                     new_prefix = f"{new_prefix}/{_prefix}"
-            except ImportError:
-                logger.error(f"Register router failed to import module: {new_mod_base}")
-                continue
+            except ImportError as e:
+                raise RuntimeError(f"Register router failed to import module: {new_mod_base} ({e})") from e
             register_routers(
                 app=app,
                 mod_dir=new_mod_dir,
@@ -82,5 +81,4 @@ def register_routers(
                         tag = item.parent.stem if depth > 1 else mod_name
                     app.include_router(router=router, prefix=prefix.replace("//", "/").rstrip("/"), tags=[tag])
             except ImportError as e:
-                logger.error(f"Register router failed to import module: {final_mod} ({e})")
-                continue
+                raise RuntimeError(f"Register router failed to import module: {final_mod} ({e})") from e
