@@ -46,12 +46,13 @@ class HttpMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: RequestResponseEndpoint,
     ) -> Response:
-        request_id = await self._get_or_create_request_id(request)
-        request.state.request_id = request_id
+        request_id_key = "X-Request-ID"
+        request_id = await self._get_or_create_request_id(request, key=request_id_key)
         token = request_id_var.set(request_id)
+        request.state.request_id = request_id
         try:
             response = await call_next(request)
-            response.headers["X-Request-ID"] = request_id
+            response.headers[request_id_key] = request_id
             for key, value in self._HEADERS.items():
                 if key not in response.headers:
                     response.headers[key] = value
@@ -62,10 +63,10 @@ class HttpMiddleware(BaseHTTPMiddleware):
             request_id_var.reset(token)
 
     @staticmethod
-    async def _get_or_create_request_id(request: Request, prefix: str = "req-") -> str:
-        request_id = request.headers.get("X-Request-ID")
+    async def _get_or_create_request_id(request: Request, key: str, prefix: str = "") -> str:
+        request_id = request.headers.get(key)
         if not request_id:
-            request_id = f"{prefix}{uuid.uuid4().hex}"
+            request_id = f"{prefix}{uuid.uuid4()}"
         return request_id
 
     @staticmethod
