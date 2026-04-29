@@ -2,10 +2,10 @@
 
 # =================== Configuration Variables ===================
 IMAGE_NAME="fastapi-scaff"
-IMAGE_DEFAULT_TAG="latest"
+IMAGE_DEFAULT_TAG="v1.0.0"
 
 # Dockerfile and build context
-DOCKERFILE_PATH="./Dockerfile"
+DOCKERFILE_PATH="./Dockerfile-slim"
 DOCKERFILE_CONTEXT="./"
 
 # ================ User Input for Tag ==================

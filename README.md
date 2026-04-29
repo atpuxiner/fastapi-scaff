@@ -105,9 +105,9 @@ This package can be installed using pip (Python>=3.11):
   - about alembic: [click here](https://alembic.sqlalchemy.org/en/latest/)
 - x）docker, please see:
   - project files:
-    - build.sh
-    - docker-compose.yaml | docker-compose.swarm.yaml[config/nginx.conf]
+    - build.sh (default Dockerfile.slim)
     - Dockerfile | Dockerfile.slim
+    - docker-compose.yaml | docker-compose.swarm.yaml[config/nginx.conf]
   - about docker: [click here](https://docs.docker.com/)
 
 ## License

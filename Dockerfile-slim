@@ -9,9 +9,8 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 WORKDIR /backend
 
-# 安装依赖编译所需的基础工具（如需要编译 C 扩展）
-# 如果 requirements.txt 中全是纯 Python 包（如 fastapi, uvicorn），可省略
-# RUN apt-get update && apt-get install -y --no-install-recommends gcc musl-dev && rm -rf /var/lib/apt/lists/*
+# 编译 C/C++/Fortran 扩展所需工具（特定包请自行添加），纯 Python 依赖可省略
+# RUN apt-get update && apt-get install -y --no-install-recommends gcc g++ gfortran python3-dev libffi-dev libssl-dev && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
