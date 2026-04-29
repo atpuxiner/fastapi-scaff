@@ -13,9 +13,10 @@ WORKDIR /backend
 # RUN apt-get update && apt-get install -y --no-install-recommends gcc g++ gfortran python3-dev libffi-dev libssl-dev && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/ && \
-    rm requirements.txt
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple/ && \
+    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    rm -f requirements.txt
 
 COPY config ./config
 COPY app ./app

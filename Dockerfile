@@ -10,9 +10,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 WORKDIR /backend
 
 COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/ && \
-    rm requirements.txt
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple/ && \
+    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    rm -f requirements.txt
 
 COPY config ./config
 COPY app ./app
