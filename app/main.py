@@ -15,10 +15,7 @@ from app import api
 from app.core import g, middleware
 
 g.setup()
-# #
-openapi_url = "/openapi.json"
-docs_url = "/docs"
-redoc_url = "/redoc"
+openapi_url, docs_url, redoc_url = "/openapi.json", "/docs", "/redoc"
 if g.config.APP_DISABLE_DOCS is True:
     openapi_url, docs_url, redoc_url = None, None, None
 
@@ -47,5 +44,5 @@ app = FastAPI(
     lifespan=lifespan,
 )
 # #
-middleware.register_middleware_and_exceptions(app)
+middleware.add_middleware_and_exceptions(app)
 api.register_routers(app)

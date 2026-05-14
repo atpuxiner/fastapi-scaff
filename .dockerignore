@@ -57,6 +57,5 @@ docker-compose.swarm.yml
 docker-compose.swarm.yaml
 build.sh
 *.sqlite3
-*.sqlite
-*.db
+*.sqlite3-journal
 celerybeat-schedule*

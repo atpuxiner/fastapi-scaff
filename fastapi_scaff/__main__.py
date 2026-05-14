@@ -351,7 +351,7 @@ class CMD:
             return k, v
 
         if env := re.search(r"config/app_(.*).yaml$", k):
-            ov = f"DB_DRIVERNAME: sqlite\nDB_ASYNC_DRIVERNAME: sqlite+aiosqlite\nDB_DATABASE: app_{env.group(1)}.sqlite\nDB_USERNAME:\nDB_PASSWORD:\nDB_HOST:\nDB_PORT:\nDB_CHARSET:"
+            ov = f"DB_DRIVERNAME: sqlite\nDB_ASYNC_DRIVERNAME: sqlite+aiosqlite\nDB_DATABASE: app_{env.group(1)}.sqlite3\nDB_USERNAME:\nDB_PASSWORD:\nDB_HOST:\nDB_PORT:\nDB_CHARSET:"
             if self.args.db == "mysql":
                 nv = "DB_DRIVERNAME: mysql+pymysql\nDB_ASYNC_DRIVERNAME: mysql+aiomysql\nDB_DATABASE: <database>\nDB_USERNAME: <username>\nDB_PASSWORD: <password>\nDB_HOST: <host>\nDB_PORT: <port>\nDB_CHARSET: utf8mb4"
                 v = v.replace(ov, nv)
@@ -446,7 +446,7 @@ class CMD:
     @staticmethod
     def _repl_funcs(func_names: str, v: str, repl: str = "") -> str:
         return re.sub(
-            rf"^(\s*@[^\n]*\n)*\s*def\s+{func_names}\s*\([^)]*\)(?:\s*->\s*[\w.]+)?\s*:\n(?:\s+.*\n)*?(?=\n+\s+\S+|\Z)",
+            rf"^(\s*@[^\n]*\n)*\s*def\s+{func_names}\s*\((?:[^()]*|\([^()]*\))*\)(?:\s*->\s*.+?)?\s*:\n(?:\s+.*\n)*?(?=\n+\s+\S+|\Z)",
             repl,
             v,
             flags=re.MULTILINE,

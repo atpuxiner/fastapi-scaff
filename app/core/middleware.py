@@ -20,13 +20,13 @@ from app.core.responses import Responses
 from app.core.status import Status
 
 __all__ = [
-    "register_middleware_and_exceptions",
+    "add_middleware_and_exceptions",
 ]
 
 logger = logging.getLogger(__name__)
 
 
-def register_middleware_and_exceptions(app: FastAPI):
+def add_middleware_and_exceptions(app: FastAPI):
     """注册中间件&异常处理"""
     app.add_middleware(HttpMiddleware)
     app.add_middleware(CorsMiddleware)

@@ -67,7 +67,7 @@ class G(metaclass=Singleton):
     @cached_property
     def db_async_session(self) -> async_sessionmaker[AsyncSession]:
         return init_db_async_session(
-            db_drivername=self.config.DB_ASYNC_DRIVERNAME,
+            db_async_drivername=self.config.DB_ASYNC_DRIVERNAME,
             db_database=self.config.DB_DATABASE,
             db_username=self.config.DB_USERNAME,
             db_password=self.config.DB_PASSWORD,
@@ -75,7 +75,7 @@ class G(metaclass=Singleton):
             db_port=self.config.DB_PORT,
             db_charset=self.config.DB_CHARSET,
             db_echo=self.config.APP_DEBUG,
-            is_create_tables=True,
+            db_drivername=self.config.DB_DRIVERNAME,
         )
 
     def setup(self, force: bool = False, required_properties: tuple | None = None):
@@ -88,7 +88,7 @@ class G(metaclass=Singleton):
                 if hasattr(self, prop_name):
                     getattr(self, prop_name)
                 else:
-                    logger.warning(f"{prop_name} not found")
+                    raise RuntimeError(f"{prop_name} not found")
             self._initialized = True
 
 

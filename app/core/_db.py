@@ -1,8 +1,7 @@
-import asyncio
 import importlib
 import re
 
-from sqlalchemy import URL
+from sqlalchemy import URL, create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm.decl_api import DeclarativeAttributeIntercept
 
@@ -14,29 +13,27 @@ _DECL_BASE_NAME = "DeclBase"
 
 
 def init_db_async_session(
-    db_drivername: str,
+    db_async_drivername: str,
     db_database: str,
     db_username: str,
     db_password: str,
     db_host: str,
     db_port: int,
-    db_charset: str,
-    db_echo: bool,
+    db_charset: str | None = None,
+    db_echo: bool | None = None,
     db_pool_size: int = 10,
     db_max_overflow: int = 5,
     db_pool_recycle: int = 3600,
-    is_create_tables: bool = False,
+    db_drivername: str | None = None,
 ) -> async_sessionmaker[AsyncSession]:
     db_url = make_db_url(
-        drivername=db_drivername,
+        drivername=db_async_drivername,
         database=db_database,
         username=db_username,
         password=db_password,
         host=db_host,
         port=db_port,
-        query={
-            "charset": db_charset,
-        },
+        query={"charset": db_charset},
     )
     db_echo = db_echo or False
     kwargs = {
@@ -53,27 +50,17 @@ def init_db_async_session(
         **kwargs,
     )
     db_async_session = async_sessionmaker[AsyncSession](async_engine, expire_on_commit=False)
-
-    async def create_tables():
-        decl_base = import_tables()
-        if decl_base:
-            async with async_engine.begin() as conn:
-                try:
-                    await conn.run_sync(decl_base.metadata.create_all)  # type: ignore
-                except Exception as e:
-                    if "already exists" not in str(e):
-                        raise
-
-    if is_create_tables:
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        task = loop.create_task(create_tables())
-        task.add_done_callback(lambda t: t.result() if not t.cancelled() else None)
-        if not loop.is_running():
-            loop.run_until_complete(task)
+    if db_drivername:
+        create_tables(
+            db_drivername=db_drivername,
+            db_database=db_database,
+            db_username=db_username,
+            db_password=db_password,
+            db_host=db_host,
+            db_port=db_port,
+            db_charset=db_charset,
+            db_echo=db_echo,
+        )
     return db_async_session
 
 
@@ -111,3 +98,33 @@ def import_tables() -> DeclarativeAttributeIntercept | None:
                 rel = f.relative_to(_MODELS_MOD_DIR).with_suffix("")
                 _ = importlib.import_module(f"{_MODELS_MOD_BASE}.{'.'.join(rel.parts)}")
         return decl_base
+
+
+def create_tables(
+    db_drivername: str,
+    db_database: str,
+    db_username: str,
+    db_password: str,
+    db_host: str,
+    db_port: int,
+    db_charset: str | None = None,
+    db_echo: bool | None = None,
+):
+    sync_url = make_db_url(
+        drivername=db_drivername,
+        database=db_database,
+        username=db_username,
+        password=db_password,
+        host=db_host,
+        port=db_port,
+        query={"charset": db_charset},
+    )
+    engine = create_engine(url=sync_url, echo=db_echo)
+    decl_base = import_tables()
+    if decl_base:
+        try:
+            decl_base.metadata.create_all(engine)  # type: ignore
+        except Exception as e:
+            if "already exists" not in str(e):
+                raise
+    engine.dispose()

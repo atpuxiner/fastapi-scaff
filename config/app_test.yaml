@@ -17,7 +17,7 @@ APP_ALLOW_HEADERS:
 # #
 DB_DRIVERNAME: sqlite
 DB_ASYNC_DRIVERNAME: sqlite+aiosqlite
-DB_DATABASE: app_test.sqlite
+DB_DATABASE: app_test.sqlite3
 DB_USERNAME:
 DB_PASSWORD:
 DB_HOST:

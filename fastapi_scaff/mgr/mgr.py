@@ -25,7 +25,7 @@ def gen_project_json():
                 # #
                 ".pyc$",
                 ".log$",
-                ".sqlite3?$",
+                ".sqlite3$",
             ]
         )
     )
