@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 
-from app.api.deps import JWTUser, get_current_user, get_current_user_from_refresh_token
+from app.api.deps import JWTUser, get_current_user, get_current_user_from_refresh
 from app.core import g
 from app.core.responses import Responses, response_docs
 from app.core.status import Status
@@ -17,9 +17,10 @@ from app.utils.cookie_util import clear_refresh_token_cookie, set_refresh_token_
 # 注意：`user`仅为模块示例，请根据自身需求修改
 # 注意：`user`仅为模块示例，请根据自身需求修改
 
-router = APIRouter()
 _active = True  # 激活状态（默认激活）
 _tag = "user"  # 标签（默认模块名）
+router = APIRouter(tags=["user"])  # router格式：router|xxx_router
+auth_router = APIRouter(tags=["user-auth"])
 
 
 @router.get(
@@ -137,8 +138,8 @@ async def update_user(
     return Responses.success(data=data)
 
 
-@router.post(
-    path="/users/login",
+@auth_router.post(
+    path="/users/auth/login",
     summary="login",
     responses=response_docs(
         data={
@@ -157,11 +158,11 @@ async def update_user(
         }
     ),
 )
-async def login_user(
+async def auth_login(
     req: UserLogin,
     user_svc: UserSvc = Depends(get_user_svc),
 ):
-    data = await user_svc.login_user(req)
+    data = await user_svc.auth_login(req)
     refresh_token = data.pop("refresh_token")
     refresh_expires_in = data.pop("refresh_expires_in")
     response = Responses.success(data=data)
@@ -174,8 +175,8 @@ async def login_user(
     return response
 
 
-@router.post(
-    path="/users/logout",
+@auth_router.post(
+    path="/users/auth/logout",
     summary="logout",
     responses=response_docs(
         data={
@@ -183,19 +184,19 @@ async def login_user(
         }
     ),
 )
-async def logout_user(
+async def auth_logout(
     user_svc: UserSvc = Depends(get_user_svc),
     current_user: JWTUser = Depends(get_current_user),
 ):
-    data = await user_svc.logout_user(current_user.id)
+    data = await user_svc.auth_logout(current_user.id)
     response = Responses.success(data=data)
     clear_refresh_token_cookie(response)
     return response
 
 
-@router.post(
-    path="/users/refresh-token",
-    summary="refresh-token",
+@auth_router.post(
+    path="/users/auth/refresh",
+    summary="refresh",
     responses=response_docs(
         data={
             "access_token": "str",
@@ -204,11 +205,11 @@ async def logout_user(
         }
     ),
 )
-async def refresh_token_user(
+async def auth_refresh(
     user_svc: UserSvc = Depends(get_user_svc),
-    current_user: JWTUser = Depends(get_current_user_from_refresh_token),
+    current_user: JWTUser = Depends(get_current_user_from_refresh),
 ):
-    data = await user_svc.refresh_token_user(current_user.id)
+    data = await user_svc.auth_refresh(current_user.id)
     refresh_token = data.pop("refresh_token")
     refresh_expires_in = data.pop("refresh_expires_in")
     response = Responses.success(data=data)

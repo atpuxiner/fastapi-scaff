@@ -24,7 +24,7 @@ class TplSvc:
                     "updated_at",
                 ),
                 where=where,
-                order_by="-created_at",
+                order_by=Tpl.created_at.desc(),
                 offset=(req.page - 1) * req.size,
                 limit=req.size,
                 converters={"id": str},

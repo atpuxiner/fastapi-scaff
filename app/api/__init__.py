@@ -4,6 +4,7 @@
 
 import importlib
 import logging
+import re
 import sys
 from pathlib import Path
 
@@ -21,7 +22,7 @@ def register_routers(
     app: FastAPI,
     mod_dir: Path = _API_MOD_DIR,
     mod_base: str = _API_MOD_BASE,
-    name: str = "router",
+    router_reg: str = r"^\s*((?:[a-zA-Z_]\w*)?_router|router)\s*=\s*APIRouter\s*\(",
     prefix: str = "",
     depth: int = 0,
     min_depth: int = 1,
@@ -30,12 +31,12 @@ def register_routers(
     """
     注册路由
     要求：
-        路由模块：非'__'开头的模块
-        路由名称：{name}
+        路由模块：非'__'开头
+        路由名称：{router|xxx_router}
     :param app: FastAPI应用
     :param mod_dir: api模块目录
     :param mod_base: api模块基础
-    :param name: 路由名称
+    :param router_reg: 路由对象正则
     :param prefix: url前缀
     :param depth: 当前递归深度
     :param min_depth: 最小递归深度
@@ -43,6 +44,8 @@ def register_routers(
     """
     if depth > max_depth:
         return
+
+    router_pat = re.compile(router_reg, re.MULTILINE)
     for item in mod_dir.iterdir():
         if item.name.startswith("__"):
             continue
@@ -62,7 +65,7 @@ def register_routers(
                 mod_dir=new_mod_dir,
                 mod_base=new_mod_base,
                 prefix=new_prefix,
-                name=name,
+                router_reg=router_reg,
                 depth=depth + 1,
                 max_depth=max_depth,
             )
@@ -75,10 +78,15 @@ def register_routers(
                     logger.info(f"Register router skipping inactive module: {final_mod}")
                     sys.modules.pop(final_mod)
                     continue
-                if (router := getattr(mod, name, None)) and isinstance(router, APIRouter):
-                    tag = getattr(mod, "_tag", None)
-                    if not tag:
-                        tag = item.parent.stem if depth > 1 else mod_name
-                    app.include_router(router=router, prefix=prefix.replace("//", "/").rstrip("/"), tags=[tag])
+                prefix_str = prefix.replace("//", "/").rstrip("/")
+                for match in router_pat.finditer(item.read_text(encoding="utf-8")):
+                    router = getattr(mod, match.group(1), None)
+                    if not isinstance(router, APIRouter):
+                        continue
+                    if router.tags or getattr(router.routes[0], "tags", None):
+                        tags = None
+                    else:
+                        tags = [getattr(mod, "_tag", None) or (item.parent.stem if depth > 1 else mod_name)]
+                    app.include_router(router=router, prefix=prefix_str, tags=tags)
             except ImportError as e:
                 raise RuntimeError(f"Register router failed to import module: {final_mod} ({e})") from e

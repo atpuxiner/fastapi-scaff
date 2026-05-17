@@ -67,9 +67,8 @@ if __name__ == "__main__":
             "phone": "18900189000",
             "status": 1,
             "role": "admin",
-            "name": "admin",
-            "age": 18,
-            "gender": 1,
+            "nickname": "admin",
+            "avatar": None,
         },
         key=jkey,
     )

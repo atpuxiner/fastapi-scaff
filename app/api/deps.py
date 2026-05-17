@@ -18,13 +18,12 @@ _REFRESH_TOKEN_COOKIE_NAME = "x_refresh_token"
 
 class JWTUser(BaseModel):
     # 与实际字段对齐
-    id: str = None
-    phone: str = None
-    status: int = None
-    role: str = None
-    name: str = None
-    age: int = None
-    gender: int = None
+    id: str | None = None
+    phone: str | None = None
+    status: int | None = None
+    role: str | None = None
+    nickname: str | None = None
+    avatar: str | None = None
 
     @staticmethod
     async def get_user_jwt_key(user_id: str) -> str | None:
@@ -111,7 +110,7 @@ async def get_current_user(
     return credentials.jwt_user
 
 
-async def get_current_user_from_refresh_token(
+async def get_current_user_from_refresh(
     jwt_user: JWTUser | None = Depends(JWTCookie(auto_error=True)),
 ) -> JWTUser:
     """获取当前用户，用于认证 refresh token（从 Cookie）"""

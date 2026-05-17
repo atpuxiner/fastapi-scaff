@@ -5,6 +5,7 @@ from app.core.exceptions import CustomException
 from app.core.status import Status
 from app.models.user import User
 from app.utils import jwt_util
+from app.utils.ext_util import now_timestamp
 
 _ACCESS_TOKEN_EXP_SECONDS = 2 * 60 * 60
 _REFRESH_TOKEN_EXP_SECONDS = 30 * 24 * 60 * 60
@@ -16,24 +17,27 @@ class UserSvc:
         where = []
         if req.phone:
             where.append(User.phone.contains(req.phone))
-        if req.name:
-            where.append(User.name.contains(req.name))
+        if req.nickname:
+            where.append(User.nickname.contains(req.nickname))
         async with g.db_async_session() as session:
             result = await User.fetch_all(
                 session=session,
                 columns=(
                     "id",
                     "phone",
+                    "email",
                     "status",
                     "role",
-                    "name",
+                    "nickname",
+                    "avatar",
                     "age",
                     "gender",
+                    "last_login_at",
                     "created_at",
                     "updated_at",
                 ),
                 where=where,
-                order_by="-created_at",
+                order_by=User.created_at.desc(),
                 offset=(req.page - 1) * req.size,
                 limit=req.size,
                 converters={"id": str},
@@ -51,7 +55,7 @@ class UserSvc:
                     "password": jwt_util.hash_password(req.password),
                     "jwt_key": jwt_util.gen_jwt_key(key=g.config.JWT_KEY),
                     "role": req.role,
-                    "name": req.name,
+                    "nickname": req.nickname,
                     "age": req.age,
                     "gender": req.gender,
                 },
@@ -72,11 +76,14 @@ class UserSvc:
                 columns=(
                     "id",
                     "phone",
+                    "email",
                     "status",
                     "role",
-                    "name",
+                    "nickname",
+                    "avatar",
                     "age",
                     "gender",
+                    "last_login_at",
                     "created_at",
                     "updated_at",
                 ),
@@ -112,7 +119,7 @@ class UserSvc:
             return {"id": user_id}
 
     @staticmethod
-    async def login_user(req):
+    async def auth_login(req):
         async with g.db_async_session() as session:
             result = await User.fetch_one(
                 session=session,
@@ -122,9 +129,8 @@ class UserSvc:
                     "phone",
                     "status",
                     "role",
-                    "name",
-                    "age",
-                    "gender",
+                    "nickname",
+                    "avatar",
                     "password",
                 ),
                 converters={"id": str},
@@ -155,7 +161,10 @@ class UserSvc:
             await User.update(
                 session=session,
                 where={"phone": req.phone},
-                values={"jwt_key": new_jwt_key},
+                values={
+                    "jwt_key": new_jwt_key,
+                    "last_login_at": now_timestamp(),
+                },
             )
             await session.commit()
 
@@ -169,7 +178,7 @@ class UserSvc:
         }
 
     @staticmethod
-    async def logout_user(user_id: str):
+    async def auth_logout(user_id: str):
         new_jwt_key = jwt_util.gen_jwt_key(key=g.config.JWT_KEY)
         async with g.db_async_session() as session:
             result = await User.update(
@@ -183,7 +192,7 @@ class UserSvc:
         return {"id": user_id}
 
     @staticmethod
-    async def refresh_token_user(user_id: str):
+    async def auth_refresh(user_id: str):
         async with g.db_async_session() as session:
             result = await User.fetch_one(
                 session=session,
@@ -193,9 +202,8 @@ class UserSvc:
                     "phone",
                     "status",
                     "role",
-                    "name",
-                    "age",
-                    "gender",
+                    "nickname",
+                    "avatar",
                 ),
                 converters={"id": str},
             )
