@@ -18,9 +18,11 @@ from app.utils.cookie_util import clear_refresh_token_cookie, set_refresh_token_
 # 注意：`user`仅为模块示例，请根据自身需求修改
 
 _active = True  # 激活状态（默认激活）
-_tag = "user"  # 标签（默认模块名）
-router = APIRouter(tags=["user"])  # router格式：router|xxx_router
+_tag = "user"  # 标签（默认模块名，但传入tags优先）
+# router格式：router|xxx_router
+# # 精确路由放前面
 auth_router = APIRouter(tags=["user-auth"])
+router = APIRouter(tags=["user"])
 
 
 @router.get(
