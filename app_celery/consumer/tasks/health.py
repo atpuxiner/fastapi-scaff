@@ -16,5 +16,5 @@ logger = logging.getLogger(__name__)
     soft_time_limit=300,
     acks_late=True,
 )
-def ping(self, text: str = "这是一个异步任务测试"):
-    logger.info(f"pong: {text}")
+def health(self, text: str = "这是一个异步任务-健康检测"):
+    logger.info(f"OK: {text}")

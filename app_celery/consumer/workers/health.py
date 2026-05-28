@@ -2,13 +2,13 @@ from app_celery.consumer import celery_app
 
 celery_app.conf.update(
     task_queues={
-        "ping": {
+        "health": {
             "exchange_type": "direct",
-            "exchange": "ping",
-            "routing_key": "ping",
+            "exchange": "health",
+            "routing_key": "health",
         },
     },
     task_routes={
-        "app_celery.consumer.tasks.ping.ping": {"queue": "ping"},
+        "app_celery.consumer.tasks.health.health": {"queue": "health"},
     },
 )

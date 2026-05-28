@@ -7,11 +7,11 @@ from app_celery.consumer import celery_app
 logger = logging.getLogger(__name__)
 
 celery_app.conf.beat_schedule.setdefault(
-    "beat_ping",
+    "beat_health",
     {
-        "task": "app_celery.consumer.tasks.beat_ping.ping",
+        "task": "app_celery.consumer.tasks.beat_health.health",
         "schedule": crontab(minute="*/2"),  # 每x分钟执行一次
-        "options": {"queue": "beat_ping"},
+        "options": {"queue": "beat_health"},
     },
 )
 
@@ -27,5 +27,5 @@ celery_app.conf.beat_schedule.setdefault(
     soft_time_limit=300,
     acks_late=True,
 )
-def ping(self, text: str = "这是一个定时任务测试"):
-    logger.info(f"pong: {text}")
+def health(self, text: str = "这是一个定时任务-健康检测"):
+    logger.info(f"OK: {text}")

@@ -2,4 +2,4 @@
 api-default
 """
 
-_prefix = "/api"
+_prefix = ""
