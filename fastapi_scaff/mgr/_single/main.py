@@ -28,9 +28,7 @@ logger = init_logger(
 )
 # logger.add 可添加其他 handler
 # #
-openapi_url = "/openapi.json"
-docs_url = "/docs"
-redoc_url = "/redoc"
+openapi_url, docs_url, redoc_url = "/openapi.json", "/docs", "/redoc"
 if config.APP_DISABLE_DOCS is True:
     openapi_url, docs_url, redoc_url = None, None, None
 

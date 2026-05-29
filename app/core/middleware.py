@@ -121,9 +121,10 @@ class ExceptionsHandler:
             logger.warning(f"Query params: {request.query_params or '<Empty>'}")
             logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         return Responses.failure(
+            status=exc.status,
             msg=exc.msg,
             code=exc.code,
-            error=exc,
+            error=exc.error,
             data=exc.data,
         )
 
@@ -145,7 +146,7 @@ class ExceptionsHandler:
         else:
             error = exc.errors()[0]
             msg = f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"
-        lmsg = f'- "{request.method} {request.url.path}" {Status.PARAMS_ERROR.code} {msg}'
+        lmsg = f'- "{request.method} {request.url.path}" {Status.VALIDATION_ERROR.code} {msg}'
         if log_traceback:
             logger.exception(lmsg)
         else:
@@ -154,9 +155,9 @@ class ExceptionsHandler:
             logger.warning(f"Query params: {request.query_params or '<Empty>'}")
             logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         return Responses.failure(
+            status=Status.VALIDATION_ERROR,
             msg=msg,
             error=exc,
-            status=Status.PARAMS_ERROR,
         )
 
     @staticmethod
@@ -175,7 +176,7 @@ class ExceptionsHandler:
             logger.warning(f"Query params: {request.query_params or '<Empty>'}")
             logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         return Responses.failure(
+            status=Status.from_status_code(exc.status_code),
             msg=exc.detail,
-            code=exc.status_code,
             error=exc,
         )

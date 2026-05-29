@@ -1,6 +1,4 @@
-import json
 from collections.abc import Mapping
-from typing import Any
 
 from fastapi.encoders import jsonable_encoder
 from starlette.background import BackgroundTask
@@ -20,8 +18,8 @@ class Responses:
         msg: str | None = None,
         code: int | None = None,
         status: Status = Status.SUCCESS,
-        is_encode_data: bool = False,
-        status_code: int = 200,
+        encode_data: bool = False,
+        status_code: int | None = None,
         headers: Mapping[str, str] | None = None,
         media_type: str | None = None,
         background: BackgroundTask | None = None,
@@ -29,12 +27,12 @@ class Responses:
         content = {
             "msg": msg or status.msg,
             "code": code or status.code,
-            "data": Responses.encode_data(data) if is_encode_data else data,
+            "data": jsonable_encoder(data) if encode_data else data,
             "request_id": request_id_var.get(),
         }
         return JSONResponse(
             content=content,
-            status_code=status_code,
+            status_code=status_code or status.status_code,
             headers=headers,
             media_type=media_type,
             background=background,
@@ -42,13 +40,13 @@ class Responses:
 
     @staticmethod
     def failure(
+        status: Status = Status.FAILURE,
         msg: str | None = None,
         code: int | None = None,
         error: str | Exception | None = None,
         data: dict | list | str | None = None,
-        status: Status = Status.FAILURE,
-        is_encode_data: bool = False,
-        status_code: int = 200,
+        encode_data: bool = False,
+        status_code: int | None = None,
         headers: Mapping[str, str] | None = None,
         media_type: str | None = None,
         background: BackgroundTask | None = None,
@@ -56,30 +54,18 @@ class Responses:
         content = {
             "msg": msg or status.msg,
             "code": code or status.code,
-            "data": Responses.encode_data(data) if is_encode_data else data,
+            "data": jsonable_encoder(data) if encode_data else data,
             "request_id": request_id_var.get(),
         }
         if _EXPOSE_ERROR:
             content["error"] = str(error) if error else None
         return JSONResponse(
             content=content,
-            status_code=status_code,
+            status_code=status_code or status.status_code,
             headers=headers,
             media_type=media_type,
             background=background,
         )
-
-    @staticmethod
-    def encode_data(data: Any) -> Any:
-        if isinstance(data, (str, int, float, bool, type(None))):
-            return data
-        if isinstance(data, (dict, list)):
-            try:
-                json.dumps(data)
-                return data
-            except (TypeError, OverflowError):
-                pass
-        return jsonable_encoder(data)
 
     @staticmethod
     def stream(
@@ -121,27 +107,85 @@ def response_docs(
 
     docs = {
         200: {
-            "description": "操作成功【code为0 & http状态码200】",
+            "description": "✅ 操作成功",
             "content": {
                 "application/json": {
                     "example": {
-                        "msg": "string",
-                        "code": "integer",
+                        "msg": "操作成功",
+                        "code": 0,
                         "data": format_data,
                         "request_id": "string",
                     }
                 }
             },
         },
-        422: {
-            "description": "操作失败【code非0 & http状态码200】",
+        400: {
+            "description": "❌ 参数错误/业务失败",
+            "content": {
+                "application/json": {
+                    "example": {"msg": "参数错误/业务失败", "code": 400, "error": "string", "data": None, "request_id": "string"}
+                }
+            },
+        },
+        401: {
+            "description": "🔒 认证失败",
             "content": {
                 "application/json": {
                     "example": {
-                        "msg": "string",
-                        "code": "integer",
+                        "msg": "认证失败，请先登录",
+                        "code": 401,
+                        "error": None,
+                        "data": None,
+                        "request_id": "string",
+                    }
+                }
+            },
+        },
+        403: {
+            "description": "🚫 禁止访问",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "msg": "权限不足，无法访问",
+                        "code": 403,
+                        "error": None,
+                        "data": None,
+                        "request_id": "string",
+                    }
+                }
+            },
+        },
+        404: {
+            "description": "🔍 资源未找到",
+            "content": {
+                "application/json": {
+                    "example": {"msg": "资源未找到", "code": 404, "error": None, "data": None, "request_id": "string"}
+                }
+            },
+        },
+        422: {
+            "description": "⚠️ 数据校验失败",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "msg": "数据校验失败",
+                        "code": 422,
                         "error": "string",
-                        "data": "object | array | ...",
+                        "data": None,
+                        "request_id": "string",
+                    }
+                }
+            },
+        },
+        500: {
+            "description": "🔥 服务器内部错误",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "msg": "服务开小差了，请稍后再试",
+                        "code": 500,
+                        "error": "string",
+                        "data": None,
                         "request_id": "string",
                     }
                 }

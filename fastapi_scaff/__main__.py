@@ -206,7 +206,7 @@ class CMD:
 
     def _tpl_celery_handler(self, k, v):
         if k in {
-            "app/api/default/aping.py",
+            "app/api/default/ahealth.py",
             "runcbeat.py",
             "runcworker.py",
         } or k.startswith("app_celery/"):
@@ -249,6 +249,7 @@ class CMD:
                     .replace('_DECL_BASE_NAME = "DeclBase"', "_DECL_BASE_NAME = None")
                 )
             elif k == "app/core/status.py":
+                v = re.sub(r"^\s*# 【用户模块】.*$\n?", "", v, flags=re.MULTILINE)
                 v = re.sub(r"^\s*USER_.*$\n?", "", v, flags=re.MULTILINE)
             elif k == "requirements.txt":
                 v = re.sub(r"^alembic==.*$\n?", "", v, flags=re.MULTILINE)
@@ -280,6 +281,7 @@ class CMD:
                     .replace('_DECL_BASE_NAME = "DeclBase"', "_DECL_BASE_NAME = None")
                 )
             elif k == "app/core/status.py":
+                v = re.sub(r"^\s*# 【用户模块】.*$\n?", "", v, flags=re.MULTILINE)
                 v = re.sub(r"^\s*USER_.*$\n?", "", v, flags=re.MULTILINE)
             elif k == "requirements.txt":
                 v = re.sub(r"^alembic==.*$\n?", "", v, flags=re.MULTILINE)
@@ -334,6 +336,9 @@ class CMD:
             elif k == "app/core/_conf.py":
                 v = re.sub(r"^\s*DB_.*$\n?", "", v, flags=re.MULTILINE)
                 v = re.sub(r"^\s*# #[ \t]*\n(?=\s*\n)", "", v, flags=re.MULTILINE)
+            elif k == "app/core/status.py":
+                v = re.sub(r"^\s*# 【用户模块】.*$\n?", "", v, flags=re.MULTILINE)
+                v = re.sub(r"^\s*USER_.*$\n?", "", v, flags=re.MULTILINE)
             elif k == "app/core.py":
                 v = re.sub(r"^from.*sqlalchemy.*$\n?", "", v, flags=re.MULTILINE)
                 v = re.sub(r"^\s*DB_.*$\n?", "", v, flags=re.MULTILINE)
@@ -616,8 +621,8 @@ class CMD:
                         v = v.replace("app_celery", name).replace("app-celery", name.replace("_", "-"))
                         f.write(v)
         if f:
-            for ext in ["runcbeat.py", "runcworker.py", "app/api/default/aping.py"]:
-                if ext == "app/api/default/aping.py" and not (work_dir / "app/api/default").is_dir():
+            for ext in ["runcbeat.py", "runcworker.py", "app/api/default/ahealth.py"]:
+                if ext == "app/api/default/ahealth.py" and not (work_dir / "app/api/default").is_dir():
                     continue
                 path = work_dir / ext
                 if path.is_file():

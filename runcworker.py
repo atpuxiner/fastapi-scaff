@@ -58,5 +58,5 @@ def main(
 
 if __name__ == "__main__":
     main(
-        name="ping",
+        name="health",
     )

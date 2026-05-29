@@ -65,7 +65,7 @@ class UserSvc:
             if not result:
                 raise CustomException(status=Status.RECORD_EXISTS_ERROR)
             await session.commit()
-            return {"id": str(result.data["id"])}
+            return {"id": str(result.data["id"])}  # type: ignore
 
     @staticmethod
     async def get_user(user_id: str):

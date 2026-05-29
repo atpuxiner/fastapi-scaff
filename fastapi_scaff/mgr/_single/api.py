@@ -2,6 +2,7 @@ from fastapi import APIRouter, Security
 from fastapi.security import APIKeyHeader
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_401_UNAUTHORIZED
+from toollib.utils import now2timestr
 
 from app.core import config
 
@@ -25,8 +26,26 @@ async def get_current_api_key(api_key: str | None = Security(_API_KEY_HEADER)) -
 
 
 @router.get(
-    path="/api/ping",
-    summary="ping",
+    path="/health",
+    summary="health",
+    responses={
+        200: {
+            "description": "Successful Response",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "ok",
+                        "version": "1.0.0",
+                        "timestamp": "2026-01-01 01:01:01",
+                    }
+                }
+            },
+        }
+    },
 )
-async def ping():
-    return "pong"
+async def health():
+    return {
+        "status": "ok",
+        "version": config.APP_VERSION,
+        "timestamp": now2timestr(),
+    }
