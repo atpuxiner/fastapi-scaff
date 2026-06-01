@@ -17,11 +17,7 @@ router = APIRouter()
     summary="list",
     responses=response_docs(
         data={
-            "items": [
-                {
-                    "id": "str",
-                }
-            ],
+            "items": "list",
             "total": "int",
         }
     ),

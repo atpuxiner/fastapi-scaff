@@ -85,8 +85,8 @@ This package can be installed using pip (Python>=3.11):
   - `cd to project root dir`
   - `fastapi-scaff add <myapi>`
 - 4）integrated celery
-  - M1。`new` with `--celery`: `fastapi-scaff new <myproj> --celery`
-  - M2。`add` with `--celery`: `fastapi-scaff add <mycelery> --celery`
+  - **New project**: `fastapi-scaff new <myproj> --celery`
+  - **Existing project**: `fastapi-scaff add <mycelery> --celery`
 
 ## Project run
 

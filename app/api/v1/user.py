@@ -159,9 +159,8 @@ async def update_user(
                 "phone": "str",
                 "status": "int",
                 "role": "str",
-                "name": "str",
-                "age": "int",
-                "gender": "int",
+                "nickname": "str",
+                "avatar": "str",
             },
         }
     ),
