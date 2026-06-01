@@ -11,7 +11,6 @@
     - auto init project (conf, db, log...)
     - auto register router
     - auto add middleware/exceptions
-    - ...
     - integrated api-key/jwt
     - integrated sqlalchemy
     - integrated migration

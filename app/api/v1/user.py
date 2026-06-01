@@ -34,11 +34,14 @@ router = APIRouter(tags=["user"])
                 {
                     "id": "str",
                     "phone": "str",
+                    "email": "str",
                     "status": "int",
                     "role": "str",
-                    "name": "str",
+                    "nickname": "str",
+                    "avatar": "str",
                     "age": "int",
                     "gender": "int",
+                    "last_login_at": "int",
                     "created_at": "int",
                     "updated_at": "int",
                 }
@@ -82,11 +85,14 @@ async def create_user(
         data={
             "id": "str",
             "phone": "str",
+            "email": "str",
             "status": "int",
             "role": "str",
-            "name": "str",
+            "nickname": "str",
+            "avatar": "str",
             "age": "int",
             "gender": "int",
+            "last_login_at": "int",
             "created_at": "int",
             "updated_at": "int",
         }
