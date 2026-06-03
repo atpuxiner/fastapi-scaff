@@ -193,8 +193,8 @@ class CMD:
             v = v.replace("server backend:", f"server {self.args.name.replace('_', '-')}-prod_backend:")
         elif k.startswith(
             (
-                "build.sh",
-                "docker-compose.",
+                "docker-",
+                "nomad-",
             )
         ):
             v = v.replace("fastapi-scaff", self.args.name.replace("_", "-"))
@@ -211,6 +211,8 @@ class CMD:
             "runcworker.py",
         } or k.startswith("app_celery/"):
             k, v = None, None
+        elif k.startswith("Dockerfile"):
+            v = re.sub(r"^COPY app_celery.*$\n?", "", v, flags=re.MULTILINE)
         elif k == "requirements.txt":
             v = re.sub(r"^celery==.*$\n?", "", v, flags=re.MULTILINE)
         elif _ := re.search(r"config/app_(.*).yaml$", k):
@@ -621,9 +623,7 @@ class CMD:
                         v = v.replace("app_celery", name).replace("app-celery", name.replace("_", "-"))
                         f.write(v)
         if f:
-            for ext in ["runcbeat.py", "runcworker.py", "app/api/default/ahealth.py"]:
-                if ext == "app/api/default/ahealth.py" and not (work_dir / "app/api/default").is_dir():
-                    continue
+            for ext in ["runcbeat.py", "runcworker.py"]:
                 path = work_dir / ext
                 if path.is_file():
                     sys.stdout.write(f"[celery] Existed {ext}\n")

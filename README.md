@@ -15,7 +15,7 @@
     - integrated sqlalchemy
     - integrated migration
     - integrated celery
-    - integrated docker deployment
+    - integrated docker (compose/swarm/nomad)
     - ...
   - more documents: [请点击链接](https://blog.csdn.net/atpuxiner/article/details/144291336?fromshare=blogdetail&sharetype=blogdetail&sharerId=144291336&sharerefer=PC&sharesource=atpuxiner&sharefrom=from_link)
 
@@ -104,10 +104,13 @@ This package can be installed using pip (Python>=3.11):
   - about alembic: [click here](https://alembic.sqlalchemy.org/en/latest/)
 - x）docker, please see:
   - project files:
-    - build.sh (default Dockerfile.slim)
-    - Dockerfile | Dockerfile.slim
-    - docker-compose.yaml | docker-compose.swarm.yaml[config/nginx.conf]
+    - Dockerfile*
+    - docker-build.sh (default Dockerfile.slim)
+    - docker-compose*
+    - nomad-*
   - about docker: [click here](https://docs.docker.com/)
+  - about nomad: [click here](https://developer.hashicorp.com/nomad)
+  - about kubernetes: [click here](https://kubernetes.io/)
 
 ## License
 

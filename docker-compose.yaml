@@ -1,14 +1,14 @@
 services:
-  backend:
+  app:
     # build:
     #   context: .
-    #   dockerfile: Dockerfile
+    #   dockerfile: Dockerfile-slim
     image: fastapi-scaff:v1.0.0 # 强烈建议不要用 :latest
     restart: unless-stopped
     environment:
       APP_ENV: prod
     volumes:
-      - /data/fastapi-scaff/logs:/backend/logs
+      - /data/fastapi-scaff/logs:/app/logs
     ports:
       - "8000:8000"
     command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 5 --log-level info"
