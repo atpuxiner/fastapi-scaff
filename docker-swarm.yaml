@@ -20,8 +20,8 @@ services:
         protocol: tcp
         mode: ingress
 
-    # 如需 gunicorn，请先 pip install gunicorn 再切换
     command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 5 --log-level info"
+    # 若使用 gunicorn，需安装 gunicorn
     # command: "gunicorn app.main:app -c config/gunicorn.conf.py"
 
     healthcheck:
@@ -84,7 +84,7 @@ networks:
 #       docker swarm update --cert-expiry 8760h
 #    其他节点加入：docker swarm join-token worker
 #
-# 1. 准备挂载文件（无则跳过）
+# 1. 准备挂载（有必须先创建，无则跳过）
 #
 # 2. 准备镜像（二选一）
 #    A) 推送到仓库：
@@ -94,20 +94,22 @@ networks:
 #       docker build -t fastapi-scaff:v1.0.0 .
 #
 # 3. 部署
-#    docker stack deploy -c docker-compose.swarm.yaml fastapi-scaff
+#    docker stack deploy -c docker-swarm.yaml fastapi-scaff
 #
 # 4. 验证
-#    docker service ls
-#    docker service ps fastapi-scaff_app
-#    docker service logs fastapi-scaff_app --follow
+#    列出服务列表：    docker service ls
+#    查看服务实例：    docker service ps fastapi-scaff_app
+#    实时查看日志：    docker service logs -f fastapi-scaff_app
 #
 # 5. 访问
 #    curl http://localhost:8000/health
 #
-# 6. 升级（修改 image 后重新执行第 4 步）
-#    watch docker service ps fastapi-scaff_app
+# 6. 升级
+#    1）修改当前配置的镜像（image）
+#    2）重新执行第 3 步
+#    3）监听升级状态：watch docker service ps fastapi-scaff_app
 #
 # 7. 清理
 #    docker stack rm fastapi-scaff
 #
-# 文档：https://docs.docker.com/manuals/
+# 文档：https://docs.docker.com/engine/swarm/

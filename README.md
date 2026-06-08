@@ -15,7 +15,7 @@
     - integrated sqlalchemy
     - integrated migration
     - integrated celery
-    - integrated docker (compose/swarm/nomad)
+    - integrated docker
     - ...
   - more documents: [请点击链接](https://blog.csdn.net/atpuxiner/article/details/144291336?fromshare=blogdetail&sharetype=blogdetail&sharerId=144291336&sharerefer=PC&sharesource=atpuxiner&sharefrom=from_link)
 
@@ -26,7 +26,11 @@
   - S services
   - M models
 - Flow: main.py(core) - (middleware) - api - services - models
-- Layout: (The naming has been finalized after multiple revisions, making it concise and easy to understand)
+- Layout:
+  - The naming has been finalized after multiple revisions, making it concise and easy to understand.
+  - Some modules require specified parameters for integration.
+    - Flexibly enable modules (database, loguru, redis, snowflake, migration, celery, docker, etc.) through parameters when creating a project with new.
+    - Easily integrate templates (celery, docker, swarm, nomad, etc.) into existing projects using the tpl command.
 
   ```
   └── fastapi-scaff
@@ -64,7 +68,6 @@
   - light：Please create and view (with `-t light`)
   - tiny：Please create and view (with `-t tiny`)
   - single：Please create and view (with `-t single`)
-- 【Tips】Database, Loguru, Redis, Snowflake, Celery, etc., can all be controlled through parameters to integrate or not, allowing you to flexibly customize the functional modules needed for your project.
 
 ## Installation
 
@@ -86,7 +89,7 @@ This package can be installed using pip (Python>=3.11):
   - `fastapi-scaff add <myapi>`
 - 4）integrated celery
   - **New project**: `fastapi-scaff new <myproj> --celery`
-  - **Existing project**: `fastapi-scaff add <mycelery> --celery`
+  - **Existing project**: `fastapi-scaff tpl celery -p <mycelery>`
 
 ## Project run
 
@@ -95,8 +98,8 @@ This package can be installed using pip (Python>=3.11):
 - 3）`pip install -r requirements.txt`
 - 4）`python runserver.py`
   - more parameters see:
-    - about uvicorn: [click here](https://www.uvicorn.org/)
-    - about gunicorn: [click here](https://docs.gunicorn.org/en/stable/)
+    - about uvicorn: [click here](https://uvicorn.dev/)
+    - about gunicorn: [click here](https://gunicorn.org/quickstart/)
 - x）migration
   - eg (Can be executed before runserver):
     - generate: `python runmigration.py generate init`
@@ -106,11 +109,8 @@ This package can be installed using pip (Python>=3.11):
   - project files:
     - Dockerfile*
     - docker-build.sh (default Dockerfile.slim)
-    - docker-compose*
-    - nomad-*
-  - about docker: [click here](https://docs.docker.com/)
-  - about nomad: [click here](https://developer.hashicorp.com/nomad)
-  - about kubernetes: [click here](https://kubernetes.io/)
+    - docker-compose.yaml
+  - about docker: [click here](https://docs.docker.com/get-started/)
 
 ## License
 

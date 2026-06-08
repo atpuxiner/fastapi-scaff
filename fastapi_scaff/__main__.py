@@ -28,7 +28,7 @@ def main():
     parser = argparse.ArgumentParser(
         prog=prog,
         usage="%(prog)s <command> <name> [options]",
-        description="FastAPI scaffolding tool — generate project or API endpoints instantly to simplify development.",
+        description="FastAPI scaffolding tool — generate project, API endpoints or template instantly to simplify development.",
         epilog="""
 examples:
   New project:                      fastapi-scaff new myproj
@@ -36,8 +36,9 @@ examples:
   New project with . & force:       fastapi-scaff new . --force
   Add an API endpoint:              fastapi-scaff add myapi[myapis]
   Add multiple APIs:                fastapi-scaff add myapi1[myapi1s],myapi2[myapi2s] -s myapi
-  
-  💡 Tip:
+  Tpl celery:                       fastapi-scaff tpl celery -p celery_app
+
+  Tip:
     1. Project Naming Convention
     - Use '.' to denote current directory as project name. Use --force if not empty.
 
@@ -51,9 +52,15 @@ examples:
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument(
-        "command", choices=["new", "add"], help="Subcommand: 'new' to new a project, 'add' to add API(s)"
+        "command",
+        choices=["new", "add", "tpl"],
+        help="Subcommand: 'new' to new a project, 'add' to add API(s), 'tpl' to template",
     )
-    parser.add_argument("name", type=str, help="Project name or API name(s) (multiple APIs can be comma-separated)")
+    parser.add_argument(
+        "name",
+        type=str,
+        help="Project name, API name(s) (multiple APIs can be comma-separated) or template (celery, docker, swarm, nomad)",
+    )
     parser.add_argument(
         "-t",
         "--template",
@@ -68,12 +75,14 @@ examples:
         default="sqlite",
         choices=["sqlite", "mysql", "postgresql", "no"],
         metavar="",
-        help="(new) Specify database (default: sqlite; 'no' means no integration)",
+        help="(new) Specify database (default: sqlite, 'no' means no integration)",
     )
-    parser.add_argument("--loguru", action="store_true", help="(new) Specify loguru (default: logging)")
-    parser.add_argument("--redis", action="store_true", help="(new) Specify Redis (default: no)")
-    parser.add_argument("--snow", action="store_true", help="(new) Specify Snowflake (default: no)")
-    parser.add_argument("--migration", action="store_true", help="(new) Specify migration (default: no)")
+    parser.add_argument("--loguru", action="store_true", help="(new) Specify loguru (default: false)")
+    parser.add_argument("--redis", action="store_true", help="(new) Specify Redis (default: false)")
+    parser.add_argument("--snow", action="store_true", help="(new) Specify Snowflake (default: false)")
+    parser.add_argument("--migration", action="store_true", help="(new) Specify migration (default: false)")
+    parser.add_argument("--celery", action="store_true", help="(new) Specify Celery (default: false)")
+    parser.add_argument("--docker", action="store_true", help="(new) Specify Docker (default: false)")
     parser.add_argument(
         "-v", "--vn", default="v1", type=str, metavar="", help="(add) Specify API version for the API (default: v1)"
     )
@@ -83,10 +92,17 @@ examples:
         default="",
         type=str,
         metavar="",
-        help="(add) Specify subdirectory for the API (default: none)",
+        help="(add) Specify subdirectory for the API (default: '')",
     )
-    parser.add_argument("--celery", action="store_true", help="(new|add) Specify Celery (default: no)")
-    parser.add_argument("--force", action="store_true", help="(new|add) Force overwrite")
+    parser.add_argument(
+        "-p",
+        "--project",
+        default=".",
+        type=str,
+        metavar="",
+        help="(tpl) Specify project name for the template (default: .)",
+    )
+    parser.add_argument("--force", action="store_true", help="(new|add|tpl) Force overwrite (default: false)")
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit()
@@ -94,8 +110,10 @@ examples:
     cmd = CMD(args)
     if args.command == "new":
         cmd.new()
-    else:
+    elif args.command == "add":
         cmd.add()
+    else:
+        cmd.tpl()
 
 
 class CMD:
@@ -113,7 +131,7 @@ class CMD:
             if not re.search(pattern, args.name):
                 sys.stderr.write(f"{prog}: '{args.name}' only support regex: {pattern}\n")
                 sys.exit(1)
-        else:
+        elif args.command == "add":
             pattern = r"^[A-Za-z][A-Za-z0-9_]{0,64}(\[[A-Za-z][A-Za-z0-9_]{0,69}\])?$"
             if args.celery:
                 pattern = r"^[A-Za-z][A-Za-z0-9_]{0,64}$"
@@ -132,6 +150,27 @@ class CMD:
             args.subdir = args.subdir.replace(" ", "")
             if args.subdir and not re.search(pattern, args.subdir):
                 sys.stderr.write(f"{prog}: '{args.subdir}' only support regex: {pattern}\n")
+                sys.exit(1)
+        else:
+            support_tpls = [
+                "celery",
+                "docker",
+                "swarm",
+                "nomad",
+            ]
+            if args.name not in support_tpls:
+                sys.stderr.write(f"{prog}: '{args.name}' only support: {support_tpls}\n")
+                sys.exit(1)
+            if args.project == ".":
+                if args.name == "celery":
+                    args.project = "app_celery"
+                else:
+                    args.project = Path.cwd().name
+            pattern = r"^[A-Za-z][A-Za-z0-9_-]{0,64}$"
+            if args.name == "celery":
+                pattern = r"^[A-Za-z][A-Za-z0-9_]{0,64}$"
+            if not re.search(pattern, args.project):
+                sys.stderr.write(f"{prog}: 'project(name)' only support regex: {pattern}\n")
                 sys.exit(1)
         self.args = args
 
@@ -152,7 +191,7 @@ class CMD:
         for k, v in project_tpl.items():
             base64_flag = k.endswith(base64_suffixes)
             if not base64_flag:
-                k, v = self._tpl_handler(k, v)
+                k, v = self._new_handler(k, v)
             if k:
                 tplpath = name.joinpath(k)
                 tplpath.parent.mkdir(parents=True, exist_ok=True)
@@ -171,55 +210,39 @@ class CMD:
             f"----- More see README.md -----\n"
         )
 
-    def _tpl_handler(self, k: str, v: str):
+    def _new_handler(self, k: str, v: str):
+        if k.startswith(
+            (
+                "docker-swarm.",
+                "nomad-",
+            )
+        ):
+            return None, None
+        elif k == "pyproject.toml":
+            v = "".join(v.partition("# ===")[1:])
+            return k, v
+        elif k == "README.md":
+            v = v.replace(f"# {prog}", f"# {prog} ( => yourProj)")
+            return k, v
+
         for c, h in [
-            (self.args.celery is False, self._tpl_celery_handler),
-            (1, self._tpl_template_handler),
-            (1, self._tpl_db_handler),
-            (self.args.loguru is False, self._tpl_loguru_handler),
-            (self.args.redis is False, self._tpl_redis_handler),
-            (self.args.snow is False, self._tpl_snow_handler),
-            (self.args.migration is False, self._tpl_migration_handler),
+            (self.args.celery is False, self._new_celery_handler),
+            (1, self._new_template_handler),
+            (1, self._new_db_handler),
+            (1, self._new_docker_handler),
+            (self.args.loguru is False, self._new_loguru_handler),
+            (self.args.redis is False, self._new_redis_handler),
+            (self.args.snow is False, self._new_snow_handler),
+            (self.args.migration is False, self._new_migration_handler),
         ]:
             if c:
                 k, v = h(k, v)
                 if not k:
                     return k, v
 
-        if not k:
-            return k, v
-
-        if k == "config/nginx.conf":
-            v = v.replace("server backend:", f"server {self.args.name.replace('_', '-')}-prod_backend:")
-        elif k.startswith(
-            (
-                "docker-",
-                "nomad-",
-            )
-        ):
-            v = v.replace("fastapi-scaff", self.args.name.replace("_", "-"))
-        elif k == "pyproject.toml":
-            v = "".join(v.partition("# ===")[1:])
-        elif k == "README.md":
-            v = v.replace(f"# {prog}", f"# {prog} ( => yourProj)")
         return k, v
 
-    def _tpl_celery_handler(self, k, v):
-        if k in {
-            "app/api/default/ahealth.py",
-            "runcbeat.py",
-            "runcworker.py",
-        } or k.startswith("app_celery/"):
-            k, v = None, None
-        elif k.startswith("Dockerfile"):
-            v = re.sub(r"^COPY app_celery.*$\n?", "", v, flags=re.MULTILINE)
-        elif k == "requirements.txt":
-            v = re.sub(r"^celery==.*$\n?", "", v, flags=re.MULTILINE)
-        elif _ := re.search(r"config/app_(.*).yaml$", k):
-            v = re.sub(r"^\s*# #\s*\n(?:^\s*CELERY_.*$\n?)+", "", v, flags=re.MULTILINE)
-        return k, v
-
-    def _tpl_template_handler(self, k, v):
+    def _new_template_handler(self, k, v):
         if self.args.template == "standard":
             if k.startswith(("single/",)):
                 return None, None
@@ -316,7 +339,7 @@ class CMD:
                 v = re.sub(r"^(PyJWT==|bcrypt==|SQLAlchemy==|alembic==|aiosqlite==).*$\n?", "", v, flags=re.MULTILINE)
             return k, v
 
-    def _tpl_db_handler(self, k, v):
+    def _new_db_handler(self, k, v):
         if self.args.db == "no":
             if (
                 k
@@ -380,7 +403,7 @@ class CMD:
                 v = re.sub(r"^aiosqlite==.*$\n?", "\n".join(postgresql) + "\n", v, flags=re.MULTILINE)
         return k, v
 
-    def _tpl_loguru_handler(self, k, v):
+    def _new_loguru_handler(self, k, v):
         if k in (
             "app/core/_log.py",
             "core.py",
@@ -391,7 +414,7 @@ class CMD:
             v = re.sub(r"^loguru==.*$\n?", "", v, flags=re.MULTILINE)
         return k, v
 
-    def _tpl_redis_handler(self, k, v):
+    def _new_redis_handler(self, k, v):
         if k == "app/core/_redis.py":
             k, v = None, None
         elif k == "app/core/__init__.py":
@@ -409,7 +432,7 @@ class CMD:
             v = re.sub(r"^redis==.*$\n?", "", v, flags=re.MULTILINE)
         return k, v
 
-    def _tpl_snow_handler(self, k, v):
+    def _new_snow_handler(self, k, v):
         if k == "app/api/deps.py":
             v = v.replace('params={"id": int(user_id)}', 'params={"id": user_id}')
         elif k == "app/core/_snow.py":
@@ -445,9 +468,32 @@ class CMD:
             v = re.sub(r"(?:^[ \t]*#[^\n]*\n)*^[ \t]*SNOW_[^\n]*\n?", "", v, flags=re.MULTILINE)
         return k, v
 
-    def _tpl_migration_handler(self, k, v):
+    def _new_migration_handler(self, k, v):
         if k.startswith(("app/migrations/", "runmigration.py")):
             return None, None
+        return k, v
+
+    def _new_celery_handler(self, k, v):
+        if k in {
+            "app/api/default/ahealth.py",
+            "runcbeat.py",
+            "runcworker.py",
+        } or k.startswith("app_celery/"):
+            k, v = None, None
+        elif k.startswith("Dockerfile"):
+            v = re.sub(r"^COPY app_celery.*$\n?", "", v, flags=re.MULTILINE)
+        elif k == "requirements.txt":
+            v = re.sub(r"^celery==.*$\n?", "", v, flags=re.MULTILINE)
+        elif _ := re.search(r"config/app_(.*).yaml$", k):
+            v = re.sub(r"^\s*# #\s*\n(?:^\s*CELERY_.*$\n?)+", "", v, flags=re.MULTILINE)
+        return k, v
+
+    def _new_docker_handler(self, k, v):
+        if k.startswith((".docker", "docker-", "Dockerfile")):
+            if self.args.docker:
+                v = v.replace("fastapi-scaff", self.args.name)
+            else:
+                k, v = None, None
         return k, v
 
     @staticmethod
@@ -460,8 +506,6 @@ class CMD:
         )
 
     def add(self):
-        if self.args.celery:
-            return self._add_celery_handler(self.args.name.split(","))
         vn = self.args.vn
         subdir = self.args.subdir
 
@@ -506,7 +550,7 @@ class CMD:
             nosnow = False
         for mod in tpl_mods:
             if not work_dir.joinpath(mod).is_dir():
-                sys.stderr.write(f"[error] Not exists: {mod.replace('/', os.sep)}\n")
+                sys.stderr.write(f"[add] Not exists: {mod.replace('/', os.sep)}\n")
                 sys.exit(1)
         for name in self.args.name.split(","):
             if "[" in name:
@@ -529,7 +573,7 @@ class CMD:
                         break
                 if existed_file:
                     sys.stderr.write(
-                        f"[{name}] Existed {existed_file.relative_to(work_dir)}. Operation cancelled, please handle manually.\n"
+                        f"[add] Existed {existed_file.relative_to(work_dir)}. Operation cancelled, use --force to overwrite or handle manually.\n"
                     )
                     continue
             for mod in tpl_mods:
@@ -547,7 +591,7 @@ class CMD:
                                 with open(curr_mod_dir.joinpath("__init__.py"), "w", encoding="utf-8") as f:
                                     f.write(f"""\"\"\"\napi-{vn}\n\"\"\"\n\n_prefix = "/api/{vn}"\n""")
                             except Exception as e:
-                                sys.stderr.write(f"[{name}] Failed create {curr_mod_dir_rel}: {e}\n")
+                                sys.stderr.write(f"[add] Failed create {curr_mod_dir_rel}: {e}\n")
                                 sys.exit(1)
                         else:
                             sys.exit(1)
@@ -563,14 +607,14 @@ class CMD:
                 _is_existed = curr_mod_file.is_file()
                 with open(curr_mod_file, "w", encoding="utf-8") as f:
                     sys.stdout.write(
-                        f"[{name}] {'Overwriting' if _is_existed else 'Writing'} {curr_mod_file.relative_to(work_dir)}\n"
+                        f"[add] {'Overwriting' if _is_existed else 'Writing'} {curr_mod_file.relative_to(work_dir)}\n"
                     )
                     k = f"{target}_{mod.replace('/', '_')}.py"
                     if target == "s" and nodeclorm:
                         k = f"{k[:-3]}_nodeclorm.py"
                     v = api_tpl_dict.get(k, "")
                     if v:
-                        v = self._add_tpl_handler(k, v, nosnow)
+                        v = self._add_handler(k, v, nosnow)
                         if subdir:
                             v = v.replace(
                                 "from app.services.tpl import", f"from app.services.{subdir}.tpl import"
@@ -583,7 +627,7 @@ class CMD:
                     f.write(v)
 
     @staticmethod
-    def _add_tpl_handler(k, v, nosnow: bool):
+    def _add_handler(k, v, nosnow: bool):
         if nosnow:
             if "models" in k:
                 v = v.replace("import gen_snow_id", "import gen_uuid_hex").replace(
@@ -597,42 +641,166 @@ class CMD:
                 )
         return v
 
-    @staticmethod
-    def _add_celery_handler(names: list):
+    def tpl(self):
+        sys.stdout.write(f"tpl {self.args.project}:\n")
+        if self.args.name == "celery":
+            return self._tpl_celery_handler()
+        elif self.args.name == "docker":
+            return self._tpl_docker_handler()
+        elif self.args.name == "swarm":
+            return self._tpl_swarm_handler()
+        else:
+            return self._tpl_nomad_handler()
+
+    def _tpl_celery_handler(self):
+        name = self.args.project
+        if name == "celery":
+            sys.stdout.write(f"[tpl] Cannot use reserved name '{name}'\n")
+            return
+
         work_dir = Path.cwd()
+        tpls = [
+            name,
+            "runcbeat.py",
+            "runcworker.py",
+        ]
+        for idx, t in enumerate(tpls):
+            if idx == 0:
+                if work_dir.joinpath(t).is_dir() and not self.args.force:
+                    sys.stdout.write(
+                        f"[tpl] Existed {t}. Operation cancelled, use --force to overwrite or handle manually.\n"
+                    )
+                    return
+            else:
+                if work_dir.joinpath(t).is_file() and not self.args.force:
+                    sys.stdout.write(
+                        f"[tpl] Existed {t}. Operation cancelled, use --force to overwrite or handle manually.\n"
+                    )
+                    return
+
         with open(here.joinpath("_project_tpl.json"), "r", encoding="utf-8") as f:
             project_tpl = json.loads(f.read())
-        sys.stdout.write("Adding celery:\n")
-        f = False
-        for name in names:
-            if name == "celery":
-                sys.stdout.write(f"[celery] Cannot use reserved name '{name}'\n")
-                continue
-            f = True
-            celery_dir = work_dir.joinpath(name)
-            if celery_dir.is_dir():
-                sys.stdout.write(f"[celery] Existed {name}\n")
-                continue
-            sys.stdout.write(f"[celery] Writing {name}\n")
-            celery_dir.mkdir(parents=True, exist_ok=True)
-            for k, v in project_tpl.items():
-                if k.startswith("app_celery/"):
-                    tplpath = celery_dir.joinpath(k.replace("app_celery/", ""))
-                    tplpath.parent.mkdir(parents=True, exist_ok=True)
-                    with open(tplpath, "w", encoding="utf-8") as f:
-                        v = v.replace("app_celery", name).replace("app-celery", name.replace("_", "-"))
-                        f.write(v)
-        if f:
-            for ext in ["runcbeat.py", "runcworker.py"]:
-                path = work_dir / ext
-                if path.is_file():
-                    sys.stdout.write(f"[celery] Existed {ext}\n")
+
+        for idx, t in enumerate(
+            [
+                name,
+                "runcbeat.py",
+                "runcworker.py",
+            ]
+        ):
+            if idx == 0:
+                celery_dir = work_dir.joinpath(t)
+                if celery_dir.is_dir():
+                    sys.stdout.write(f"[tpl] Overwrite {t}\n")
                 else:
-                    sys.stdout.write(f"[celery] Writing {ext}\n")
+                    sys.stdout.write(f"[tpl] Writing {t}\n")
+                celery_dir.mkdir(parents=True, exist_ok=True)
+                for k, v in project_tpl.items():
+                    if k.startswith("app_celery/"):
+                        tplpath = celery_dir.joinpath(k.replace("app_celery/", ""))
+                        tplpath.parent.mkdir(parents=True, exist_ok=True)
+                        with open(tplpath, "w", encoding="utf-8") as f:
+                            v = v.replace("app_celery", name).replace("app-celery", name.replace("_", "-"))
+                            f.write(v)
+            else:
+                path = work_dir.joinpath(t)
+                if path.is_file():
+                    sys.stdout.write(f"[tpl] Overwrite {t}\n")
+                else:
+                    sys.stdout.write(f"[tpl] Writing {t}\n")
                     with open(path, "w", encoding="utf-8") as f:
-                        v = project_tpl[ext]
-                        v = v.replace("app_celery", names[0])
+                        v = project_tpl[t]
+                        v = v.replace("app_celery", name)
                         f.write(v)
+
+    def _tpl_docker_handler(self):
+        work_dir = Path.cwd()
+        tpls = [
+            ".dockerignore",
+            "docker-build.sh",
+            "Dockerfile",
+            "Dockerfile-slim",
+            "docker-compose.yaml",
+        ]
+        for t in tpls:
+            path = work_dir.joinpath(t)
+            if path.is_file() and not self.args.force:
+                sys.stdout.write(
+                    f"[tpl] Existed {t}. Operation cancelled, use --force to overwrite or handle manually.\n"
+                )
+                return
+
+        with open(here.joinpath("_project_tpl.json"), "r", encoding="utf-8") as f:
+            project_tpl = json.loads(f.read())
+        for t in tpls:
+            path = work_dir.joinpath(t)
+            if path.is_file():
+                sys.stdout.write(f"[tpl] Overwrite {t}\n")
+            else:
+                sys.stdout.write(f"[tpl] Writing {t}\n")
+            tpl = project_tpl.get(t).replace("fastapi-scaff", self.args.project)
+            if t.startswith("Dockerfile"):
+                tpl = re.sub(r"^COPY app_celery.*$\n?", "", tpl, flags=re.MULTILINE)
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(tpl)
+
+    def _tpl_swarm_handler(self):
+        work_dir = Path.cwd()
+        tpls = [
+            ".dockerignore",
+            "docker-build.sh",
+            "Dockerfile",
+            "Dockerfile-slim",
+            "docker-swarm.yaml",
+        ]
+        for t in tpls:
+            path = work_dir.joinpath(t)
+            if path.is_file() and not self.args.force:
+                sys.stdout.write(
+                    f"[tpl] Existed {t}. Operation cancelled, use --force to overwrite or handle manually.\n"
+                )
+                return
+
+        with open(here.joinpath("_project_tpl.json"), "r", encoding="utf-8") as f:
+            project_tpl = json.loads(f.read())
+        for t in tpls:
+            path = work_dir.joinpath(t)
+            if path.is_file():
+                sys.stdout.write(f"[tpl] Overwrite {t}\n")
+            else:
+                sys.stdout.write(f"[tpl] Writing {t}\n")
+            tpl = project_tpl.get(t).replace("fastapi-scaff", self.args.project)
+            if t.startswith("Dockerfile"):
+                tpl = re.sub(r"^COPY app_celery.*$\n?", "", tpl, flags=re.MULTILINE)
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(tpl)
+
+    def _tpl_nomad_handler(self):
+        work_dir = Path.cwd()
+        tpls = [
+            "nomad-setup.sh",
+            "nomad-traefik.hcl",
+            "nomad-app.hcl",
+        ]
+        for t in tpls:
+            path = work_dir.joinpath(t)
+            if path.is_file() and not self.args.force:
+                sys.stdout.write(
+                    f"[tpl] Existed {t}. Operation cancelled, use --force to overwrite or handle manually.\n"
+                )
+                return
+
+        with open(here.joinpath("_project_tpl.json"), "r", encoding="utf-8") as f:
+            project_tpl = json.loads(f.read())
+        for t in tpls:
+            path = work_dir.joinpath(t)
+            if path.is_file():
+                sys.stdout.write(f"[tpl] Overwrite {t}\n")
+            else:
+                sys.stdout.write(f"[tpl] Writing {t}\n")
+            tpl = project_tpl.get(t).replace("fastapi-scaff", self.args.project)
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(tpl)
 
 
 if __name__ == "__main__":

@@ -3,7 +3,8 @@ services:
     # build:
     #   context: .
     #   dockerfile: Dockerfile-slim
-    image: fastapi-scaff:v1.0.0 # 强烈建议不要用 :latest
+    # 生产环境严禁使用 :latest
+    image: fastapi-scaff:v1.0.0
     restart: unless-stopped
     environment:
       APP_ENV: prod
@@ -12,4 +13,5 @@ services:
     ports:
       - "8000:8000"
     command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 5 --log-level info"
-    # command: "gunicorn app.main:app -c config/gunicorn.conf.py"  # 追加安装 gunicorn
+    # 若使用 gunicorn，需安装 gunicorn
+    # command: "gunicorn app.main:app -c config/gunicorn.conf.py"

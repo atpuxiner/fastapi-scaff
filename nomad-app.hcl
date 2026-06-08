@@ -106,15 +106,33 @@ job "fastapi-scaff" {
         max_file_size = 15
       }
 
-      # Traefik Nomad Provider 充当 routing mesh（等效 Swarm ingress）
+      # Traefik Nomad Provider 充当 routing mesh
       service {
         name     = local.svc_name
         provider = "nomad"
         port     = "http"
 
-        # 生产环境启用 HTTPS 时：
-        #   1. entrypoints 改为 websecure
-        #   2. 新增 tls=true 与 tls.certresolver=letsencrypt
+        # HTTP/HTTPS 配置指南：
+        # 1. 对外暴露（公网/互联网用户）：
+        #    - 必须启用 HTTPS。
+        #    - 修改 entrypoints 为 "websecure"。
+        #    - 添加 tls=true 及 certresolver（如 letsencrypt）。
+        #
+        # 2. 对内服务（内网微服务调用）：
+        #    - 若网络可信且无合规强制要求，可保持 HTTP (entrypoints=web)。
+        #    - 若需内部加密，建议结合 Consul Connect mTLS 或在 Traefik 配置内部证书。
+        # ------------------------
+        # 生产环境启用 HTTPS 示例：
+        #   tags = concat(
+        #     [
+        #       "traefik.enable=true",
+        #       "traefik.http.routers.${local.svc_name}.rule=PathPrefix(`${local.route_prefix}`)",
+        #       "traefik.http.routers.${local.svc_name}.entrypoints=websecure",  # 改为 websecure
+        #       "traefik.http.routers.${local.svc_name}.tls=true",               # 启用 TLS
+        #       "traefik.http.routers.${local.svc_name}.tls.certresolver=letsencrypt",
+        #     ],
+        #     ...
+        #   )
         tags = concat(
           [
             "traefik.enable=true",
@@ -155,7 +173,7 @@ job "fastapi-scaff" {
 #    nomad job run nomad-traefik.hcl        # 仅首次执行
 #    nomad job status traefik               # 确认 running
 #
-# 1. 准备挂载文件（无则跳过）
+# 1. 准备挂载（有必须先创建，无则跳过）
 #
 # 2. 准备镜像（二选一）
 #    A. 本地构建：docker build -t fastapi-scaff:v1.0.0 .
@@ -165,18 +183,21 @@ job "fastapi-scaff" {
 #    nomad job run nomad-app.hcl
 #
 # 4. 验证
-#    nomad job status fastapi-scaff
-#    nomad job allocs fastapi-scaff
-#    nomad logs -f <alloc-id> app
+#    查看任务状态：    nomad job status fastapi-scaff
+#    查看任务分配：    nomad job allocs fastapi-scaff
+#    实时查看日志：    nomad logs -f <alloc-id> app
 #
 # 5. 访问
 #    curl http://<节点IP>:8000/health
 #
-# 6. 升级（修改 image 后重新执行第 3 步）
+# 6. 升级
+#    1）修改当前配置的镜像（image）
+#    2）重新执行第 3 步
+#    3）监听升级状态：watch nomad job status fastapi-scaff
 #
 # 7. 清理
 #    nomad job stop -purge fastapi-scaff
 #
 # 文档：
 #   - Nomad: https://developer.hashicorp.com/nomad/docs
-#   - Traefik Nomad Provider: https://doc.traefik.io/traefik/providers/nomad/
+#   - Traefik Nomad Provider: https://doc.traefik.io/traefik/reference/install-configuration/providers/hashicorp/nomad/

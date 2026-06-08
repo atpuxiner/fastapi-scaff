@@ -53,8 +53,8 @@ Dockerfile
 Dockerfile-slim
 docker-compose.yml
 docker-compose.yaml
-docker-compose.swarm.yml
-docker-compose.swarm.yaml
+docker-swarm.yml
+docker-swarm.yaml
 build.sh
 *.sqlite3
 *.sqlite3-journal
