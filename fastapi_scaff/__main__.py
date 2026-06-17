@@ -199,7 +199,7 @@ class CMD:
                     with open(tplpath, "wb") as f:
                         f.write(base64.b64decode(v))
                 else:
-                    with open(tplpath, "w", encoding="utf-8") as f:
+                    with open(tplpath, "w", encoding="utf-8", newline="\n") as f:
                         f.write(v)
         sys.stdout.write(
             "Done. Now run:\n"
@@ -588,7 +588,7 @@ class CMD:
                         if is_create.lower() == "y" or is_create == "":
                             try:
                                 curr_mod_dir.mkdir(parents=True, exist_ok=True)
-                                with open(curr_mod_dir.joinpath("__init__.py"), "w", encoding="utf-8") as f:
+                                with open(curr_mod_dir.joinpath("__init__.py"), "w", encoding="utf-8", newline="\n") as f:
                                     f.write(f"""\"\"\"\napi-{vn}\n\"\"\"\n\n_prefix = "/api/{vn}"\n""")
                             except Exception as e:
                                 sys.stderr.write(f"[add] Failed create {curr_mod_dir_rel}: {e}\n")
@@ -598,14 +598,14 @@ class CMD:
                 if subdir:
                     curr_mod_dir = curr_mod_dir.joinpath(subdir)
                     curr_mod_dir.mkdir(parents=True, exist_ok=True)
-                    with open(curr_mod_dir.joinpath("__init__.py"), "w", encoding="utf-8") as f:
+                    with open(curr_mod_dir.joinpath("__init__.py"), "w", encoding="utf-8", newline="\n") as f:
                         f.write("")
                         if mod.endswith("api"):
                             f.write(f"""\"\"\"\n{subdir}\n\"\"\"\n\n_prefix = "/{subdir}"\n""")
                 # file
                 curr_mod_file = curr_mod_dir.joinpath(name + ".py")
                 _is_existed = curr_mod_file.is_file()
-                with open(curr_mod_file, "w", encoding="utf-8") as f:
+                with open(curr_mod_file, "w", encoding="utf-8", newline="\n") as f:
                     sys.stdout.write(
                         f"[add] {'Overwriting' if _is_existed else 'Writing'} {curr_mod_file.relative_to(work_dir)}\n"
                     )
@@ -699,7 +699,7 @@ class CMD:
                     if k.startswith("app_celery/"):
                         tplpath = celery_dir.joinpath(k.replace("app_celery/", ""))
                         tplpath.parent.mkdir(parents=True, exist_ok=True)
-                        with open(tplpath, "w", encoding="utf-8") as f:
+                        with open(tplpath, "w", encoding="utf-8", newline="\n") as f:
                             v = v.replace("app_celery", name).replace("app-celery", name.replace("_", "-"))
                             f.write(v)
             else:
@@ -708,7 +708,7 @@ class CMD:
                     sys.stdout.write(f"[tpl] Overwrite {t}\n")
                 else:
                     sys.stdout.write(f"[tpl] Writing {t}\n")
-                    with open(path, "w", encoding="utf-8") as f:
+                    with open(path, "w", encoding="utf-8", newline="\n") as f:
                         v = project_tpl[t]
                         v = v.replace("app_celery", name)
                         f.write(v)
@@ -741,7 +741,7 @@ class CMD:
             tpl = project_tpl.get(t).replace("fastapi-scaff", self.args.project)
             if t.startswith("Dockerfile"):
                 tpl = re.sub(r"^COPY app_celery.*$\n?", "", tpl, flags=re.MULTILINE)
-            with open(path, "w", encoding="utf-8") as f:
+            with open(path, "w", encoding="utf-8", newline="\n") as f:
                 f.write(tpl)
 
     def _tpl_swarm_handler(self):
@@ -772,7 +772,7 @@ class CMD:
             tpl = project_tpl.get(t).replace("fastapi-scaff", self.args.project)
             if t.startswith("Dockerfile"):
                 tpl = re.sub(r"^COPY app_celery.*$\n?", "", tpl, flags=re.MULTILINE)
-            with open(path, "w", encoding="utf-8") as f:
+            with open(path, "w", encoding="utf-8", newline="\n") as f:
                 f.write(tpl)
 
     def _tpl_nomad_handler(self):
@@ -799,7 +799,7 @@ class CMD:
             else:
                 sys.stdout.write(f"[tpl] Writing {t}\n")
             tpl = project_tpl.get(t).replace("fastapi-scaff", self.args.project)
-            with open(path, "w", encoding="utf-8") as f:
+            with open(path, "w", encoding="utf-8", newline="\n") as f:
                 f.write(tpl)
 
 

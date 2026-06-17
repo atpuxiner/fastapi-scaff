@@ -29,8 +29,8 @@
 - Layout:
   - The naming has been finalized after multiple revisions, making it concise and easy to understand.
   - Some modules require specified parameters for integration.
-    - Flexibly enable modules (database, loguru, redis, snowflake, migration, celery, docker, etc.) through parameters when creating a project with new.
-    - Easily integrate templates (celery, docker, swarm, nomad, etc.) into existing projects using the tpl command.
+    - Flexibly enable modules (database, loguru, redis, etc.) through parameters when creating a project with new.
+    - Easily integrate templates (celery, docker, swarm, etc.) into existing projects using the tpl command.
 
   ```
   └── fastapi-scaff
@@ -55,7 +55,7 @@
       ├── .dockerignore
       ├── .gitignore
       ├── .python-version
-      ├── build.sh
+      ├── docker-build.sh
       ├── docker-compose.yaml
       ├── Dockerfile
       ├── LICENSE

@@ -48,7 +48,7 @@ def gen_project_json():
                 continue
             with open(file, "r", encoding="utf-8") as f:
                 data[f"{m[1:]}/app/{file.name}"] = f.read()
-    with open(project_dir.joinpath(f"{pkg_mod_name}/_project_tpl.json"), "w", encoding="utf-8") as f:
+    with open(project_dir.joinpath(f"{pkg_mod_name}/_project_tpl.json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump(data, f, indent=4)
 
 
@@ -60,12 +60,33 @@ def gen_api_json():
             continue
         with open(file, "r", encoding="utf-8") as f:
             data[file.name] = f.read()
-    with open(project_dir.joinpath(f"{pkg_mod_name}/_api_tpl.json"), "w", encoding="utf-8") as f:
+    with open(project_dir.joinpath(f"{pkg_mod_name}/_api_tpl.json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump(data, f, indent=4)
+
+
+def update_requirements_version():
+    __version__ = None
+    with open(project_dir / ".history", "r", encoding="utf8") as f:
+        for line in f:
+            if line.startswith("## "):
+                __version__ = line.replace("## ", "").strip(" \nv")
+                break
+        if not __version__:
+            raise ValueError("Please set version")
+    rfile = project_dir / "requirements.txt"
+    with open(rfile, "r", encoding="utf8") as f:
+        lines = f.readlines()
+        for i, line in enumerate(lines):
+            if line.startswith("fastapi-scaff=="):
+                lines[i] = f"fastapi-scaff=={__version__}\n"
+                break
+    with open(rfile, "w", encoding="utf8", newline="\n") as f:
+        f.writelines(lines)
 
 
 def run():
     print("Generating...")
+    update_requirements_version()
     gen_project_json()
     gen_api_json()
     print("Done.")
