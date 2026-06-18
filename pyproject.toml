@@ -44,7 +44,7 @@ exclude = [
     "*.egg-info*",
 ]
 
-# ==================== BasedPyright 配置 ====================
+# ==================== BasedPyright ====================
 [tool.basedpyright]
 typeCheckingMode = "standard"
 include = [
@@ -78,7 +78,7 @@ reportUnknownMemberType = "none"
 reportUnknownParameterType = "none"
 reportMissingTypeStubs = "none"
 
-# ==================== Ruff 配置 ====================
+# ==================== Ruff ====================
 [tool.ruff]
 line-length = 120
 

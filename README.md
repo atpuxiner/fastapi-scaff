@@ -7,6 +7,7 @@
 - This is a fastapi scaff.
   - new project
   - add api
+  - tpl template
   - about project:
     - auto init project (conf, db, log...)
     - auto register router
@@ -25,10 +26,10 @@
   - A api
   - S services
   - M models
-- Flow: main.py(core) - (middleware) - api - services - models
+- Flow: main.py(app) - core(middleware) - api - services - models
 - Layout:
   - The naming has been finalized after multiple revisions, making it concise and easy to understand.
-  - Some modules require specified parameters for integration.
+  - Some modules are integrated via the following methods:
     - Flexibly enable modules (database, loguru, redis, etc.) through parameters when creating a project with new.
     - Easily integrate templates (celery, docker, swarm, etc.) into existing projects using the tpl command.
 
@@ -42,8 +43,6 @@
       │   │   ├── db                  │   ├── (数据库)
       │   │   ├── log                 │   ├── (日志)
       │   │   └── ...                 │   └── (...)
-      │   ├── middleware              ├── (中间件)
-      │   ├── migrations              ├── (数据库迁移)
       │   ├── models                  ├── (数据模型)
       │   ├── services                ├── (业务逻辑)
       │   ├── utils                   ├── (工具集)
@@ -87,7 +86,7 @@ This package can be installed using pip (Python>=3.11):
 - 3）add api
   - `cd to project root dir`
   - `fastapi-scaff add <myapi>`
-- 4）integrated celery
+- x）integrated celery
   - **New project**: `fastapi-scaff new <myproj> --celery`
   - **Existing project**: `fastapi-scaff tpl celery -p <mycelery>`
 
@@ -101,11 +100,12 @@ This package can be installed using pip (Python>=3.11):
     - about uvicorn: [click here](https://uvicorn.dev/)
     - about gunicorn: [click here](https://gunicorn.org/quickstart/)
 - x）migration
-  - eg (Can be executed before runserver):
+  - create project with migration support: `fastapi-scaff new <myproj> --migration`
+  - execution commands (run before server startup):
     - generate: `python runmigration.py generate init`
     - upgrade: `python runmigration.py upgrade`
   - about alembic: [click here](https://alembic.sqlalchemy.org/en/latest/)
-- x）docker, please see:
+- x）docker
   - project files:
     - Dockerfile*
     - docker-build.sh (default Dockerfile.slim)
@@ -122,6 +122,6 @@ This project is released under the MIT License (MIT). See [LICENSE](LICENSE)
 
 享受开源，也感谢支持。
 
-如果本项目对您有用，可以考虑 Buy Me a Coffee :)
+如果本项目对您有用，Buy Me a Coffee :)
 
 ![](BuyMeaCoffee.jpg)

@@ -123,7 +123,13 @@ def response_docs(
             "description": "❌ 参数错误/业务失败",
             "content": {
                 "application/json": {
-                    "example": {"msg": "参数错误/业务失败", "code": 400, "error": "string", "data": None, "request_id": "string"}
+                    "example": {
+                        "msg": "参数错误/业务失败",
+                        "code": 400,
+                        "error": "string",
+                        "data": None,
+                        "request_id": "string",
+                    }
                 }
             },
         },
@@ -159,7 +165,13 @@ def response_docs(
             "description": "🔍 资源未找到",
             "content": {
                 "application/json": {
-                    "example": {"msg": "资源未找到", "code": 404, "error": None, "data": None, "request_id": "string"}
+                    "example": {
+                        "msg": "资源未找到",
+                        "code": 404,
+                        "error": None,
+                        "data": None,
+                        "request_id": "string",
+                    }
                 }
             },
         },

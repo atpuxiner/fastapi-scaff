@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # Python>=3.11
-fastapi-scaff==0.12.2
+fastapi-scaff==0.12.3
 fastapi==0.136.1
 uvicorn[standard]==0.46.0
-toollib==2.2.4
+toollib==2.2.5
 tzdata==2026.1
 python-dotenv==1.2.2
 PyYAML==6.0.3
