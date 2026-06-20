@@ -471,6 +471,8 @@ class CMD:
     def _new_migration_handler(self, k, v):
         if k.startswith(("app/migrations/", "runmigration.py")):
             return None, None
+        elif k == "requirements.txt":
+            v = re.sub(r"^alembic==.*$\n?", "", v, flags=re.MULTILINE)
         return k, v
 
     def _new_celery_handler(self, k, v):
