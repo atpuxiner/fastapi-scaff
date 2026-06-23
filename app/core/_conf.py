@@ -30,7 +30,7 @@ class Config(ConfModel):
     APP_VERSION: str = "1.0.0"
     APP_DEBUG: bool = True
     APP_LOG_SERIALIZE: bool = False
-    APP_LOG_OUTDIR: str = "./logs"
+    APP_LOG_OUTDIR: str = "logs"
     APP_DISABLE_DOCS: bool = False
     APP_ALLOW_CREDENTIALS: bool = True
     APP_ALLOW_ORIGINS: list = ["*"]

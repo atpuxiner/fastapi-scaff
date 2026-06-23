@@ -141,6 +141,5 @@ cython_debug/
 .idea/
 .vscode/
 logs/
-*.sqlite3
-*.sqlite3-journal
+data/
 celerybeat-schedule*

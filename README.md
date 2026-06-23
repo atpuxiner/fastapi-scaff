@@ -108,7 +108,7 @@ This package can be installed using pip (Python>=3.11):
 - x）docker
   - project files:
     - Dockerfile*
-    - docker-build.sh (default Dockerfile.slim)
+    - docker-build.sh (default Dockerfile)
     - docker-compose.yaml
   - about docker: [click here](https://docs.docker.com/get-started/)
 

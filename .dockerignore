@@ -50,12 +50,11 @@ Thumbs.db
 # 其他
 .dockerignore
 Dockerfile
-Dockerfile-slim
+Dockerfile-bullseye
 docker-compose.yml
 docker-compose.yaml
 docker-swarm.yml
 docker-swarm.yaml
 build.sh
-*.sqlite3
-*.sqlite3-journal
+data/
 celerybeat-schedule*

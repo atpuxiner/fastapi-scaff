@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-bullseye
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
@@ -8,9 +8,6 @@ ENV PYTHONUNBUFFERED=1 \
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 WORKDIR /app
-
-# 编译 C/C++/Fortran 扩展所需工具（特定包请自行添加），纯 Python 依赖可省略
-# RUN apt-get update && apt-get install -y --no-install-recommends gcc g++ gfortran python3-dev libffi-dev libssl-dev && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple/ && \

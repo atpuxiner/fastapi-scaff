@@ -1,5 +1,6 @@
 import importlib
 import re
+from pathlib import Path
 
 from sqlalchemy import URL, create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -73,6 +74,12 @@ def make_db_url(
     port: int | None = None,
     query: dict | None = None,
 ) -> URL:
+    if drivername.startswith("sqlite"):
+        database_path = Path(database)
+        if not database_path.is_absolute():
+            database_path = APP_DIR.parent.joinpath(database_path)
+        database_path.parent.mkdir(parents=True, exist_ok=True)
+        database = str(database_path.resolve())
     query = {k: v for k, v in query.items() if v} if query else {}
     return URL.create(
         drivername=drivername,

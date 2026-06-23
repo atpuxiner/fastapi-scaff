@@ -2,16 +2,9 @@ services:
   app:
     # build:
     #   context: .
-    #   dockerfile: Dockerfile-slim
+    #   dockerfile: Dockerfile
     # 生产环境严禁使用 :latest
     image: fastapi-scaff:v1.0.0
-
-    environment:
-      APP_ENV: prod
-
-    volumes:
-      # - /data/fastapi-scaff/config:/app/config
-      - /data/fastapi-scaff/logs:/app/logs
 
     # ingress 模式由 Swarm routing mesh 统一对外暴露并负载均衡
     ports:
@@ -19,6 +12,13 @@ services:
         published: 8000
         protocol: tcp
         mode: ingress
+
+    environment:
+      APP_ENV: prod
+
+    volumes:
+      # - /data/fastapi-scaff/config:/app/config
+      - /data/fastapi-scaff/logs:/app/logs
 
     command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 5 --log-level info"
     # 若使用 gunicorn，需安装 gunicorn

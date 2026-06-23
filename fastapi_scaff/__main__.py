@@ -381,7 +381,7 @@ class CMD:
             return k, v
 
         if env := re.search(r"config/app_(.*).yaml$", k):
-            ov = f"DB_DRIVERNAME: sqlite\nDB_ASYNC_DRIVERNAME: sqlite+aiosqlite\nDB_DATABASE: app_{env.group(1)}.sqlite3\nDB_USERNAME:\nDB_PASSWORD:\nDB_HOST:\nDB_PORT:\nDB_CHARSET:"
+            ov = f"DB_DRIVERNAME: sqlite\nDB_ASYNC_DRIVERNAME: sqlite+aiosqlite\nDB_DATABASE: data/db/app_{env.group(1)}.sqlite3\nDB_USERNAME:\nDB_PASSWORD:\nDB_HOST:\nDB_PORT:\nDB_CHARSET:"
             if self.args.db == "mysql":
                 nv = "DB_DRIVERNAME: mysql+pymysql\nDB_ASYNC_DRIVERNAME: mysql+aiomysql\nDB_DATABASE: <database>\nDB_USERNAME: <username>\nDB_PASSWORD: <password>\nDB_HOST: <host>\nDB_PORT: <port>\nDB_CHARSET: utf8mb4"
                 v = v.replace(ov, nv)
@@ -721,7 +721,7 @@ class CMD:
             ".dockerignore",
             "docker-build.sh",
             "Dockerfile",
-            "Dockerfile-slim",
+            "Dockerfile-bullseye",
             "docker-compose.yaml",
         ]
         for t in tpls:
@@ -752,7 +752,7 @@ class CMD:
             ".dockerignore",
             "docker-build.sh",
             "Dockerfile",
-            "Dockerfile-slim",
+            "Dockerfile-bullseye",
             "docker-swarm.yaml",
         ]
         for t in tpls:
