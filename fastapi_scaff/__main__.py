@@ -391,13 +391,13 @@ class CMD:
         elif k == "requirements.txt":
             if self.args.db == "mysql":
                 mysql = [
-                    "PyMySQL==1.1.2",
+                    "PyMySQL==1.2.3",
                     "aiomysql==0.3.2",
                 ]
                 v = re.sub(r"^aiosqlite==.*$\n?", "\n".join(mysql) + "\n", v, flags=re.MULTILINE)
             elif self.args.db == "postgresql":
                 postgresql = [
-                    "psycopg2-binary==2.9.12",
+                    "psycopg2-binary==2.9.13",
                     "asyncpg==0.31.0",
                 ]
                 v = re.sub(r"^aiosqlite==.*$\n?", "\n".join(postgresql) + "\n", v, flags=re.MULTILINE)
