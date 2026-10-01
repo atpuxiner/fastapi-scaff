@@ -74,18 +74,16 @@ class HttpMiddleware(BaseHTTPMiddleware):
         request: Request,
         exc: Exception,
         log_traceback: bool = True,
-        log_request: bool = False,
+        log_request: bool = True,
     ) -> JSONResponse:
-        lmsg = (
-            f'- "{request.method} {request.url.path}" {Status.INTERNAL_SERVER_ERROR.code} {type(exc).__name__}: {exc}'
-        )
+        ctx = ""
+        if log_request:
+            ctx = f"\nQuery params: {request.query_params or None!r}\nBody: {await request.body() or None!r}"
+        lmsg = f'- "{request.method} {request.url.path}" {Status.INTERNAL_SERVER_ERROR.code} {type(exc).__name__}: {ctx}\n{exc}'
         if log_traceback:
             logger.exception(lmsg)
         else:
             logger.error(lmsg)
-        if log_request:
-            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
-            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         return Responses.failure(
             error=exc,
             status=Status.INTERNAL_SERVER_ERROR,
@@ -110,16 +108,16 @@ class ExceptionsHandler:
         request: Request,
         exc: CustomException,
         log_traceback: bool = True,
-        log_request: bool = False,
+        log_request: bool = True,
     ) -> JSONResponse:
-        lmsg = f'- "{request.method} {request.url.path}" {exc.code} {exc.msg}'
+        ctx = ""
+        if log_request:
+            ctx = f"\nQuery params: {request.query_params or None!r}\nBody: {await request.body() or None!r}"
+        lmsg = f'- "{request.method} {request.url.path}" {exc.code}: {ctx}\n{exc.msg}'
         if log_traceback:
             logger.exception(lmsg)
         else:
             logger.error(lmsg)
-        if log_request:
-            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
-            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         return Responses.failure(
             status=exc.status,
             msg=exc.msg,
@@ -134,8 +132,11 @@ class ExceptionsHandler:
         exc: RequestValidationError,
         display_all: bool = False,
         log_traceback: bool = True,
-        log_request: bool = False,
+        log_request: bool = True,
     ) -> JSONResponse:
+        ctx = ""
+        if log_request:
+            ctx = f"\nQuery params: {request.query_params or None!r}\nBody: {await request.body() or None!r}"
         if display_all:
             msg = " & ".join(
                 [
@@ -146,14 +147,11 @@ class ExceptionsHandler:
         else:
             error = exc.errors()[0]
             msg = f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"
-        lmsg = f'- "{request.method} {request.url.path}" {Status.VALIDATION_ERROR.code} {msg}'
+        lmsg = f'- "{request.method} {request.url.path}" {Status.VALIDATION_ERROR.code}: {ctx}\n{msg}'
         if log_traceback:
             logger.exception(lmsg)
         else:
             logger.error(lmsg)
-        if log_request:
-            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
-            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         return Responses.failure(
             status=Status.VALIDATION_ERROR,
             msg=msg,
@@ -165,16 +163,16 @@ class ExceptionsHandler:
         request: Request,
         exc: HTTPException,
         log_traceback: bool = True,
-        log_request: bool = False,
+        log_request: bool = True,
     ) -> JSONResponse:
-        lmsg = f'- "{request.method} {request.url.path}" {exc.status_code} {exc.detail}'
+        ctx = ""
+        if log_request:
+            ctx = f"\nQuery params: {request.query_params or None!r}\nBody: {await request.body() or None!r}"
+        lmsg = f'- "{request.method} {request.url.path}" {exc.status_code}: {ctx}\n{exc.detail}'
         if log_traceback:
             logger.exception(lmsg)
         else:
             logger.error(lmsg)
-        if log_request:
-            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
-            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
         return Responses.failure(
             status=Status.from_status_code(exc.status_code),
             msg=exc.detail,

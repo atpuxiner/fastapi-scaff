@@ -44,6 +44,8 @@ class G(metaclass=Singleton):
         return init_logger(
             level="DEBUG" if self.config.APP_DEBUG else "INFO",
             serialize=self.config.APP_LOG_SERIALIZE,
+            enable_console=self.config.APP_LOG_ENABLE_CONSOLE,
+            enable_file=self.config.APP_LOG_ENABLE_FILE,
             outdir=self.config.APP_LOG_OUTDIR,
         )
 

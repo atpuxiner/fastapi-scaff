@@ -1,7 +1,7 @@
 # Python 字节码和缓存文件
 __pycache__/
-#*.py[cod]
-#*.so
+*.py[cod]
+*.so
 .Python
 *.pth
 
@@ -48,13 +48,11 @@ docs/
 Thumbs.db
 
 # 其他
+config/*.env
 .dockerignore
-Dockerfile
-Dockerfile-bullseye
-docker-compose.yml
-docker-compose.yaml
-docker-swarm.yml
-docker-swarm.yaml
+Dockerfile*
+docker-compose*.yaml
+docker-swarm*.yaml
 build.sh
 data/
 celerybeat-schedule*

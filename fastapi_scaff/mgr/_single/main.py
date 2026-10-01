@@ -15,15 +15,12 @@ from app.core import config, request_id_var
 
 _EXPOSE_ERROR = True
 
-enable_console, enable_file = True, True
-if config.APP_ENV == "prod":
-    enable_console, enable_file = False, True  # 按需调整
 logger = init_logger(
     level="DEBUG" if config.APP_DEBUG else "INFO",
     request_id_var=request_id_var,
     serialize=config.APP_LOG_SERIALIZE,
-    enable_console=enable_console,
-    enable_file=enable_file,
+    enable_console=config.APP_LOG_ENABLE_CONSOLE,
+    enable_file=config.APP_LOG_ENABLE_FILE,
     outdir=config.APP_LOG_OUTDIR,
 )
 # #
