@@ -41,7 +41,7 @@ class TplSvc:
                     "name": req.name,
                 },
                 on_conflict={"name": req.name},
-                flush=True,
+                returning=True,
             )
             if not result:
                 raise CustomException(status=Status.RECORD_EXISTS_ERROR)

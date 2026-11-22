@@ -36,7 +36,7 @@ async def get_current_api_key(api_key: str | None = Security(_API_KEY_HEADER)) -
                 "application/json": {
                     "example": {
                         "status": "ok",
-                        "version": "1.0.0",
+                        "version": "0.1.0",
                         "timestamp": "2026-01-01T01:01:01.000+00:00",
                     }
                 }

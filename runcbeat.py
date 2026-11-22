@@ -1,6 +1,6 @@
 """
 @author axiner
-@version v1.0.0
+@version v0.1.0
 @created 2025/09/20 10:10
 @abstract runcbeat（更多参数请自行指定）
 @description

@@ -73,7 +73,7 @@ job "fastapi-scaff" {
 
       config {
         # 生产环境严禁使用 :latest
-        image = "fastapi-scaff:v1.0.0"
+        image = "fastapi-scaff:v0.1.0"
 
         ports = ["http"]
 
@@ -176,7 +176,7 @@ job "fastapi-scaff" {
 # 1. 准备挂载（有必须先创建，无则跳过）
 #
 # 2. 准备镜像（二选一）
-#    A. 本地构建：docker build -t fastapi-scaff:v1.0.0 .
+#    A. 本地构建：docker build -t fastapi-scaff:v0.1.0 .
 #    B. 推送到仓库：修改本文件中 image 为完整仓库路径
 #
 # 3. 部署

@@ -17,7 +17,7 @@ router = APIRouter()
                 "application/json": {
                     "example": {
                         "status": "ok",
-                        "version": "1.0.0",
+                        "version": "0.1.0",
                         "timestamp": "2026-01-01T01:01:01.000+00:00",
                     }
                 }

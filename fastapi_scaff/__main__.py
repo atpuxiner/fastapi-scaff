@@ -1,6 +1,6 @@
 """
 @author axiner
-@version v1.0.0
+@version v0.1.0
 @created 2024/07/29 22:22
 @abstract
 @description
@@ -331,9 +331,8 @@ class CMD:
                 return None, None
             elif k.startswith("single/"):
                 k = k.replace("single/", "")
-            elif k == "config/.env":
+            elif k in ["config/.env", "config/app.example.yaml"]:
                 v = re.sub(r"(?:^[ \t]*#[^\n]*\n)*^[ \t]*(JWT_|SNOW_)[^\n]*\n?", "", v, flags=re.MULTILINE)
-            elif re.search(r"config/app_(.*).yaml$", k):
                 v = re.sub(r"^\s*# #\s*\n(?:^\s*DB_.*$\n?)+", "", v, flags=re.MULTILINE)
             elif k == "requirements.txt":
                 v = re.sub(r"^(PyJWT==|bcrypt==|SQLAlchemy==|alembic==|aiosqlite==).*$\n?", "", v, flags=re.MULTILINE)
@@ -374,19 +373,24 @@ class CMD:
                 v = '"""\n数据模型\n"""\n'
             elif k == "app/services/__init__.py":
                 v = '"""\n业务逻辑\n"""\n'
-            elif re.search(r"config/app_(.*).yaml$", k):
+            elif k in ["config/.env", "config/app.example.yaml"]:
                 v = re.sub(r"^\s*# #\s*\n(?:^\s*DB_.*$\n?)+", "", v, flags=re.MULTILINE)
             elif k == "requirements.txt":
                 v = re.sub(r"^(SQLAlchemy==|alembic==|aiosqlite==).*$\n?", "", v, flags=re.MULTILINE)
             return k, v
 
-        if env := re.search(r"config/app_(.*).yaml$", k):
-            ov = f"DB_DRIVERNAME: sqlite\nDB_ASYNC_DRIVERNAME: sqlite+aiosqlite\nDB_DATABASE: data/db/app_{env.group(1)}.sqlite3\nDB_USERNAME:\nDB_PASSWORD:\nDB_HOST:\nDB_PORT:\nDB_CHARSET:"
+        if k in ["config/.env", "config/app.example.yaml"]:
+            ov = "DB_DRIVERNAME: sqlite\nDB_ASYNC_DRIVERNAME: sqlite+aiosqlite\nDB_DATABASE: data/db/app_dev.sqlite3\nDB_USERNAME:\nDB_PASSWORD:\nDB_HOST:\nDB_PORT:\nDB_CHARSET:"
             if self.args.db == "mysql":
                 nv = "DB_DRIVERNAME: mysql+pymysql\nDB_ASYNC_DRIVERNAME: mysql+aiomysql\nDB_DATABASE: <database>\nDB_USERNAME: <username>\nDB_PASSWORD: <password>\nDB_HOST: <host>\nDB_PORT: <port>\nDB_CHARSET: utf8mb4"
-                v = v.replace(ov, nv)
             elif self.args.db == "postgresql":
                 nv = "DB_DRIVERNAME: postgresql+psycopg2\nDB_ASYNC_DRIVERNAME: postgresql+asyncpg\nDB_DATABASE: <database>\nDB_USERNAME: <username>\nDB_PASSWORD: <password>\nDB_HOST: <host>\nDB_PORT: <port>\nDB_CHARSET:"
+            else:
+                nv = None
+            if nv:
+                if k.endswith(".env"):
+                    ov = ov.replace(": ", "=").replace(":", "=")
+                    nv = nv.replace(": ", "=").replace(":", "=")
                 v = v.replace(ov, nv)
         elif k == "requirements.txt":
             if self.args.db == "mysql":
@@ -421,7 +425,7 @@ class CMD:
             v = re.sub(r"^\s*from\s+.*?(Redis|_redis).*?$\n?", "", v, flags=re.MULTILINE)
             v = re.sub(r'^\s*(?:#\s*)?"redis_cli",?\s*\n', "", v, flags=re.MULTILINE)
             v = self._repl_funcs(func_names="redis_cli", v=v)
-        elif k == "app/core/_conf.py" or re.search(r"config/app_(.*).yaml$", k):
+        elif k in ["app/core/_conf.py", "config/.env", "config/app.example.yaml"]:
             v = re.sub(r"^\s*REDIS_.*$\n?", "", v, flags=re.MULTILINE)
         elif k == "app/core.py":
             v = re.sub(r"^\s*from\s+.*?(Redis|_redis).*?$\n?", "", v, flags=re.MULTILINE)
@@ -464,7 +468,7 @@ class CMD:
             v = re.sub(r"^\s*SNOW_.*$\n?", "", v, flags=re.MULTILINE)
             v = re.sub(r"^\s*_CACHE_.*$\n?", "", v, flags=re.MULTILINE)
             v = v.replace("Singleton, localip", "Singleton")
-        elif k == "config/.env":
+        elif k in ["config/.env", "config/app.example.yaml"]:
             v = re.sub(r"(?:^[ \t]*#[^\n]*\n)*^[ \t]*SNOW_[^\n]*\n?", "", v, flags=re.MULTILINE)
         return k, v
 
@@ -486,7 +490,7 @@ class CMD:
             v = re.sub(r"^COPY app_celery.*$\n?", "", v, flags=re.MULTILINE)
         elif k == "requirements.txt":
             v = re.sub(r"^celery==.*$\n?", "", v, flags=re.MULTILINE)
-        elif _ := re.search(r"config/app_(.*).yaml$", k):
+        elif k in ["config/.env", "config/app.example.yaml"]:
             v = re.sub(r"^\s*# #\s*\n(?:^\s*CELERY_.*$\n?)+", "", v, flags=re.MULTILINE)
         return k, v
 
@@ -590,7 +594,9 @@ class CMD:
                         if is_create.lower() == "y" or is_create == "":
                             try:
                                 curr_mod_dir.mkdir(parents=True, exist_ok=True)
-                                with open(curr_mod_dir.joinpath("__init__.py"), "w", encoding="utf-8", newline="\n") as f:
+                                with open(
+                                    curr_mod_dir.joinpath("__init__.py"), "w", encoding="utf-8", newline="\n"
+                                ) as f:
                                     f.write(f"""\"\"\"\napi-{vn}\n\"\"\"\n\n_prefix = "/api/{vn}"\n""")
                             except Exception as e:
                                 sys.stderr.write(f"[add] Failed create {curr_mod_dir_rel}: {e}\n")

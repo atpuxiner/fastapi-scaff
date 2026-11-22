@@ -4,7 +4,7 @@ services:
     #   context: .
     #   dockerfile: Dockerfile
     # 生产环境严禁使用 :latest
-    image: fastapi-scaff:v1.0.0
+    image: fastapi-scaff:v0.1.0
 
     # ingress 模式由 Swarm routing mesh 统一对外暴露并负载均衡
     ports:
@@ -17,8 +17,8 @@ services:
       APP_ENV: prod
 
     volumes:
-      # - /data/fastapi-scaff/config:/app/config
-      - /data/fastapi-scaff/logs:/app/logs
+      # - ./config:/app/config
+      - ./logs:/app/logs
 
     command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 5 --log-level info"
     # 若使用 gunicorn，需安装 gunicorn
@@ -88,10 +88,10 @@ networks:
 #
 # 2. 准备镜像（二选一）
 #    A) 推送到仓库：
-#       docker tag fastapi-scaff:v1.0.0 your-registry/fastapi-scaff:v1.0.0
-#       docker push your-registry/fastapi-scaff:v1.0.0
+#       docker tag fastapi-scaff:v0.1.0 your-registry/fastapi-scaff:v0.1.0
+#       docker push your-registry/fastapi-scaff:v0.1.0
 #    B) 本地构建：
-#       docker build -t fastapi-scaff:v1.0.0 .
+#       docker build -t fastapi-scaff:v0.1.0 .
 #
 # 3. 部署
 #    docker stack deploy -c docker-swarm.yaml fastapi-scaff

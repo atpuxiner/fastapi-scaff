@@ -9,11 +9,16 @@ _CONFIG_DIR = _APP_DIR.parent.joinpath("config")
 if os.environ.get("APP_ENV") != "prod":  # 是否加载.env（请根据自身需求修改）
     DOTENV_PATH = _CONFIG_DIR.joinpath(".env")
     load_dotenv(DOTENV_PATH)
-YAML_PATH = _CONFIG_DIR.joinpath(f"app_{os.environ.get('APP_ENV', 'dev')}.yaml")
+YAML_PATH = _CONFIG_DIR.joinpath(f"app.{os.environ.get('APP_ENV', 'dev')}.yaml")
+if not YAML_PATH.is_file():
+    YAML_PATH = None
 
 
 class Config(ConfModel):
-    """配置"""
+    """配置
+    
+    list、tuple、set、dict的值可按json字符串格式配置，如：my_list="[1, 2, 3]"、my_dict='{"key": "value"}'
+    """
 
     APP_DIR: FrozenVar[Path] = _APP_DIR
     # #

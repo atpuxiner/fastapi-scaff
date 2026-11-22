@@ -1,6 +1,6 @@
 """
 @author axiner
-@version v1.0.0
+@version v0.1.0
 @created 2024/07/29 22:22
 @abstract 主入口
 @description
@@ -23,7 +23,7 @@ if g.config.APP_DISABLE_DOCS is True:
 @asynccontextmanager
 async def lifespan(xapp: FastAPI):
     g.logger.info(f"Application env '{g.config.APP_ENV}'")
-    g.logger.info(f"Application yaml '{g.config.YAML_PATH.name}'")
+    g.logger.info(f"Application yaml '{g.config.YAML_PATH}'")
     g.logger.info(f"Application title '{g.config.APP_TITLE}'")
     g.logger.info(f"Application version '{g.config.APP_VERSION}'")
     # #

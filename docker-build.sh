@@ -2,7 +2,7 @@
 
 # =================== Configuration Variables ===================
 IMAGE_NAME="fastapi-scaff"
-IMAGE_DEFAULT_TAG="v1.0.0"
+IMAGE_DEFAULT_TAG="v0.1.0"
 
 # Dockerfile and build context
 DOCKERFILE_PATH="./Dockerfile"

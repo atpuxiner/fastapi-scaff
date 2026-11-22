@@ -60,7 +60,7 @@ class UserSvc:
                     "gender": req.gender,
                 },
                 on_conflict={"phone": req.phone},
-                flush=True,
+                returning=True,
             )
             if not result:
                 raise CustomException(status=Status.RECORD_EXISTS_ERROR)
