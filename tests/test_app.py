@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock
 
 from app.core import g
 from app.core.exceptions import CustomException
+from app.core.middleware import CorsMiddleware
 from app.core.status import Status
 
 
@@ -255,3 +256,60 @@ def test_custom_exception_returns_wrapped_failure(client):
     assert body["code"] == Status.FORBIDDEN_ERROR.code
     assert body["msg"] == "custom deny"
     assert body["request_id"] == resp.headers["X-Request-ID"]
+
+
+def test_unhandled_exception_returns_wrapped_500(client, monkeypatch):
+    deps = importlib.import_module("app.api.deps")
+    middleware = importlib.import_module("app.core.middleware")
+    monkeypatch.setattr(middleware, "_expose_error", lambda: False)
+
+    def boom():
+        raise RuntimeError("boom-in-test")
+
+    client.app.dependency_overrides[deps.get_current_user] = boom
+    resp = client.get("/api/v1/users/1")
+
+    assert resp.status_code == 500
+    body = resp.json()
+    assert body["code"] == Status.INTERNAL_SERVER_ERROR.code
+    assert body["msg"] == Status.INTERNAL_SERVER_ERROR.msg
+    assert body["error"] is None
+    assert body["request_id"] == resp.headers["X-Request-ID"]
+
+
+def test_unhandled_exception_exposes_detail_in_debug(client, monkeypatch):
+    deps = importlib.import_module("app.api.deps")
+    middleware = importlib.import_module("app.core.middleware")
+    monkeypatch.setattr(middleware, "_expose_error", lambda: True)
+
+    def boom():
+        raise RuntimeError("debug-detail")
+
+    client.app.dependency_overrides[deps.get_current_user] = boom
+    resp = client.get("/api/v1/users/1")
+
+    assert resp.status_code == 500
+    assert "debug-detail" in resp.json()["error"]
+
+
+def test_cors_preflight_returns_allow_headers(client):
+    resp = client.options(
+        "/health",
+        headers={
+            "Origin": "http://example.test",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "X-Request-ID",
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.headers["access-control-allow-origin"] in {"*", "http://example.test"}
+    assert "GET" in resp.headers["access-control-allow-methods"]
+    assert "x-request-id" in resp.headers["access-control-allow-headers"].lower()
+
+
+def test_cors_warns_on_wildcard_with_credentials(client, monkeypatch):
+    warnings = []
+    monkeypatch.setattr(g.logger, "warning", lambda msg: warnings.append(msg))
+    CorsMiddleware(app=client.app)
+
+    assert any("allow_origins" in str(msg) for msg in warnings)

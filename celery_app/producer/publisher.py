@@ -17,7 +17,7 @@ def publish(
     if task_label not in AllTasks:
         raise ValueError(f"UNKNOWN TASK: {task_label}")
     task_params = AllTasks[task_label]
-    task_options_merged = task_params.options or {}
+    task_options_merged = dict(task_params.options or {})
     task_options_merged.update(task_options)
     result = celery_app.send_task(
         name=task_params.name,
@@ -27,5 +27,5 @@ def publish(
         queue=task_params.queue,  # enforced queue consistency
         **task_options_merged,
     )
-    logger.info(f"task published label={task_label} ({task_params.name}) id={result.id} queue={task_params.queue}")
+    logger.info(f"Task published label={task_label} ({task_params.name}) id={result.id} queue={task_params.queue}")
     return result.id

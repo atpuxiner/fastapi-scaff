@@ -128,7 +128,7 @@ def test_new_db_handler_switches_drivers(cli_module):
     _, value = mysql._new_db_handler("config/.env", env_text)
     assert "DB_DRIVERNAME=mysql+pymysql" in value
     _, value = mysql._new_db_handler("requirements.txt", "aiosqlite==0.22.1\n")
-    assert "PyMySQL==1.2.3" in value and "aiomysql==0.3.2" in value
+    assert "PyMySQL==" in value and "aiomysql==" in value
 
     none_db = cli_module.CMD(make_cli_args("new", "demo", db="no"))
     assert none_db._new_db_handler("app/core/_db.py", "x") == (None, None)

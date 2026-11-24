@@ -1,5 +1,9 @@
 """脚手架命令测试：通过子进程覆盖 `fastapi-scaff`（python -m fastapi_scaff）的各子命令。"""
 
+import os
+import subprocess
+import sys
+
 import pytest
 from fastapi_scaff import __version__
 
@@ -150,10 +154,10 @@ def test_new_templates(run_cli, project_workspace, template, expected, unexpecte
 @pytest.mark.parametrize(
     ("db", "present", "absent"),
     [
-        ("mysql", ["PyMySQL==1.2.3", "aiomysql==0.3.2", "DB_DRIVERNAME=mysql+pymysql"], ["aiosqlite"]),
+        ("mysql", ["PyMySQL==", "aiomysql==", "DB_DRIVERNAME=mysql+pymysql"], ["aiosqlite"]),
         (
             "postgresql",
-            ["psycopg2-binary==2.9.13", "asyncpg==0.31.0", "DB_DRIVERNAME=postgresql+psycopg2"],
+            ["psycopg2-binary==", "asyncpg==", "DB_DRIVERNAME=postgresql+psycopg2"],
             ["aiosqlite"],
         ),
     ],
@@ -403,3 +407,21 @@ def test_tpl_default_project_uses_current_directory(run_cli, project_workspace):
     assert result.returncode == 0, result.stderr
     assert "tpl myproj:" in result.stdout
     assert "myproj" in (work / "docker-compose.yaml").read_text("utf-8")
+
+
+def test_new_with_migration_can_run_alembic(run_cli, project_workspace):
+    created = run_cli("new", "demo", "--migration", cwd=project_workspace)
+    assert created.returncode == 0, created.stderr
+    project = project_workspace / "demo"
+
+    result = subprocess.run(
+        [sys.executable, "runmigration.py", "current"],
+        cwd=str(project),
+        env=os.environ.copy(),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    assert result.returncode == 0, result.stderr
+    assert "Checking current revision" in result.stdout

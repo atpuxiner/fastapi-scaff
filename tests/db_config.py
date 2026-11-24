@@ -118,18 +118,61 @@ def ensure_mysql_database(config: SqlDbConfig = MYSQL_TEST) -> None:
         conn.commit()
 
 
-def redis_clients(config: RedisDbConfig = REDIS_TEST):
-    """返回配置中每个 Redis 库对应的客户端。"""
-    import redis
+def reset_sql_database(config: SqlDbConfig, tables: tuple[str, ...] = ("users", "books")) -> None:
+    """清空指定表，让 E2E 每次都在干净库上启动生成项目。"""
+    if config.drivername.startswith("postgresql"):
+        import psycopg2
 
-    return {
-        db: redis.Redis(
+        with closing(
+            psycopg2.connect(
+                host=config.host,
+                port=config.port,
+                user=config.username,
+                password=config.password,
+                dbname=config.database,
+                connect_timeout=3,
+            )
+        ) as conn:
+            conn.autocommit = True
+            with conn.cursor() as cur:
+                for table in tables:
+                    cur.execute(f'DROP TABLE IF EXISTS "{table}" CASCADE')
+        return
+
+    import pymysql
+
+    with closing(
+        pymysql.connect(
             host=config.host,
             port=config.port,
-            db=db,
+            user=config.username,
             password=config.password,
-            socket_connect_timeout=3,
-            decode_responses=True,
+            database=config.database,
+            connect_timeout=3,
         )
-        for db in config.databases
-    }
+    ) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SET FOREIGN_KEY_CHECKS = 0")
+            for table in tables:
+                cur.execute(f"DROP TABLE IF EXISTS `{table}`")
+            cur.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+
+
+def redis_client(db: int = 0, config: RedisDbConfig = REDIS_TEST):
+    """返回指定 Redis 库的客户端。"""
+    import redis
+
+    return redis.Redis(
+        host=config.host,
+        port=config.port,
+        db=db,
+        password=config.password,
+        socket_connect_timeout=3,
+        decode_responses=True,
+    )
+
+
+def redis_clients(config: RedisDbConfig = REDIS_TEST):
+    """返回配置中每个 Redis 库对应的客户端。"""
+    return {db: redis_client(db, config) for db in config.databases}

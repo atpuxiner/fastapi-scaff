@@ -5,7 +5,7 @@ import importlib
 import sqlite3
 from contextlib import asynccontextmanager, contextmanager
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import jwt
 import pytest
@@ -26,7 +26,9 @@ from app.core.middleware import (
     HttpMiddleware,
     _format_validation_error,
     _is_sensitive,
+    _log_error,
     _mask_data,
+    _read_log_body,
 )
 from app.core.responses import Responses, response_docs
 from app.core.status import Status
@@ -96,6 +98,8 @@ def test_middleware_helpers():
         "nested": {"api_key": "***"},
         "name": "z",
     }
+    assert _mask_data([{"api_key": "x"}]) == [{"api_key": "***"}]
+    assert _mask_data(({"token": "x"},)) == ({"token": "***"},)
     assert "phone (string) too short".lower() == _format_validation_error(
         {"loc": ("body", "phone"), "type": "string", "msg": "too short"}
     )
@@ -109,6 +113,9 @@ def test_request_id_and_client_ip_helpers():
     generated = HttpMiddleware._get_or_create_request_id(invalid)
     assert generated != "bad id!" and len(generated) == 36
 
+    too_long = SimpleNamespace(headers={"X-Request-ID": "a" * 65})
+    assert HttpMiddleware._get_or_create_request_id(too_long) != "a" * 65
+
     request = SimpleNamespace(
         headers={"X-Forwarded-For": "bad, 1.2.3.4, 5.6.7.8", "X-Real-IP": "9.9.9.9"},
         client=SimpleNamespace(host="10.0.0.1"),
@@ -116,6 +123,53 @@ def test_request_id_and_client_ip_helpers():
     assert HttpMiddleware._get_client_ip(request) == "1.2.3.4"
     request.headers = {"X-Real-IP": "not-an-ip"}
     assert HttpMiddleware._get_client_ip(request) == "10.0.0.1"
+    assert HttpMiddleware._get_client_ip(SimpleNamespace(headers={}, client=None)) == "-"
+
+
+def _make_request(body: bytes = b"", state: dict | None = None) -> Request:
+    scope = {
+        "type": "http",
+        "method": "POST",
+        "path": "/unit",
+        "headers": [],
+        "query_string": b"",
+        "client": ("127.0.0.1", 12345),
+        "state": state if state is not None else {},
+    }
+
+    async def receive():
+        return {"type": "http.request", "body": body, "more_body": False}
+
+    return Request(scope, receive)
+
+
+def test_read_log_body_masks_and_truncates():
+    masked = asyncio.run(_read_log_body(_make_request(b'{"password": "secret", "name": "tom"}')))
+    assert "***" in masked and "secret" not in masked
+
+    masked = asyncio.run(_read_log_body(_make_request(b'"password": "secret"')))
+    assert "***" in masked and "secret" not in masked
+
+    state = {
+        "_http_middleware_request_body": b"a" * 3000,
+        "_http_middleware_request_body_truncated": True,
+    }
+    masked = asyncio.run(_read_log_body(_make_request(state=state)))
+    assert "<truncated>" in masked and "<body truncated>" in masked
+
+
+def test_log_error_selects_severity(monkeypatch):
+    calls = {"exception": [], "error": [], "warning": []}
+    for level in calls:
+        monkeypatch.setattr(g.logger, level, lambda msg, level=level: calls[level].append(msg))
+
+    request = _make_request()
+    asyncio.run(_log_error(request, RuntimeError("boom"), status_code=500))
+    assert calls["exception"]
+
+    asyncio.run(_log_error(request, ValueError("bad"), status_code=400))
+    assert calls["warning"]
+    assert not calls["error"]
 
 
 def test_http_exception_handler_uses_status_mapping():
@@ -197,6 +251,45 @@ def test_create_tables_writes_sqlite_schema(tmp_path):
     assert "users" in tables
 
 
+def test_create_tables_swallows_already_exists_and_reraises_others(monkeypatch):
+    engine = MagicMock()
+    monkeypatch.setattr(db_module, "create_engine", lambda **kwargs: engine)
+    decl_base = MagicMock()
+    monkeypatch.setattr(db_module, "import_tables", lambda: decl_base)
+
+    decl_base.metadata.create_all.side_effect = Exception("table already exists")
+    create_tables("sqlite", ":memory:", None, None, None, None, None)
+    engine.dispose.assert_called_once()
+
+    decl_base.metadata.create_all.side_effect = Exception("boom")
+    with pytest.raises(Exception, match="boom"):
+        create_tables("sqlite", ":memory:", None, None, None, None, None)
+
+
+def test_init_db_async_session_non_sqlite_pool_options(monkeypatch):
+    captured = {}
+    monkeypatch.setattr(db_module, "create_async_engine", lambda **kwargs: captured.update(kwargs) or object())
+    create_tables_mock = MagicMock()
+    monkeypatch.setattr(db_module, "create_tables", create_tables_mock)
+
+    db_module.init_db_async_session(
+        db_async_drivername="postgresql+asyncpg",
+        db_database="tests",
+        db_username="postgres",
+        db_password="pw",
+        db_host="127.0.0.1",
+        db_port=5432,
+        db_drivername="postgresql+psycopg2",
+    )
+
+    assert captured["pool_size"] == 10
+    assert captured["max_overflow"] == 5
+    assert captured["pool_recycle"] == 3600
+    assert captured["pool_pre_ping"] is True
+    assert captured["url"].drivername == "postgresql+asyncpg"
+    create_tables_mock.assert_called_once()
+
+
 def test_redis_initializer_forwards_options(monkeypatch):
     sentinel = object()
     captured = {}
@@ -255,21 +348,37 @@ def test_config_reads_environment(monkeypatch, tmp_path):
 
 def test_user_model_validators():
     created = UserCreate(phone="13800138000", password="abc12345")
-    assert created.nickname is None
+    assert created.nickname == "用户8000"
     assert created.role == "user" and created.age == 18 and created.gender == 0
     assert UserCreate(phone="13800138000", password="abc12345", nickname="Tom_123").nickname == "Tom_123"
 
-    with pytest.raises(ValidationError):
-        UserCreate(phone="13800138000", password="short1")
-    with pytest.raises(ValidationError):
-        UserCreate(phone="13800138000", password="abc12345", role="root")
-    with pytest.raises(ValidationError):
-        UserCreate(phone="13800138000", password="abc12345", nickname="bad name!")
+    invalid_payloads = [
+        {"password": "short1"},
+        {"password": "a" * 21},
+        {"role": "root"},
+        {"nickname": "bad name!"},
+        {"nickname": "a" * 51},
+        {"age": -1},
+        {"age": 201},
+        {"gender": 3},
+        {"phone": "123"},
+    ]
+    base_payload = {"phone": "13800138000", "password": "abc12345"}
+    for payload in invalid_payloads:
+        with pytest.raises(ValidationError):
+            UserCreate(**{**base_payload, **payload})
+
     with pytest.raises(ValidationError):
         UserUpdate(nickname="bad name!")
+    with pytest.raises(ValidationError):
+        UserUpdate(age=201)
+    with pytest.raises(ValidationError):
+        UserUpdate(gender=9)
     assert UserList().size == 10
     with pytest.raises(ValidationError):
         UserList(size=201)
+    with pytest.raises(ValidationError):
+        UserList(page=0)
 
 
 def test_get_user_service_is_cached():
@@ -370,6 +479,44 @@ def test_user_service_rejects_disabled_user(monkeypatch):
     )
     with pytest.raises(CustomException) as exc:
         asyncio.run(UserSvc.auth_login(UserLogin(phone="13800138000", password="abc12345")))
+    assert exc.value.status is Status.USER_ABNORMAL_ERROR
+
+
+def test_user_service_update_user_not_found(monkeypatch):
+    patch_db_session(monkeypatch)
+    monkeypatch.setattr(User, "update", AsyncMock(return_value=None))
+
+    with pytest.raises(CustomException) as exc:
+        asyncio.run(UserSvc.update_user(UserUpdate(nickname="nobody"), "42"))
+    assert exc.value.status is Status.RECORD_NOT_EXIST_ERROR
+
+
+def test_user_service_login_and_refresh_failures(monkeypatch):
+    from app.utils.jwt_util import hash_password
+
+    patch_db_session(monkeypatch)
+    monkeypatch.setattr(User, "fetch_one", AsyncMock(return_value=None))
+    with pytest.raises(CustomException) as exc:
+        asyncio.run(UserSvc.auth_login(UserLogin(phone="13800138000", password="wrong")))
+    assert exc.value.status is Status.USER_OR_PASSWORD_ERROR
+
+    monkeypatch.setattr(
+        User,
+        "fetch_one",
+        AsyncMock(return_value={"id": "7", "status": 1, "password": hash_password("right-password")}),
+    )
+    with pytest.raises(CustomException) as exc:
+        asyncio.run(UserSvc.auth_login(UserLogin(phone="13800138000", password="wrong-password")))
+    assert exc.value.status is Status.USER_OR_PASSWORD_ERROR
+
+    monkeypatch.setattr(User, "fetch_one", AsyncMock(return_value=None))
+    with pytest.raises(CustomException) as exc:
+        asyncio.run(UserSvc.auth_refresh("7"))
+    assert exc.value.status is Status.RECORD_NOT_EXIST_ERROR
+
+    monkeypatch.setattr(User, "fetch_one", AsyncMock(return_value={"id": "7", "status": 2}))
+    with pytest.raises(CustomException) as exc:
+        asyncio.run(UserSvc.auth_refresh("7"))
     assert exc.value.status is Status.USER_ABNORMAL_ERROR
 
 

@@ -17,6 +17,11 @@ def test_status_values_and_mapping():
     assert Status.from_status_code(404) is Status.NOT_FOUND_ERROR
     assert Status.from_status_code(418) is Status.FAILURE
 
+    table = Status.collect_status()
+    assert "SUCCESS" not in table
+    assert str(Status.SUCCESS.code) in table
+    assert Status.INTERNAL_SERVER_ERROR.msg in table
+
 
 def test_responses_success_and_failure_share_request_id():
     token = request_id_var.set("unit-request-id")

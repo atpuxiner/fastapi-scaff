@@ -3,9 +3,10 @@
 import importlib
 import os
 import re
-import shutil
 import subprocess
 import sys
+import uuid
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -32,7 +33,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--test-projects-dir",
         action="store",
-        default=os.getenv("FASTAPI_SCAFF_TEST_PROJECTS_DIR", DEFAULT_TEST_PROJECTS_DIR),
+        default=os.getenv("TEST_PROJECTS_DIR", DEFAULT_TEST_PROJECTS_DIR),
         help="Directory where CLI tests generate projects (default: data/tests/).",
     )
 
@@ -102,14 +103,20 @@ def test_projects_dir(pytestconfig) -> Path:
     return path
 
 
+@pytest.fixture(scope="session")
+def test_run_dir(test_projects_dir) -> Path:
+    """本次测试运行的独立目录：时间串 + 短 uuid。"""
+    path = test_projects_dir / f"{datetime.now():%Y%m%d-%H%M%S}-{uuid.uuid4().hex[:6]}"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 @pytest.fixture
-def project_workspace(request, test_projects_dir) -> Path:
-    """为单个用例分配 data/tests/ 下的独立工作目录，并在运行前清空旧产物。"""
+def project_workspace(request, test_run_dir) -> Path:
+    """为单个用例在本次运行目录下分配独立子目录。"""
     module = request.module.__name__.rsplit(".", 1)[-1]
     name = re.sub(r"[^A-Za-z0-9_.-]+", "_", request.node.name).strip("._") or "case"
-    workspace = test_projects_dir / f"{module}_{name}"
-    if workspace.exists():
-        shutil.rmtree(workspace)
+    workspace = test_run_dir / f"{module}_{name}"
     workspace.mkdir(parents=True)
     return workspace
 

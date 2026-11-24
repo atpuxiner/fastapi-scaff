@@ -45,7 +45,7 @@ class UserCreate(BaseModel):
     phone: str = Field(..., pattern=r"^1[3-9]\d{9}$")
     password: str = Field(...)
     role: Literal["admin", "user"] | None = Field("user")
-    nickname: str | None = Field(None, min_length=1, max_length=50)
+    nickname: str | None = Field(None, min_length=1, max_length=50, validate_default=True)
     age: int | None = Field(18, ge=0, le=200)
     gender: Literal[0, 1, 2] | None = Field(0)
 

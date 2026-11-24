@@ -76,14 +76,14 @@ def register_routers(
                 mod = importlib.import_module(final_mod)
                 if not getattr(mod, "_active", True):
                     logger.info(f"Register router skipping inactive module: {final_mod}")
-                    sys.modules.pop(final_mod)
+                    sys.modules.pop(final_mod, None)
                     continue
                 prefix_str = prefix.replace("//", "/").rstrip("/")
                 for match in router_pat.finditer(item.read_text(encoding="utf-8")):
                     router = getattr(mod, match.group(1), None)
                     if not isinstance(router, APIRouter):
                         continue
-                    if router.tags or getattr(router.routes[0], "tags", None):
+                    if router.tags or (router.routes and getattr(router.routes[0], "tags", None)):
                         tags = None
                     else:
                         tags = [getattr(mod, "_tag", None) or (item.parent.stem if depth > 1 else mod_name)]

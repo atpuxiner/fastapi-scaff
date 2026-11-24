@@ -37,8 +37,8 @@ db_url = make_db_url(
         "charset": g.config.DB_CHARSET,
     },
 )
-db_password = quote_plus(db_url.password).replace("%", "%%") if db_url.password else ""
-db_url_str = str(db_url).replace("***", db_password)
+db_password = quote_plus(db_url.password) if db_url.password else ""
+db_url_str = str(db_url).replace("***", db_password).replace("%", "%%")
 config.set_main_option(
     name="sqlalchemy.url",
     value=db_url_str,
