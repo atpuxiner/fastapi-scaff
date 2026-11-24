@@ -16,14 +16,14 @@ def main(
     scheduler: str | None = None,
     pidfile: str | None = None,
     max_interval: int = 5,
-    celery_module: str = "app_celery",
+    celery_module: str = "celery_app",
 ):
     parser = argparse.ArgumentParser(description="CeleryBeat启动器")
     parser.add_argument("-l", "--loglevel", type=str, default="info", metavar="", help="日志等级")
     parser.add_argument("-S", "--scheduler", type=str, default=None, metavar="", help="调度器类型")
     parser.add_argument("--pidfile", type=str, default=None, metavar="", help="pid文件")
     parser.add_argument("--max-interval", type=int, default=5, metavar="", help="检测任务间隔")
-    parser.add_argument("--celery-module", type=str, default="app_celery", metavar="", help="celery模块")
+    parser.add_argument("--celery-module", type=str, default="celery_app", metavar="", help="celery模块")
     args = parser.parse_args()
     loglevel = args.loglevel or loglevel
     scheduler = args.scheduler or scheduler
@@ -33,7 +33,7 @@ def main(
     command = [
         "celery",
         "-A",
-        f"{celery_module}.consumer",
+        f"{celery_module}.consumer:app",
         "beat",
         f"--loglevel={loglevel}",
         f"--max-interval={max_interval}",

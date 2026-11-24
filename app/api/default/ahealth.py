@@ -1,9 +1,9 @@
 from datetime import UTC, datetime
 
+from celery_app.producer import publisher
 from fastapi import APIRouter
 
 from app.core import g
-from app_celery.producer import publisher
 
 router = APIRouter()
 

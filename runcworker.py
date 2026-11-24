@@ -18,14 +18,14 @@ def main(
     loglevel: str = "info",
     concurrency: int | None = None,
     pool: str | None = None,
-    celery_module: str = "app_celery",
+    celery_module: str = "celery_app",
 ):
     parser = argparse.ArgumentParser(description="CeleryWorker启动器")
     parser.add_argument("-n", "--name", type=str, metavar="", help="名称")
     parser.add_argument("-l", "--loglevel", type=str, default="info", metavar="", help="日志等级")
     parser.add_argument("-c", "--concurrency", type=int, default=None, metavar="", help="并发数")
     parser.add_argument("-P", "--pool", type=str, default=None, metavar="", help="并发模型")
-    parser.add_argument("--celery-module", type=str, default="app_celery", metavar="", help="celery模块")
+    parser.add_argument("--celery-module", type=str, default="celery_app", metavar="", help="celery模块")
     args = parser.parse_args()
     name = args.name or name
     loglevel = args.loglevel or loglevel
@@ -44,7 +44,7 @@ def main(
     command = [
         "celery",
         "-A",
-        f"{celery_module}.consumer.workers.{name}",
+        f"{celery_module}.consumer.workers.{name}:app",
         "worker",
         f"--loglevel={loglevel}",
         f"--concurrency={concurrency}",

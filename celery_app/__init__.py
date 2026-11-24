@@ -8,13 +8,12 @@
 """
 
 from celery import Celery
-
-from app_celery.conf import config
+from celery_app.conf import config
 
 
 def make_celery(include: list | None = None, configs: dict | None = None):
     app = Celery(
-        main="app_celery",
+        main=__name__,
         broker=config.CELERY_BROKER_URL,
         backend=config.CELERY_BACKEND_URL,
         include=include,

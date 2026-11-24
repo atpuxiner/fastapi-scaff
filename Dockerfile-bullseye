@@ -17,4 +17,4 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple/ &&
 
 COPY config ./config
 COPY app ./app
-COPY app_celery ./app_celery
+COPY celery_app ./celery_app

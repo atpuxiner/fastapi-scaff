@@ -1,11 +1,11 @@
 import logging
 
-from app_celery.consumer import celery_app
+from celery_app.consumer import app
 
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(
+@app.task(
     bind=True,
     autoretry_for=(Exception,),
     max_retries=3,

@@ -47,7 +47,7 @@
       │   ├── services                ├── (业务逻辑)
       │   ├── utils                   ├── (工具集)
       │   └── main.py                 └── (主入口)
-      ├── app_celery                  (应用-异步任务)
+      ├── celery_app                  (异步应用)
       ├── config                      (配置目录)
       ├── docs                        (文档目录)
       ├── tests                       (测试目录)
@@ -107,7 +107,7 @@ This package can be installed using pip (Python>=3.11):
   - about alembic: [click here](https://alembic.sqlalchemy.org/en/latest/)
 - x）docker
   - project files:
-    - Dockerfile*
+    - Dockerfile\*
     - docker-build.sh (default Dockerfile)
     - docker-compose.yaml
   - about docker: [click here](https://docs.docker.com/get-started/)

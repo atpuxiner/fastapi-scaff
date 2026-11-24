@@ -163,7 +163,7 @@ class CMD:
                 sys.exit(1)
             if args.project == ".":
                 if args.name == "celery":
-                    args.project = "app_celery"
+                    args.project = "celery_app"
                 else:
                     args.project = Path.cwd().name
             pattern = r"^[A-Za-z][A-Za-z0-9_-]{0,64}$"
@@ -487,10 +487,10 @@ class CMD:
             "app/api/default/ahealth.py",
             "runcbeat.py",
             "runcworker.py",
-        } or k.startswith("app_celery/"):
+        } or k.startswith("celery_app/"):
             k, v = None, None
         elif k.startswith("Dockerfile"):
-            v = re.sub(r"^COPY app_celery.*$\n?", "", v, flags=re.MULTILINE)
+            v = re.sub(r"^COPY celery_app.*$\n?", "", v, flags=re.MULTILINE)
         elif k == "requirements.txt":
             v = re.sub(r"^celery==.*$\n?", "", v, flags=re.MULTILINE)
         elif k in ["config/.env", "config/app.example.yaml"]:
@@ -707,11 +707,11 @@ class CMD:
                     sys.stdout.write(f"[tpl] Writing {t}\n")
                 celery_dir.mkdir(parents=True, exist_ok=True)
                 for k, v in project_tpl.items():
-                    if k.startswith("app_celery/"):
-                        tplpath = celery_dir.joinpath(k.replace("app_celery/", ""))
+                    if k.startswith("celery_app/"):
+                        tplpath = celery_dir.joinpath(k.replace("celery_app/", ""))
                         tplpath.parent.mkdir(parents=True, exist_ok=True)
                         with open(tplpath, "w", encoding="utf-8", newline="\n") as f:
-                            v = v.replace("app_celery", name).replace("app-celery", name.replace("_", "-"))
+                            v = v.replace("celery_app", name).replace("app-celery", name.replace("_", "-"))
                             f.write(v)
             else:
                 path = work_dir.joinpath(t)
@@ -721,7 +721,7 @@ class CMD:
                     sys.stdout.write(f"[tpl] Writing {t}\n")
                     with open(path, "w", encoding="utf-8", newline="\n") as f:
                         v = project_tpl[t]
-                        v = v.replace("app_celery", name)
+                        v = v.replace("celery_app", name)
                         f.write(v)
 
     def _tpl_docker_handler(self):
@@ -751,7 +751,7 @@ class CMD:
                 sys.stdout.write(f"[tpl] Writing {t}\n")
             tpl = project_tpl.get(t).replace("fastapi-scaff", self.args.project)
             if t.startswith("Dockerfile"):
-                tpl = re.sub(r"^COPY app_celery.*$\n?", "", tpl, flags=re.MULTILINE)
+                tpl = re.sub(r"^COPY celery_app.*$\n?", "", tpl, flags=re.MULTILINE)
             with open(path, "w", encoding="utf-8", newline="\n") as f:
                 f.write(tpl)
 
@@ -782,7 +782,7 @@ class CMD:
                 sys.stdout.write(f"[tpl] Writing {t}\n")
             tpl = project_tpl.get(t).replace("fastapi-scaff", self.args.project)
             if t.startswith("Dockerfile"):
-                tpl = re.sub(r"^COPY app_celery.*$\n?", "", tpl, flags=re.MULTILINE)
+                tpl = re.sub(r"^COPY celery_app.*$\n?", "", tpl, flags=re.MULTILINE)
             with open(path, "w", encoding="utf-8", newline="\n") as f:
                 f.write(tpl)
 

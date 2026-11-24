@@ -5,12 +5,12 @@
 import re
 from pathlib import Path
 
-from app_celery import make_celery
+from celery_app import make_celery
 
 
 def autodiscover_task_modules(
     task_name: str = "tasks",
-    task_module: str = "app_celery.consumer.tasks",
+    task_module: str = "celery_app.consumer.tasks",
 ) -> list:
     """
     自动发现任务模块
@@ -27,4 +27,4 @@ def autodiscover_task_modules(
     return task_modules
 
 
-celery_app = make_celery(include=autodiscover_task_modules())
+app = make_celery(include=autodiscover_task_modules())

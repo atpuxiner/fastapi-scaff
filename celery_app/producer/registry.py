@@ -9,7 +9,7 @@ class TaskParams(BaseModel):
 
 AllTasks: dict[str, TaskParams] = {  # label: TaskParams
     "health": TaskParams(
-        name="app_celery.consumer.tasks.health.health",
+        name="celery_app.consumer.tasks.health.health",
         queue="health",
     ),
 }

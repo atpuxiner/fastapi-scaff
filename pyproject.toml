@@ -33,7 +33,7 @@ version = { attr = "fastapi_scaff.__version__" }
 where = ["."]
 exclude = [
     "app*",
-    "app_celery*",
+    "celery_app*",
     "config*",
     "docs*",
     "logs*",

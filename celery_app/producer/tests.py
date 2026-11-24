@@ -1,6 +1,6 @@
 import unittest
 
-from app_celery.producer import publisher
+from celery_app.producer import publisher
 
 
 class TestPublisher(unittest.TestCase):

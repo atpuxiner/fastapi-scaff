@@ -1,6 +1,6 @@
-from app_celery.consumer import celery_app
+from celery_app.consumer import app
 
-celery_app.conf.update(
+app.conf.update(
     task_queues={
         "health": {
             "exchange_type": "direct",
@@ -9,6 +9,6 @@ celery_app.conf.update(
         },
     },
     task_routes={
-        "app_celery.consumer.tasks.health.health": {"queue": "health"},
+        "celery_app.consumer.tasks.health.health": {"queue": "health"},
     },
 )

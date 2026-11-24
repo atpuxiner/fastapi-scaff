@@ -1,7 +1,7 @@
 import logging
 
-from app_celery.producer import celery_app
-from app_celery.producer.registry import AllTasks
+from celery_app.producer import app as celery_app
+from celery_app.producer.registry import AllTasks
 
 logger = logging.getLogger(__name__)
 
