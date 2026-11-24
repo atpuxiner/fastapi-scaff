@@ -3,6 +3,7 @@ from contextvars import ContextVar
 from pathlib import Path
 
 from dotenv import load_dotenv
+from toollib.logu import init_logger
 from toollib.utils import ConfModel, FrozenVar
 
 from app import APP_DIR
@@ -41,7 +42,7 @@ class Config(ConfModel):
     APP_LOG_SERIALIZE: bool = False
     APP_LOG_ENABLE_CONSOLE: bool = True
     APP_LOG_ENABLE_FILE: bool = True
-    APP_LOG_OUTDIR: str = "./logs"
+    APP_LOG_OUTDIR: str = "logs"
 
 
 config = Config(
@@ -51,3 +52,13 @@ config = Config(
 )
 request_id_var: ContextVar[str] = ContextVar("request_id", default="-")
 client_ip_var: ContextVar[str] = ContextVar("client_ip", default="-")
+
+logger = init_logger(
+    level="DEBUG" if config.APP_DEBUG else "INFO",
+    context_vars={"request_id": request_id_var, "client_ip": client_ip_var},
+    fmt="{time:YYYY-MM-DD HH:mm:ss.SSS} {level} {extra[request_id]} {extra[client_ip]} {name} {file}:{line} {message}",
+    serialize=config.APP_LOG_SERIALIZE,
+    enable_console=config.APP_LOG_ENABLE_CONSOLE,
+    enable_file=config.APP_LOG_ENABLE_FILE,
+    outdir=config.APP_LOG_OUTDIR,
+)

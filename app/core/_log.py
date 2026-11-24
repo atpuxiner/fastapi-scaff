@@ -13,7 +13,7 @@ def init_logger(
     logger = _init_logger(
         level=level,
         context_vars={"request_id": request_id_var, "client_ip": client_ip_var},
-        fmt="%(asctime)s %(levelname)s %(request_id)s %(client_ip)s %(name)s %(filename)s:%(lineno)d %(message)s",
+        fmt="{time:YYYY-MM-DD HH:mm:ss.SSS} {level} {extra[request_id]} {extra[client_ip]} {name} {file}:{line} {message}",
         serialize=serialize,
         enable_console=enable_console,
         enable_file=enable_file,

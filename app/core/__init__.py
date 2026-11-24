@@ -2,7 +2,6 @@
 初始化
 """
 
-import logging
 from functools import cached_property
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -15,8 +14,6 @@ from app.core._db import init_db_async_session
 from app.core._log import init_logger
 from app.core._redis import init_redis_cli
 from app.core._snow import init_snow_cli
-
-logger = logging.getLogger(__name__)
 
 
 class G(metaclass=Singleton):

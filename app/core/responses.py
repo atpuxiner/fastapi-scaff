@@ -8,8 +8,6 @@ from toollib.utils import map_jsontype
 from app.core.context import request_id_var
 from app.core.status import Status
 
-_EXPOSE_ERROR = True
-
 
 class Responses:
     @staticmethod
@@ -54,11 +52,10 @@ class Responses:
         content = {
             "msg": msg or status.msg,
             "code": code or status.code,
+            "error": str(error) if error else None,
             "data": jsonable_encoder(data) if encode_data else data,
             "request_id": request_id_var.get(),
         }
-        if _EXPOSE_ERROR:
-            content["error"] = str(error) if error else None
         return JSONResponse(
             content=content,
             status_code=status_code or status.status_code,

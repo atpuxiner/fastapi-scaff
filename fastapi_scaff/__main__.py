@@ -226,14 +226,14 @@ class CMD:
             return k, v
 
         for c, h in [
-            (self.args.celery is False, self._new_celery_handler),
+            (self.args.celery is False, self._new_nocelery_handler),
             (1, self._new_template_handler),
             (1, self._new_db_handler),
             (1, self._new_docker_handler),
-            (self.args.loguru is False, self._new_loguru_handler),
-            (self.args.redis is False, self._new_redis_handler),
-            (self.args.snow is False, self._new_snow_handler),
-            (self.args.migration is False, self._new_migration_handler),
+            (self.args.loguru is False, self._new_nologuru_handler),
+            (self.args.redis is False, self._new_noredis_handler),
+            (self.args.snow is False, self._new_nosnow_handler),
+            (self.args.migration is False, self._new_nomigration_handler),
         ]:
             if c:
                 k, v = h(k, v)
@@ -407,18 +407,21 @@ class CMD:
                 v = re.sub(r"^aiosqlite==.*$\n?", "\n".join(postgresql) + "\n", v, flags=re.MULTILINE)
         return k, v
 
-    def _new_loguru_handler(self, k, v):
+    def _new_nologuru_handler(self, k, v):
         if k in (
             "app/core/_log.py",
-            "core.py",
-            "main.py",
+            "app/core.py",
         ):
             v = v.replace("from toollib.logu", "from toollib.log")
+            v = v.replace(
+                "{time:YYYY-MM-DD HH:mm:ss.SSS} {level} {extra[request_id]} {extra[client_ip]} {name} {file}:{line} {message}",
+                "%(asctime)s %(levelname)s %(request_id)s %(client_ip)s %(name)s %(filename)s:%(lineno)d %(message)s",
+            )
         elif k == "requirements.txt":
             v = re.sub(r"^loguru==.*$\n?", "", v, flags=re.MULTILINE)
         return k, v
 
-    def _new_redis_handler(self, k, v):
+    def _new_noredis_handler(self, k, v):
         if k == "app/core/_redis.py":
             k, v = None, None
         elif k == "app/core/__init__.py":
@@ -436,7 +439,7 @@ class CMD:
             v = re.sub(r"^redis==.*$\n?", "", v, flags=re.MULTILINE)
         return k, v
 
-    def _new_snow_handler(self, k, v):
+    def _new_nosnow_handler(self, k, v):
         if k == "app/api/deps.py":
             v = v.replace('params={"id": int(user_id)}', 'params={"id": user_id}')
         elif k == "app/core/_snow.py":
@@ -472,14 +475,14 @@ class CMD:
             v = re.sub(r"(?:^[ \t]*#[^\n]*\n)*^[ \t]*SNOW_[^\n]*\n?", "", v, flags=re.MULTILINE)
         return k, v
 
-    def _new_migration_handler(self, k, v):
+    def _new_nomigration_handler(self, k, v):
         if k.startswith(("app/migrations/", "runmigration.py")):
             return None, None
         elif k == "requirements.txt":
             v = re.sub(r"^alembic==.*$\n?", "", v, flags=re.MULTILINE)
         return k, v
 
-    def _new_celery_handler(self, k, v):
+    def _new_nocelery_handler(self, k, v):
         if k in {
             "app/api/default/ahealth.py",
             "runcbeat.py",

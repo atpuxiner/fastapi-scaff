@@ -1,30 +1,11 @@
-import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.middleware.cors import CORSMiddleware
-from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
-from toollib.logu import init_logger
 
 from app.api import router
-from app.core import config, client_ip_var, request_id_var
+from app.core import config, logger
+from app.middleware import add_middleware_and_exceptions
 
-_EXPOSE_ERROR = True
-
-logger = init_logger(
-    level="DEBUG" if config.APP_DEBUG else "INFO",
-    context_vars={"request_id": request_id_var, "client_ip": client_ip_var},
-    fmt="%(asctime)s %(levelname)s %(request_id)s %(client_ip)s %(name)s %(filename)s:%(lineno)d %(message)s",
-    serialize=config.APP_LOG_SERIALIZE,
-    enable_console=config.APP_LOG_ENABLE_CONSOLE,
-    enable_file=config.APP_LOG_ENABLE_FILE,
-    outdir=config.APP_LOG_OUTDIR,
-)
-# #
 openapi_url, docs_url, redoc_url = "/openapi.json", "/docs", "/redoc"
 if config.APP_DISABLE_DOCS is True:
     openapi_url, docs_url, redoc_url = None, None, None
@@ -42,162 +23,6 @@ async def lifespan(xapp: FastAPI):
     logger.info("Application server shutdown")
 
 
-class HttpMiddleware(BaseHTTPMiddleware):
-    _HEADERS = {
-        # 可添加相关头
-    }
-
-    async def dispatch(
-        self,
-        request: Request,
-        call_next: RequestResponseEndpoint,
-    ) -> Response:
-        request_id_key = "X-Request-ID"
-        request_id = await self._get_or_create_request_id(request, key=request_id_key)
-        request_id_token = request_id_var.set(request_id)
-        request.state.request_id = request_id
-        client_ip = self._get_client_ip(request)
-        client_ip_token = client_ip_var.set(client_ip)
-        request.state.client_ip = client_ip
-        try:
-            response = await call_next(request)
-            response.headers[request_id_key] = request_id
-            for key, value in self._HEADERS.items():
-                if key not in response.headers:
-                    response.headers[key] = value
-            return response
-        except Exception as exc:
-            return await self.handle_exception(request, exc)
-        finally:
-            request_id_var.reset(request_id_token)
-            client_ip_var.reset(client_ip_token)
-
-    @staticmethod
-    async def _get_or_create_request_id(request: Request, key: str, prefix: str = "") -> str:
-        request_id = request.headers.get(key)
-        if not request_id:
-            request_id = f"{prefix}{uuid.uuid4()}"
-        return request_id
-
-    @staticmethod
-    def _get_client_ip(request: Request, default: str = "-") -> str:
-        forwarded_for = request.headers.get("X-Forwarded-For")
-        if forwarded_for:
-            return forwarded_for.split(",")[0].strip()
-        real_ip = request.headers.get("X-Real-IP")
-        if real_ip:
-            return real_ip.strip()
-        if request.client:
-            return request.client.host or default
-        return default
-
-    @staticmethod
-    async def handle_exception(
-        request: Request,
-        exc: Exception,
-        log_traceback: bool = True,
-        log_request: bool = False,
-    ) -> JSONResponse:
-        msg = "服务开小差了，请稍后再试"
-        code = 500
-        lmsg = f'- "{request.method} {request.url.path}" {code} {type(exc).__name__}: {exc}'
-        if log_traceback:
-            logger.exception(lmsg)
-        else:
-            logger.error(lmsg)
-        if log_request:
-            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
-            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
-        content = {
-            "msg": msg,
-            "code": code,
-            "request_id": request.state.request_id,
-        }
-        if _EXPOSE_ERROR:
-            content["error"] = str(exc)
-        return JSONResponse(
-            content=content,
-        )
-
-
-class CorsMiddleware(CORSMiddleware):
-    def __init__(self, xapp, **kwargs):
-        super().__init__(
-            xapp,
-            allow_credentials=config.APP_ALLOW_CREDENTIALS,
-            allow_origins=config.APP_ALLOW_ORIGINS,
-            allow_methods=config.APP_ALLOW_METHODS,
-            allow_headers=config.APP_ALLOW_HEADERS,
-            **kwargs,
-        )
-
-
-class ExceptionsHandler:
-    @staticmethod
-    async def request_validation_handler(
-        request: Request,
-        exc: RequestValidationError,
-        display_all: bool = False,
-        log_traceback: bool = True,
-        log_request: bool = False,
-    ) -> JSONResponse:
-        if display_all:
-            msg = " & ".join(
-                [
-                    f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"
-                    for error in exc.errors()
-                ]
-            )
-        else:
-            error = exc.errors()[0]
-            msg = f"{error['loc'][-1]} ({error['type']}) {error['msg'].replace('Value error, ', '').lower()}"
-        code = 400
-        lmsg = f'- "{request.method} {request.url.path}" {code} {msg}'
-        if log_traceback:
-            logger.exception(lmsg)
-        else:
-            logger.error(lmsg)
-        if log_request:
-            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
-            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
-        content = {
-            "msg": msg,
-            "code": code,
-            "request_id": request.state.request_id,
-        }
-        if _EXPOSE_ERROR:
-            content["error"] = str(exc)
-        return JSONResponse(
-            content=content,
-        )
-
-    @staticmethod
-    async def http_exception_handler(
-        request: Request,
-        exc: HTTPException,
-        log_traceback: bool = True,
-        log_request: bool = False,
-    ) -> JSONResponse:
-        lmsg = f'- "{request.method} {request.url.path}" {exc.status_code} {exc.detail}'
-        if log_traceback:
-            logger.exception(lmsg)
-        else:
-            logger.error(lmsg)
-        if log_request:
-            logger.warning(f"Query params: {request.query_params or '<Empty>'}")
-            logger.warning(f"Body: {await request.body() or b'<Empty>'!r}")
-        content = {
-            "msg": exc.detail,
-            "code": exc.status_code,
-            "request_id": request.state.request_id,
-        }
-        if _EXPOSE_ERROR:
-            content["error"] = str(exc)
-        return JSONResponse(
-            content=content,
-        )
-
-
 app = FastAPI(
     title=config.APP_TITLE,
     summary=config.APP_SUMMARY,
@@ -210,8 +35,5 @@ app = FastAPI(
     lifespan=lifespan,
 )
 # #
-app.add_middleware(HttpMiddleware)
-app.add_middleware(CorsMiddleware)
-app.add_exception_handler(RequestValidationError, ExceptionsHandler.request_validation_handler)
-app.add_exception_handler(HTTPException, ExceptionsHandler.http_exception_handler)
+add_middleware_and_exceptions(app)
 app.include_router(router)
