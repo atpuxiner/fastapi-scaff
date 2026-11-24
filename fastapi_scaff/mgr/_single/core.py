@@ -49,4 +49,5 @@ config = Config(
     prefer_env_path=True,
     prefer_env_attr=True,
 )
-request_id_var: ContextVar[str] = ContextVar("request_id", default="N/A")
+request_id_var: ContextVar[str] = ContextVar("request_id", default="-")
+client_ip_var: ContextVar[str] = ContextVar("client_ip", default="-")

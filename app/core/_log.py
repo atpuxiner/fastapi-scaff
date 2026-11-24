@@ -1,6 +1,6 @@
 from toollib.logu import init_logger as _init_logger
 
-from app.core.context import request_id_var
+from app.core.context import client_ip_var, request_id_var
 
 
 def init_logger(
@@ -12,7 +12,8 @@ def init_logger(
 ):
     logger = _init_logger(
         level=level,
-        request_id_var=request_id_var,
+        context_vars={"request_id": request_id_var, "client_ip": client_ip_var},
+        fmt="%(asctime)s %(levelname)s %(request_id)s %(client_ip)s %(name)s %(filename)s:%(lineno)d %(message)s",
         serialize=serialize,
         enable_console=enable_console,
         enable_file=enable_file,

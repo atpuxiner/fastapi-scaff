@@ -14,7 +14,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from app.core import g
-from app.core.context import request_id_var
+from app.core.context import client_ip_var, request_id_var
 from app.core.exceptions import CustomException
 from app.core.responses import Responses
 from app.core.status import Status
@@ -48,8 +48,11 @@ class HttpMiddleware(BaseHTTPMiddleware):
     ) -> Response:
         request_id_key = "X-Request-ID"
         request_id = await self._get_or_create_request_id(request, key=request_id_key)
-        token = request_id_var.set(request_id)
+        request_id_token = request_id_var.set(request_id)
         request.state.request_id = request_id
+        client_ip = self._get_client_ip(request)
+        client_ip_token = client_ip_var.set(client_ip)
+        request.state.client_ip = client_ip
         try:
             response = await call_next(request)
             response.headers[request_id_key] = request_id
@@ -60,7 +63,8 @@ class HttpMiddleware(BaseHTTPMiddleware):
         except Exception as exc:
             return await self.handle_exception(request, exc)
         finally:
-            request_id_var.reset(token)
+            request_id_var.reset(request_id_token)
+            client_ip_var.reset(client_ip_token)
 
     @staticmethod
     async def _get_or_create_request_id(request: Request, key: str, prefix: str = "") -> str:
@@ -68,6 +72,18 @@ class HttpMiddleware(BaseHTTPMiddleware):
         if not request_id:
             request_id = f"{prefix}{uuid.uuid4()}"
         return request_id
+
+    @staticmethod
+    def _get_client_ip(request: Request, default: str = "-") -> str:
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            return forwarded_for.split(",")[0].strip()
+        real_ip = request.headers.get("X-Real-IP")
+        if real_ip:
+            return real_ip.strip()
+        if request.client:
+            return request.client.host or default
+        return default
 
     @staticmethod
     async def handle_exception(

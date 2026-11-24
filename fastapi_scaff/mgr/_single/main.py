@@ -11,13 +11,14 @@ from starlette.responses import JSONResponse, Response
 from toollib.logu import init_logger
 
 from app.api import router
-from app.core import config, request_id_var
+from app.core import config, client_ip_var, request_id_var
 
 _EXPOSE_ERROR = True
 
 logger = init_logger(
     level="DEBUG" if config.APP_DEBUG else "INFO",
-    request_id_var=request_id_var,
+    context_vars={"request_id": request_id_var, "client_ip": client_ip_var},
+    fmt="%(asctime)s %(levelname)s %(request_id)s %(client_ip)s %(name)s %(filename)s:%(lineno)d %(message)s",
     serialize=config.APP_LOG_SERIALIZE,
     enable_console=config.APP_LOG_ENABLE_CONSOLE,
     enable_file=config.APP_LOG_ENABLE_FILE,
@@ -51,12 +52,16 @@ class HttpMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: RequestResponseEndpoint,
     ) -> Response:
-        request_id = await self._get_or_create_request_id(request)
+        request_id_key = "X-Request-ID"
+        request_id = await self._get_or_create_request_id(request, key=request_id_key)
+        request_id_token = request_id_var.set(request_id)
         request.state.request_id = request_id
-        token = request_id_var.set(request_id)
+        client_ip = self._get_client_ip(request)
+        client_ip_token = client_ip_var.set(client_ip)
+        request.state.client_ip = client_ip
         try:
             response = await call_next(request)
-            response.headers["X-Request-ID"] = request_id
+            response.headers[request_id_key] = request_id
             for key, value in self._HEADERS.items():
                 if key not in response.headers:
                     response.headers[key] = value
@@ -64,14 +69,27 @@ class HttpMiddleware(BaseHTTPMiddleware):
         except Exception as exc:
             return await self.handle_exception(request, exc)
         finally:
-            request_id_var.reset(token)
+            request_id_var.reset(request_id_token)
+            client_ip_var.reset(client_ip_token)
 
     @staticmethod
-    async def _get_or_create_request_id(request: Request, prefix: str = "req-") -> str:
-        request_id = request.headers.get("X-Request-ID")
+    async def _get_or_create_request_id(request: Request, key: str, prefix: str = "") -> str:
+        request_id = request.headers.get(key)
         if not request_id:
-            request_id = f"{prefix}{uuid.uuid4().hex}"
+            request_id = f"{prefix}{uuid.uuid4()}"
         return request_id
+
+    @staticmethod
+    def _get_client_ip(request: Request, default: str = "-") -> str:
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            return forwarded_for.split(",")[0].strip()
+        real_ip = request.headers.get("X-Real-IP")
+        if real_ip:
+            return real_ip.strip()
+        if request.client:
+            return request.client.host or default
+        return default
 
     @staticmethod
     async def handle_exception(
