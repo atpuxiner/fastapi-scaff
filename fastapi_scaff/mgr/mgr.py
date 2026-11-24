@@ -11,14 +11,14 @@ def gen_project_json():
     exclude_pat = re.compile(
         "|".join(
             [
-                "^.git(/.*)?$",
-                "^.idea(/.*)?$",
-                "^.vscode(/.*)?$",
+                r"(?:(?:^|/)\.[^/]+/.*)$",
                 "^build(/.*)?$",
                 "^dist(/.*)?$",
                 "^fastapi_scaff(/.*)?$",
                 "^fastapi_scaff.egg-info(/.*)?$",
+                "^data(/.*)?$",
                 "^logs(/.*)?$",
+                r"^tests/(?!__init__\.py$).*",
                 "^.history$",
                 "^setup.py$",
                 "alembic/versions/.*.py$",
@@ -26,6 +26,7 @@ def gen_project_json():
                 ".pyc$",
                 ".log$",
                 ".sqlite3$",
+                "^celerybeat-schedule$",
             ]
         )
     )
@@ -36,6 +37,7 @@ def gen_project_json():
             continue
         file_str = file.as_posix().replace(project_dir.as_posix(), "").lstrip("/")
         if not exclude_pat.search(file_str):
+            print(f"Adding file: {file_str}")
             if file.suffix.endswith(base64_suffixes):
                 with open(file, "rb") as f:
                     data[file_str] = base64.b64encode(f.read()).decode("utf-8")

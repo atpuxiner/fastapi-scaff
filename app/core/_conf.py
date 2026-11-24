@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from sqlalchemy.sql import false
 from toollib.utils import ConfModel, FrozenVar
 
 from app import APP_DIR
@@ -17,10 +16,7 @@ if not YAML_PATH.is_file():
 
 
 class Config(ConfModel):
-    """配置
-    
-    list、tuple、set、dict的值可按json字符串格式配置，如：my_list="[1, 2, 3]"、my_dict='{"key": "value"}'
-    """
+    """配置"""
 
     APP_DIR: FrozenVar[Path] = APP_DIR
     # #

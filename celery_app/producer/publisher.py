@@ -27,5 +27,5 @@ def publish(
         queue=task_params.queue,  # enforced queue consistency
         **task_options_merged,
     )
-    logger.info(f"PUBLISH TASK: {task_params.name} | ID={result.id} | QUEUE={task_params.queue}")
+    logger.info(f"task published label={task_label} ({task_params.name}) id={result.id} queue={task_params.queue}")
     return result.id

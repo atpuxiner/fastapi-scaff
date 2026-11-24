@@ -15,10 +15,7 @@ if not YAML_PATH.is_file():
 
 
 class Config(ConfModel):
-    """配置
-    
-    list、tuple、set、dict的值可按json字符串格式配置，如：my_list="[1, 2, 3]"、my_dict='{"key": "value"}'
-    """
+    """配置"""
 
     APP_DIR: FrozenVar[Path] = _APP_DIR
     # #

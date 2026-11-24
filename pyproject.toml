@@ -36,6 +36,7 @@ exclude = [
     "celery_app*",
     "config*",
     "docs*",
+    "data*",
     "logs*",
     "tests*",
     "fastapi_scaff.mgr*",
